@@ -1,0 +1,112 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0099cc"
+    tools:context="nz.co.scuff.android.DriverHomeActivity">
+
+    <!-- This FrameLayout insets its children based on system windows using
+         android:fitsSystemWindows. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <Spinner
+                    android:id="@+id/driver.spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:prompt="@string/driver_prompt" />
+
+                <Spinner
+                    android:id="@+id/route.spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:prompt="@string/route_prompt" />
+
+            </LinearLayout>
+
+            <com.daimajia.swipe.SwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/swipe2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:background="#0099cc"
+                    android:orientation="vertical"
+                    android:id="@+id/mapSlideOver"
+                    android:padding="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+                </LinearLayout>
+                <!-- Bottom View End-->
+
+                <!-- Surface View Start -->
+                <LinearLayout
+                    android:background="#0099cc"
+                    android:id="@+id/bottom_wrapper2"
+                    android:layout_width="match_parent"
+                    android:weightSum="1"
+                    android:layout_height="match_parent">
+                    <!--What you want to show-->
+                    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@+id/googleMap"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_marginBottom="10dp"
+                        android:name="com.google.android.gms.maps.MapFragment"/>
+                </LinearLayout>
+                <!-- Surface View End -->
+            </com.daimajia.swipe.SwipeLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/green_button"
+                    android:text="@string/start.button"
+                    android:id="@+id/record.tracking.button"
+                    android:layout_weight="1"
+                    android:onClick="recordJourney"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_marginBottom="10dp"
+
+                    android:height="50dip" />
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/red_button"
+                    android:text="@string/stop.button"
+                    android:id="@+id/stop.tracking.button"
+                    android:layout_weight="1"
+                    android:onClick="finaliseJourney"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:height="50dip" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+</FrameLayout>
