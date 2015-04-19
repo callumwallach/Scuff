@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 import org.joda.time.DateTime;
 
-import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.school.Route;
 
 /**
@@ -13,11 +13,11 @@ import nz.co.scuff.data.school.Route;
  */
 public class ScheduleItem implements Parcelable {
 
-    private Parent driver;
+    private Driver driver;
     private Route route;
     private DateTime date;
 
-    public ScheduleItem(Parent driver, Route route, DateTime date) {
+    public ScheduleItem(Driver driver, Route route, DateTime date) {
         this.driver = driver;
         this.route = route;
         this.date = date;
@@ -44,12 +44,12 @@ public class ScheduleItem implements Parcelable {
         return result;
     }
 
-    public Parent getDriver() {
+    public Driver getDriver() {
 
         return driver;
     }
 
-    public void setDriver(Parent driver) {
+    public void setDriver(Driver driver) {
         this.driver = driver;
     }
 
@@ -70,7 +70,7 @@ public class ScheduleItem implements Parcelable {
     }
 
     protected ScheduleItem(Parcel in) {
-        driver = (Parent) in.readValue(Parent.class.getClassLoader());
+        driver = (Driver) in.readValue(Driver.class.getClassLoader());
         route = (Route) in.readValue(Route.class.getClassLoader());
         date = (DateTime) in.readValue(DateTime.class.getClassLoader());
     }

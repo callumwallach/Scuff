@@ -50,39 +50,60 @@ public final class JourneyDatasource {
         return totalDistanceInMeters;
     }
 
-    public static long post(Location location) {
+    public static int endJourney(String journeyId) {
+
+        if (D) Log.d(TAG, "endJourney journeyId="+journeyId);
+
+        // copy journey from active to completed
+        JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffContextProvider.getContext());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACTIVE, 0);
+
+        String selection = JourneyContract.JourneyEntry.COLUMN_NAME_JOURNEY_ID + "=?";
+        String[] selectionArgs = { journeyId };
+        return db.update(JourneyContract.JourneyEntry.TABLE_NAME, values, selection,
+                selectionArgs);
+
+    }
+
+    public static long recordWaypoint(Location location) {
 
         SharedPreferences sp = ScuffContextProvider.getContext().
                 getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
 
+        if (D) Log.d(TAG, "record waypoint journey=["+sp.getString(Constants.DRIVER_JOURNEY_ID, "ERROR")+"]");
+
         ContentValues values = new ContentValues();
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_APP_ID,
-                sp.getString(Constants.DRIVER_APP_ID, null));
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_SCHOOL_ID,
-                sp.getString(Constants.DRIVER_SCHOOL_ID, null));
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_DRIVER_ID,
-                sp.getString(Constants.DRIVER_DRIVER_ID, null));
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_ROUTE_ID,
-                sp.getString(Constants.DRIVER_ROUTE_ID, null));
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_JOURNEY_ID,
-                sp.getString(Constants.DRIVER_JOURNEY_ID, null));
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_LATITUDE, location.getLatitude());
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_LONGITUDE, location.getLongitude());
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_SPEED, location.getSpeed());
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_BEARING, location.getBearing());
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_DISTANCE,
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_JOURNEY_ID,
+                sp.getString(Constants.DRIVER_JOURNEY_ID, "ERROR"));
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_APP_ID,
+                sp.getLong(Constants.DRIVER_APP_ID, -1));
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID,
+                sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"));
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_DRIVER_ID,
+                sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID,
+                sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE, location.getLatitude());
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE, location.getLongitude());
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED, location.getSpeed());
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_BEARING, location.getBearing());
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_DISTANCE,
                 calculateTotalDistance(location));
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_PROVIDER, location.getProvider());
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_ACCURACY, location.getAccuracy());
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_ALTITUDE, location.getAltitude());
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_SOURCE, "Android");
-        values.put(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_TIMESTAMP,
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER, location.getProvider());
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY, location.getAccuracy());
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE, location.getAltitude());
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE, "Android");
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP,
                 DateTime.now().toString(ISODateTimeFormat.dateTime()));
+        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACTIVE, 1);
 
         JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffContextProvider.getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        return db.insert(JourneyContract.ActiveJourneyEntry.TABLE_NAME, null, values);
+        return db.insert(JourneyContract.JourneyEntry.TABLE_NAME, null, values);
     }
 
     public static Location get() {
@@ -92,15 +113,16 @@ public final class JourneyDatasource {
 
         SharedPreferences sp = ScuffContextProvider.getContext().
                 getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        String selection = JourneyContract.ActiveJourneyEntry.COLUMN_NAME_SCHOOL_ID +
-                "=? and " + JourneyContract.ActiveJourneyEntry.COLUMN_NAME_ROUTE_ID + "=?";
+        String selection = JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID +
+                "=? and " + JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID +
+                "=? and " + JourneyContract.JourneyEntry.COLUMN_NAME_ACTIVE + "=?";
         String[] selectionArgs = { sp.getString(Constants.PASSENGER_SCHOOL_ID, null),
-                sp.getString(Constants.PASSENGER_ROUTE_ID, null) };
+                sp.getString(Constants.PASSENGER_ROUTE_ID, null), "1"};
         if (D) Log.d(TAG, "selectionArgs=" + selectionArgs[0] + " " + selectionArgs[1]);
-        String sortOrder = JourneyContract.ActiveJourneyEntry.COLUMN_NAME_TIMESTAMP + " DESC";
+        String sortOrder = JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP + " DESC";
 
         Cursor cursor = db.query(
-                JourneyContract.ActiveJourneyEntry.TABLE_NAME,  // The table to query
+                JourneyContract.JourneyEntry.TABLE_NAME,  // The table to query
                 null,                                       // The columns to return
                 selection,                                // The columns for the WHERE clause
                 selectionArgs,                            // The values for the WHERE clause
@@ -109,17 +131,18 @@ public final class JourneyDatasource {
                 sortOrder                                 // The sort order
         );
 
-        cursor.moveToFirst();
-        String provider = cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_PROVIDER));
-        Location location = new Location(provider);
-        location.setLatitude(Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_LATITUDE))));
-        location.setLongitude(Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_LONGITUDE))));
-        location.setSpeed(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_SPEED)));
-        location.setBearing(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_BEARING)));
-        location.setAccuracy(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_ACCURACY)));
-        location.setAltitude(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_ALTITUDE)));
-        location.setTime(DateTime.parse(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.ActiveJourneyEntry.COLUMN_NAME_TIMESTAMP))).getMillis());
-
+        Location location = null;
+        if (cursor.moveToFirst()) {
+            String provider = cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER));
+            location = new Location(provider);
+            location.setLatitude(Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE))));
+            location.setLongitude(Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE))));
+            location.setSpeed(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED)));
+            location.setBearing(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_BEARING)));
+            location.setAccuracy(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY)));
+            location.setAltitude(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE)));
+            location.setTime(DateTime.parse(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP))).getMillis());
+        }
         return location;
     }
 }

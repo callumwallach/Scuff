@@ -21,13 +21,14 @@ import android.widget.Spinner;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.Set;
 
-import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
@@ -68,13 +69,13 @@ public class PassengerHomeActivity extends FragmentActivity
 
         Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
         LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
-        Set<Child> children = family.getChildren();
+        Set<Passenger> passengers = family.getPassengers();
 /*
         ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
         getSupportFragmentManager().beginTransaction().add(R.id.mapSlideOver, childrenFragment).commit();
 */
 
-        for (Child c : children) {
+        for (Passenger c : passengers) {
             Button button = new Button(this);
             String fileLocation = getFilesDir() + "/" + c.getPix();
             if (D) Log.d(TAG, "file location = "+ fileLocation);
@@ -94,10 +95,10 @@ public class PassengerHomeActivity extends FragmentActivity
 
     private void populateRoutes() {
 
-        Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
+        School school = ((ScuffContextProvider)getApplicationContext()).getSchool();
         Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
         ArrayAdapter<Route> dataAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, new ArrayList<>(family.getSchools().iterator().next().getRoutes()));
+                android.R.layout.simple_spinner_item, new ArrayList<>(school.getRoutes()));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         routeSpinner.setAdapter(dataAdapter);
         routeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -139,6 +140,11 @@ public class PassengerHomeActivity extends FragmentActivity
         Location myLocation = locationManager.getLastKnownLocation(provider);
 
         if (D) Log.d(TAG, "My location = " + myLocation);
+        if (myLocation == null) {
+            // GPS not turned on? use school location
+            DialogHelper.dialog(this, "GPS is not active", "Please turn GPS on or wait for a stronger signal");
+            return;
+        }
 
         /*double latitude = (myLocation == null ? this.school.getLatitude() : myLocation.getLatitude());
         double longitude = (myLocation == null ? this.school.getLongitude() : myLocation.getLongitude());
@@ -147,19 +153,31 @@ public class PassengerHomeActivity extends FragmentActivity
 
         if (D) Log.d(TAG, "My latlng = " + myLatlng);
 
-        this.googleMap.moveCamera(CameraUpdateFactory.newLatLng(myLatlng));
-        this.googleMap.animateCamera(CameraUpdateFactory.zoomTo(16));
-        this.googleMap.addMarker(new MarkerOptions().position(myLatlng).title("Current position"));
+        /*this.googleMap.moveCamera(CameraUpdateFactory.newLatLng(myLatlng));
+        this.googleMap.animateCamera(CameraUpdateFactory.zoomTo(16));*/
+        this.googleMap.addMarker(new MarkerOptions()
+                .position(myLatlng)
+                .title("Current position")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
 
         Location busLocation = JourneyDatasource.get();
         if (D) Log.d(TAG, "Bus location = " + busLocation);
+        if (busLocation == null) {
+            // no active buses on this route
+            DialogHelper.dialog(this, "Bus not found", "There are currently no active buses on this route");
+            return;
+        }
 
         LatLng busLatlng = new LatLng(busLocation.getLatitude(), busLocation.getLongitude());
         if (D) Log.d(TAG, "Bus latlng = " + busLatlng);
 
-        this.googleMap.moveCamera(CameraUpdateFactory.newLatLng(busLatlng));
-        this.googleMap.animateCamera(CameraUpdateFactory.zoomTo(16));
-        this.googleMap.addMarker(new MarkerOptions().position(busLatlng).title("Bus position"));
+        //this.googleMap.moveCamera(CameraUpdateFactory.newLatLng(busLatlng));
+        //this.googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        this.googleMap.addMarker(new MarkerOptions()
+                .position(busLatlng)
+                .title("Bus position")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
+        this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
 
     }
 
@@ -168,8 +186,8 @@ public class PassengerHomeActivity extends FragmentActivity
         DialogHelper.toast(this, school.getName());
     }
 
-    public void onFragmentInteraction(Child child) {
-        DialogHelper.toast(this, child.getName());
+    public void onFragmentInteraction(Passenger passenger) {
+        DialogHelper.toast(this, passenger.getName());
     }
 
     @Override

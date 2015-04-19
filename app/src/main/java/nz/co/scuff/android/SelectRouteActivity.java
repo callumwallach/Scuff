@@ -131,7 +131,7 @@ public class SelectRouteActivity extends ActionBarActivity implements ActionBar.
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-        Intent intent = new Intent();
+/*        Intent intent = new Intent();
         Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
         Route selectedRoute = null;
         for (School school : family.getSchools()) {
@@ -142,7 +142,7 @@ public class SelectRouteActivity extends ActionBarActivity implements ActionBar.
         }
         intent.putExtra(CHOSEN_ROUTE, selectedRoute);
         setResult(Activity.RESULT_OK, intent);
-        finish();
+        finish();*/
     }
 
     /**
@@ -159,12 +159,14 @@ public class SelectRouteActivity extends ActionBarActivity implements ActionBar.
 
             super(fm);
 
+/*
             Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
             ArrayList<Route> routes = new ArrayList<Route>();
             for (School school : family.getSchools()) {
                 routes.addAll(school.getRoutes());
             }
             this.routes = routes;
+*/
 
         }
 

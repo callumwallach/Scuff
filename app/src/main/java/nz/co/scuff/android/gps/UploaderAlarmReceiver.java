@@ -32,13 +32,13 @@ public class UploaderAlarmReceiver extends WakefulBroadcastReceiver {
         newIntent.putExtra(Constants.TRACKING_STATE_TYPE, state);
 
         switch (state) {
-            case Constants.TRACKING_STATE_RECORD :
+            case Constants.TRACKING_STATE_RECORDING:
                 context.startService(newIntent);
                 break;
-            case Constants.TRACKING_STATE_PAUSE :
+            case Constants.TRACKING_STATE_PAUSED:
                 // do nothing - not recording
                 break;
-            case Constants.TRACKING_STATE_FINALISE :
+            case Constants.TRACKING_STATE_STOPPED:
                 //context.startService(newIntent);
                 break;
             default:

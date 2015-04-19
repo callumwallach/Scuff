@@ -8,20 +8,23 @@ import nz.co.scuff.data.school.School;
 /**
  * Created by Callum on 17/03/2015.
  */
-public class Child extends Person implements Parcelable {
+public class Passenger extends Person implements Parcelable {
 
     private School school;
 
-    public Child(String name) {
+    public Passenger(String name, School school) {
         super(name);
+        this.school = school;
     }
 
-    public Child(String name, Gender gender) {
+    public Passenger(String name, School school, Gender gender) {
         super(name, gender);
+        this.school = school;
     }
 
-    public Child(String name, Gender gender, String pix) {
+    public Passenger(String name, School school, Gender gender, String pix) {
         super(name, gender, pix);
+        this.school = school;
     }
 
     public School getSchool() {
@@ -32,7 +35,7 @@ public class Child extends Person implements Parcelable {
         this.school = school;
     }
 
-    protected Child(Parcel in) {
+    protected Passenger(Parcel in) {
         super(in);
         school = (School) in.readValue(School.class.getClassLoader());
     }
@@ -48,15 +51,15 @@ public class Child extends Person implements Parcelable {
     }
 
     @SuppressWarnings("unused")
-    public static final Parcelable.Creator<Child> CREATOR = new Parcelable.Creator<Child>() {
+    public static final Parcelable.Creator<Passenger> CREATOR = new Parcelable.Creator<Passenger>() {
         @Override
-        public Child createFromParcel(Parcel in) {
-            return new Child(in);
+        public Passenger createFromParcel(Parcel in) {
+            return new Passenger(in);
         }
 
         @Override
-        public Child[] newArray(int size) {
-            return new Child[size];
+        public Passenger[] newArray(int size) {
+            return new Passenger[size];
         }
     };
 }

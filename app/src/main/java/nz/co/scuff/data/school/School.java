@@ -5,8 +5,8 @@ import android.os.Parcelable;
 
 import java.util.HashSet;
 
-import nz.co.scuff.data.family.Child;
-import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.schedule.Schedule;
 
 /**
@@ -22,8 +22,8 @@ public class School implements Parcelable {
     private HashSet<Route> routes;
     private Schedule schedule;
 
-    private HashSet<Child> children;
-    private HashSet<Parent> drivers;
+    private HashSet<Passenger> passengers;
+    private HashSet<Driver> drivers;
 
     public School(String name, double latitude, double longitude, double elevation) {
         this.name = name;
@@ -33,7 +33,7 @@ public class School implements Parcelable {
 
         this.routes = new HashSet<>();
         this.schedule = new Schedule();
-        this.children = new HashSet<>();
+        this.passengers = new HashSet<>();
         this.drivers = new HashSet<>();
     }
 
@@ -45,35 +45,35 @@ public class School implements Parcelable {
         this.schedule = schedule;
     }
 
-    public boolean addChild(Child child) {
-        return this.children.add(child);
+    public boolean addChild(Passenger passenger) {
+        return this.passengers.add(passenger);
     }
 
-    public boolean removeChild(Child child) {
-        return this.children.remove(child);
+    public boolean removeChild(Passenger passenger) {
+        return this.passengers.remove(passenger);
     }
 
-    public HashSet<Child> getChildren() {
-        return children;
+    public HashSet<Passenger> getPassengers() {
+        return passengers;
     }
 
-    public void setChildren(HashSet<Child> children) {
-        this.children = children;
+    public void setPassengers(HashSet<Passenger> passengers) {
+        this.passengers = passengers;
     }
 
-    public boolean addDriver(Parent driver) {
+    public boolean addDriver(Driver driver) {
         return this.drivers.add(driver);
     }
 
-    public boolean removeDriver(Parent driver) {
+    public boolean removeDriver(Driver driver) {
         return this.drivers.remove(driver);
     }
 
-    public HashSet<Parent> getDrivers() {
+    public HashSet<Driver> getDrivers() {
         return drivers;
     }
 
-    public void setDrivers(HashSet<Parent> drivers) {
+    public void setDrivers(HashSet<Driver> drivers) {
         this.drivers = drivers;
     }
 
@@ -153,7 +153,7 @@ public class School implements Parcelable {
         elevation = in.readDouble();
         routes = (HashSet) in.readValue(HashSet.class.getClassLoader());
         schedule = (Schedule) in.readValue(Schedule.class.getClassLoader());
-        children = (HashSet) in.readValue(HashSet.class.getClassLoader());
+        passengers = (HashSet) in.readValue(HashSet.class.getClassLoader());
         drivers = (HashSet) in.readValue(HashSet.class.getClassLoader());
     }
 
@@ -170,7 +170,7 @@ public class School implements Parcelable {
         dest.writeDouble(elevation);
         dest.writeValue(routes);
         dest.writeValue(schedule);
-        dest.writeValue(children);
+        dest.writeValue(passengers);
         dest.writeValue(drivers);
     }
 

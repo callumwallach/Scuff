@@ -17,6 +17,7 @@ import com.google.android.gms.location.LocationServices;
 
 import nz.co.scuff.test.JourneyDatasource;
 import nz.co.scuff.util.Constants;
+import nz.co.scuff.util.DialogHelper;
 
 public class RecorderService extends IntentService implements
         GoogleApiClient.ConnectionCallbacks,
@@ -45,25 +46,36 @@ public class RecorderService extends IntentService implements
 
         context.startService(newIntent);
         */
-/*        Bundle bundle = intent.getExtras();
-        int state = bundle.getInt(Constants.TRACKING_STATE_TYPE);
+        int state = intent.getExtras().getInt(Constants.TRACKING_STATE_TYPE);
 
         switch (state) {
-            case Constants.TRACKING_STATE_RECORD :
-            case Constants.TRACKING_STATE_PAUSE :
-            case Constants.TRACKING_STATE_FINALISE :
-
-        }*/
-
-        // if still attempting to get location (and alarm called again) ignore
-        if (!currentlyProcessingLocation) {
-            currentlyProcessingLocation = true;
-            startTracking();
+            case Constants.TRACKING_STATE_RECORDING:
+                // if still attempting to get location (and alarm called again) ignore
+                if (!currentlyProcessingLocation) {
+                    currentlyProcessingLocation = true;
+                    startTracking();
+                }
+                break;
+            case Constants.TRACKING_STATE_STOPPED:
+                // finalise journey
+                String journeyId = intent.getExtras().getString(Constants.DRIVER_JOURNEY_ID);
+                endJourney(journeyId);
+                break;
+            case Constants.TRACKING_STATE_PAUSED:
+            default:
+                DialogHelper.errorToast(this, "invalid PAUSE tracking state");
         }
+
+        // release wake lock
+        RecorderAlarmReceiver.completeWakefulIntent(intent);
 
     }
 
-
+    private void endJourney(String journeyId) {
+        Log.d(TAG, "end journey - start");
+        int updatedRows = JourneyDatasource.endJourney(journeyId);
+        Log.d(TAG, "end journey - updated ["+updatedRows+"] rows");
+    }
 
     private void startTracking() {
         Log.d(TAG, "startTracking");
@@ -84,7 +96,7 @@ public class RecorderService extends IntentService implements
 
     protected void sendLocationDataToDB(Location location) {
         Log.d(TAG, "sendLocationDataToDB");
-        long rowId = JourneyDatasource.post(location);
+        long rowId = JourneyDatasource.recordWaypoint(location);
         Log.d(TAG, "finished insert id=" + rowId);
     }
 

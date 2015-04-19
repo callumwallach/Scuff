@@ -15,9 +15,8 @@ public class Family implements Parcelable {
     public Family(String name) {
         this.id = 1;
         this.name = name;
-        this.schools = new HashSet<>();
-        this.children = new HashSet<>();
-        this.parents = new HashSet<>();
+        this.passengers = new HashSet<>();
+        this.drivers = new HashSet<>();
     }
 
     public long getId() {
@@ -28,52 +27,36 @@ public class Family implements Parcelable {
         this.id = id;
     }
 
-    public boolean addSchool(School school) {
-        return this.schools.add(school);
+    public void addDriver(Driver driver) {
+        this.drivers.add(driver);
     }
 
-    public boolean removeSchool(School school) {
-        return this.schools.remove(school);
+    public boolean removeDriver(Driver driver) {
+        return this.drivers.remove(driver);
     }
 
-    public HashSet<School> getSchools() {
-        return schools;
+    public HashSet<Driver> getDrivers() {
+        return drivers;
     }
 
-    public void setSchools(HashSet<School> schools) {
-        this.schools = schools;
+    public void setDrivers(HashSet<Driver> drivers) {
+        this.drivers = drivers;
     }
 
-    public void addParent(Parent parent) {
-        this.parents.add(parent);
+    public boolean addPassenger(Passenger passenger) {
+        return this.passengers.add(passenger);
     }
 
-    public boolean removeParent(Parent parent) {
-        return this.parents.remove(parent);
+    public boolean removePassenger(Passenger passenger) {
+        return this.passengers.remove(passenger);
     }
 
-    public HashSet<Parent> getParents() {
-        return parents;
+    public HashSet<Passenger> getPassengers() {
+        return passengers;
     }
 
-    public void setParents(HashSet<Parent> parents) {
-        this.parents = parents;
-    }
-
-    public boolean addChild(Child child) {
-        return this.children.add(child);
-    }
-
-    public boolean removeChild(Child child) {
-        return this.children.remove(child);
-    }
-
-    public HashSet<Child> getChildren() {
-        return children;
-    }
-
-    public void setChildren(HashSet<Child> children) {
-        this.children = children;
+    public void setPassengers(HashSet<Passenger> passengers) {
+        this.passengers = passengers;
     }
 
     public String getName() {
@@ -86,17 +69,66 @@ public class Family implements Parcelable {
 
     private long id;
     private String name;
-    private HashSet<School> schools;
-    private HashSet<Parent> parents;
-    private HashSet<Child> children;
+    private HashSet<Driver> drivers;
+    private HashSet<Passenger> passengers;
 
+    public HashSet<Driver> getDriversForSchool(School school) {
+        HashSet<Driver> driversForSchool = new HashSet<>();
+        for (Driver d : drivers) {
+            if (d.getSchoolRoutes().keySet().contains(school)) {
+                driversForSchool.add(d);
+            }
+        }
+        return driversForSchool;
+    }
+
+    public HashSet<Passenger> getPassengersForSchool(School school) {
+        HashSet<Passenger> passengersForSchool = new HashSet<>();
+        for (Passenger p : passengers) {
+            if (p.getSchool().equals(school)) {
+                passengersForSchool.add(p);
+            }
+        }
+        return passengersForSchool;
+    }
+
+    // generated
+    private HashSet<School> driversSchools;
+
+    public HashSet<School> getDriversSchools() {
+        if (this.driversSchools == null) {
+            this.driversSchools = new HashSet<>();
+            for (Driver d : this.drivers) {
+                this.driversSchools.addAll(d.getSchoolRoutes().keySet());
+            }
+        }
+        return this.driversSchools;
+    }
+
+    // generated
+    private HashSet<School> passengersSchools;
+
+    public HashSet<School> getPassengersSchools() {
+        if (this.passengersSchools == null) {
+            this.passengersSchools = new HashSet<>();
+            for (Passenger p : this.passengers) {
+                this.passengersSchools.add(p.getSchool());
+            }
+        }
+        return this.passengersSchools;
+    }
+
+    public HashSet<School> getAllSchools() {
+        HashSet<School> allSchools = new HashSet<>(getDriversSchools());
+        allSchools.addAll(getPassengersSchools());
+        return allSchools;
+    }
 
     protected Family(Parcel in) {
         id = in.readLong();
         name = in.readString();
-        schools = (HashSet) in.readValue(HashSet.class.getClassLoader());
-        parents = (HashSet) in.readValue(HashSet.class.getClassLoader());
-        children = (HashSet) in.readValue(HashSet.class.getClassLoader());
+        drivers = (HashSet) in.readValue(HashSet.class.getClassLoader());
+        passengers = (HashSet) in.readValue(HashSet.class.getClassLoader());
     }
 
     @Override
@@ -108,9 +140,8 @@ public class Family implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(id);
         dest.writeString(name);
-        dest.writeValue(schools);
-        dest.writeValue(parents);
-        dest.writeValue(children);
+        dest.writeValue(drivers);
+        dest.writeValue(passengers);
     }
 
     @SuppressWarnings("unused")

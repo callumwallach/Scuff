@@ -5,8 +5,8 @@ import android.os.Parcelable;
 
 import java.util.HashSet;
 
-import nz.co.scuff.data.family.Child;
-import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.family.Driver;
 
 /**
  * Created by Callum on 17/03/2015.
@@ -14,34 +14,34 @@ import nz.co.scuff.data.family.Parent;
 public class Bus implements Parcelable {
 
     private String name;
-    private Parent driver;
-    private HashSet<Child> passengers;
+    private Driver driver;
+    private HashSet<Passenger> passengers;
 
     public Bus(String name) {
         this.name = name;
     }
 
-    public Parent getDriver() {
+    public Driver getDriver() {
         return driver;
     }
 
-    public void setDriver(Parent driver) {
+    public void setDriver(Driver driver) {
         this.driver = driver;
     }
 
-    public boolean addPassenger(Child passenger) {
+    public boolean addPassenger(Passenger passenger) {
         return this.passengers.add(passenger);
     }
 
-    public boolean removePassenger(Child passenger) {
+    public boolean removePassenger(Passenger passenger) {
         return this.passengers.remove(passenger);
     }
 
-    public HashSet<Child> getPassengers() {
+    public HashSet<Passenger> getPassengers() {
         return passengers;
     }
 
-    public void setPassengers(HashSet<Child> passengers) {
+    public void setPassengers(HashSet<Passenger> passengers) {
         this.passengers = passengers;
     }
 
@@ -56,7 +56,7 @@ public class Bus implements Parcelable {
 
     protected Bus(Parcel in) {
         name = in.readString();
-        driver = (Parent) in.readValue(Parent.class.getClassLoader());
+        driver = (Driver) in.readValue(Driver.class.getClassLoader());
         passengers = (HashSet) in.readValue(HashSet.class.getClassLoader());
     }
 
