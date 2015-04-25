@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
+import android.os.Parcel;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -13,6 +14,10 @@ import com.loopj.android.http.RequestParams;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ScuffContextProvider;
@@ -78,48 +83,59 @@ public final class JourneyDatasource {
 
         if (D) Log.d(TAG, "record waypoint journey=["+sp.getString(Constants.DRIVER_JOURNEY_ID, "ERROR")+"]");
 
-        ContentValues values = new ContentValues();
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_JOURNEY_ID,
+        HashMap<String, Object> waypointValues = new HashMap<>();
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_JOURNEY_ID,
                 sp.getString(Constants.DRIVER_JOURNEY_ID, "ERROR"));
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_APP_ID,
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_APP_ID,
                 sp.getLong(Constants.DRIVER_APP_ID, -1));
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID,
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID,
                 sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"));
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_DRIVER_ID,
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_DRIVER_ID,
                 sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID,
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID,
                 sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE, location.getLatitude());
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE, location.getLongitude());
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED, location.getSpeed());
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_BEARING, location.getBearing());
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_DISTANCE,
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE, location.getLatitude());
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE, location.getLongitude());
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED, location.getSpeed());
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_BEARING, location.getBearing());
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_DISTANCE,
                 calculateTotalDistance(location));
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER, location.getProvider());
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY, location.getAccuracy());
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE, location.getAltitude());
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE, "Android");
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP,
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER, location.getProvider());
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY, location.getAccuracy());
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE, location.getAltitude());
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE, "Android");
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP,
                 DateTime.now().toString(ISODateTimeFormat.dateTime()));
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACTIVE, 1);
+        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACTIVE, 1);
 
         JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffContextProvider.getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        final String uploadWebsite = "http://localhost:8080/scuff/helloworld";
-        final RequestParams requestParams = new RequestParams(values.valueSet());
-        LoopJHttpClient.post(uploadWebsite, requestParams, new AsyncHttpResponseHandler() {
+        //final String uploadWebsite = "http://10.0.3.2:8080/scuff/helloworld";
+        final String uploadWebsite = "http://10.0.3.2:8080/scuff/journeys";
+
+        final RequestParams requestValues = new RequestParams();
+        //final RequestParams requestValues = new RequestParams(waypointValues);
+        LoopJHttpClient.get(uploadWebsite, requestValues, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, org.apache.http.Header[] headers, byte[] responseBody) {
-                LoopJHttpClient.debugLoopJ("sendLocationDataToWebsite - success", uploadWebsite, requestParams, responseBody, headers, statusCode, null);
+                if (D) Log.d(TAG, "success=" + statusCode);
+                LoopJHttpClient.debugLoopJ("sendLocationDataToWebsite - success", uploadWebsite, requestValues, responseBody, headers, statusCode, null);
             }
+
             @Override
             public void onFailure(int statusCode, org.apache.http.Header[] headers, byte[] errorResponse, Throwable e) {
-                LoopJHttpClient.debugLoopJ("sendLocationDataToWebsite - failure", uploadWebsite, requestParams, errorResponse, headers, statusCode, e);
+                if (D) Log.d(TAG, "failure=" + statusCode);
+                LoopJHttpClient.debugLoopJ("sendLocationDataToWebsite - failure", uploadWebsite, requestValues, errorResponse, headers, statusCode, e);
             }
         });
 
-        return db.insert(JourneyContract.JourneyEntry.TABLE_NAME, null, values);
+        Parcel parcel = Parcel.obtain();
+        parcel.writeMap(waypointValues);
+        parcel.setDataPosition(0);
+        ContentValues contentValues = ContentValues.CREATOR.createFromParcel(parcel);
+
+        return db.insert(JourneyContract.JourneyEntry.TABLE_NAME, null, contentValues);
     }
 
     public static Location get() {
