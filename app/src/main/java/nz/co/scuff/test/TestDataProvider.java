@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.family.Driver;
@@ -50,10 +51,10 @@ public class TestDataProvider {
 
         Family family = new Family("Lin");
 
-        Passenger passenger1 = new Passenger("Cayden", school, Person.Gender.MALE);
-        Passenger passenger2 = new Passenger("Mia", school, Person.Gender.FEMALE);
-        Driver driver1 = new Driver("Christine", Person.Gender.FEMALE);
-        Driver driver2 = new Driver("Callum", Person.Gender.MALE);
+        Passenger passenger1 = new Passenger("Cayden", school, Person.Gender.MALE, Constants.MALE_PROFILE_BLANK);
+        Passenger passenger2 = new Passenger("Mia", school, Person.Gender.FEMALE, Constants.FEMALE_PROFILE_BLANK);
+        Driver driver1 = new Driver("Christine", Person.Gender.FEMALE, Constants.FEMALE_PROFILE_BLANK);
+        Driver driver2 = new Driver("Callum", Person.Gender.MALE, Constants.MALE_PROFILE_BLANK);
 
         family.addPassenger(passenger1);
         family.addPassenger(passenger2);

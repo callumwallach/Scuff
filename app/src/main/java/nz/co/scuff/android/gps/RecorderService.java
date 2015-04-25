@@ -15,9 +15,9 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-import nz.co.scuff.test.JourneyDatasource;
-import nz.co.scuff.util.Constants;
-import nz.co.scuff.util.DialogHelper;
+import nz.co.scuff.android.data.JourneyDatasource;
+import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.DialogHelper;
 
 public class RecorderService extends IntentService implements
         GoogleApiClient.ConnectionCallbacks,

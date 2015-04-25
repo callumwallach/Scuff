@@ -12,6 +12,8 @@ import nz.co.scuff.data.school.School;
  */
 public class Family implements Parcelable {
 
+    public Family() {}
+
     public Family(String name) {
         this.id = 1;
         this.name = name;

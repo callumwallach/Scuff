@@ -1,4 +1,4 @@
-package nz.co.scuff.util;
+package nz.co.scuff.android.util;
 
 import android.app.Application;
 import android.content.Context;

@@ -3,7 +3,7 @@ package nz.co.scuff.data.family;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import nz.co.scuff.util.Constants;
+import nz.co.scuff.android.util.Constants;
 
 /**
  * Created by Callum on 17/03/2015.
@@ -18,13 +18,7 @@ public abstract class Person implements Parcelable {
     private String pix;
     private Gender gender;
 
-    public Person(String name) {
-        this(name, Gender.MALE, Constants.MALE_PROFILE_BLANK);
-    }
-
-    public Person(String name, Gender gender) {
-        this(name, gender, gender == Gender.MALE ? Constants.MALE_PROFILE_BLANK : Constants.FEMALE_PROFILE_BLANK);
-    }
+    public Person() {}
 
     public Person(String name, Gender gender, String pix) {
         this.name = name;

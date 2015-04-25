@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 
-import nz.co.scuff.util.Constants;
+import nz.co.scuff.android.util.Constants;
 
 // make sure we use a WakefulBroadcastReceiver so that we acquire a partial wakelock
 public class UploaderAlarmReceiver extends WakefulBroadcastReceiver {

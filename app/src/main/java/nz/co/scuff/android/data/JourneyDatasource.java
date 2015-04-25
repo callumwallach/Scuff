@@ -1,4 +1,4 @@
-package nz.co.scuff.test;
+package nz.co.scuff.android.data;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -8,11 +8,14 @@ import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.util.Log;
 
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
-import nz.co.scuff.util.Constants;
-import nz.co.scuff.util.ScuffContextProvider;
+import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.ScuffContextProvider;
 
 /**
  * Created by Callum on 17/04/2015.
@@ -102,6 +105,19 @@ public final class JourneyDatasource {
 
         JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffContextProvider.getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        final String uploadWebsite = "http://localhost:8080/scuff/helloworld";
+        final RequestParams requestParams = new RequestParams(values.valueSet());
+        LoopJHttpClient.post(uploadWebsite, requestParams, new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, org.apache.http.Header[] headers, byte[] responseBody) {
+                LoopJHttpClient.debugLoopJ("sendLocationDataToWebsite - success", uploadWebsite, requestParams, responseBody, headers, statusCode, null);
+            }
+            @Override
+            public void onFailure(int statusCode, org.apache.http.Header[] headers, byte[] errorResponse, Throwable e) {
+                LoopJHttpClient.debugLoopJ("sendLocationDataToWebsite - failure", uploadWebsite, requestParams, errorResponse, headers, statusCode, e);
+            }
+        });
 
         return db.insert(JourneyContract.JourneyEntry.TABLE_NAME, null, values);
     }

@@ -20,7 +20,7 @@
         android:required="true" />
 
     <application
-        android:name="nz.co.scuff.util.ScuffContextProvider"
+        android:name=".util.ScuffContextProvider"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

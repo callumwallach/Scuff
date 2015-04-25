@@ -18,15 +18,7 @@ public class Driver extends Person implements Parcelable {
     private String phone;
     private HashMap<School, Route> schoolRoutes;
 
-    public Driver(String name) {
-        super(name);
-        schoolRoutes = new HashMap<>();
-    }
-
-    public Driver(String name, Gender gender) {
-        super(name, gender);
-        schoolRoutes = new HashMap<>();
-    }
+    public Driver() { }
 
     public Driver(String name, Gender gender, String pix) {
         super(name, gender, pix);

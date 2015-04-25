@@ -3,8 +3,6 @@ package nz.co.scuff.android;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v7.app.ActionBarActivity;
@@ -24,12 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 
-import nz.co.scuff.data.family.Family;
-import nz.co.scuff.data.school.Bus;
 import nz.co.scuff.data.school.Route;
-import nz.co.scuff.data.school.School;
-import nz.co.scuff.util.DialogHelper;
-import nz.co.scuff.util.ScuffContextProvider;
 
 
 public class SelectRouteActivity extends ActionBarActivity implements ActionBar.TabListener {

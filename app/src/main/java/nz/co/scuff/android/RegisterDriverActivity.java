@@ -8,10 +8,9 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 
 import nz.co.scuff.data.school.Route;
-import nz.co.scuff.util.ImageHelper;
+import nz.co.scuff.android.util.ImageHelper;
 
 public class RegisterDriverActivity extends Activity {
 

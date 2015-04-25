@@ -1,4 +1,4 @@
-package nz.co.scuff.test;
+package nz.co.scuff.android.data;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

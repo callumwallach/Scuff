@@ -5,8 +5,6 @@ import android.content.Intent;
 
 import android.util.Log;
 
-import nz.co.scuff.util.DialogHelper;
-
 public class UploaderService extends IntentService {
 
     private static final String TAG = "UploaderService";

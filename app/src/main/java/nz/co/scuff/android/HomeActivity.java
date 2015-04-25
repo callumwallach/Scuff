@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.test.TestDataProvider;
-import nz.co.scuff.util.Constants;
-import nz.co.scuff.util.ScuffContextProvider;
+import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.ScuffContextProvider;
 
 
 public class HomeActivity extends Activity {

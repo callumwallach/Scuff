@@ -1,4 +1,4 @@
-package nz.co.scuff.util;
+package nz.co.scuff.android.util;
 
 /**
  * Created by Callum on 18/03/2015.

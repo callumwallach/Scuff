@@ -9,7 +9,7 @@ import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.util.Log;
 
-import nz.co.scuff.util.Constants;
+import nz.co.scuff.android.util.Constants;
 
 public class GPSBootReceiver extends BroadcastReceiver {
 

@@ -32,10 +32,10 @@ import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
-import nz.co.scuff.test.JourneyDatasource;
-import nz.co.scuff.util.Constants;
-import nz.co.scuff.util.DialogHelper;
-import nz.co.scuff.util.ScuffContextProvider;
+import nz.co.scuff.android.data.JourneyDatasource;
+import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.DialogHelper;
+import nz.co.scuff.android.util.ScuffContextProvider;
 
 
 public class PassengerHomeActivity extends FragmentActivity

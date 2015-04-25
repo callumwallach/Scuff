@@ -1,4 +1,4 @@
-package nz.co.scuff.util;
+package nz.co.scuff.android.util;
 
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.school.School;

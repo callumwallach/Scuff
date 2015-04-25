@@ -30,7 +30,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
-import java.util.UUID;
 
 import nz.co.scuff.android.gps.RecorderAlarmReceiver;
 import nz.co.scuff.android.gps.RecorderService;
@@ -39,9 +38,9 @@ import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
-import nz.co.scuff.util.Constants;
-import nz.co.scuff.util.DialogHelper;
-import nz.co.scuff.util.ScuffContextProvider;
+import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.DialogHelper;
+import nz.co.scuff.android.util.ScuffContextProvider;
 
 public class DriverHomeActivity extends FragmentActivity {
 
