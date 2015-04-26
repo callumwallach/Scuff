@@ -33,7 +33,6 @@ import java.util.ArrayList;
 
 import nz.co.scuff.android.gps.RecorderAlarmReceiver;
 import nz.co.scuff.android.gps.RecorderService;
-import nz.co.scuff.android.gps.UploaderAlarmReceiver;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.school.Route;
@@ -49,7 +48,6 @@ public class DriverHomeActivity extends FragmentActivity {
 
     private static final String EMPTY_STRING = "";
     private static final int RECORDER_ALARM = 0;
-    private static final int UPLOADER_ALARM = 1;
 
     private GoogleMap googleMap;
 
@@ -95,14 +93,16 @@ public class DriverHomeActivity extends FragmentActivity {
         driverSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Driver selectedDriver = (Driver)parent.getItemAtPosition(position);
+                Driver selectedDriver = (Driver) parent.getItemAtPosition(position);
                 SharedPreferences.Editor editor = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE).edit();
                 editor.putString(Constants.DRIVER_DRIVER_ID, selectedDriver.toString());
                 editor.apply();
                 populateRoutes(school, selectedDriver);
             }
+
             @Override
-            public void onNothingSelected(AdapterView<?> parent) { }
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
     }
@@ -193,23 +193,23 @@ public class DriverHomeActivity extends FragmentActivity {
                         .putString(Constants.DRIVER_JOURNEY_ID, journeyId)
                         .apply();
 
-                startRecording();
-                startUploading();
-
+                // start journey -> send journey initial waypoint
+                startJourney();
                 sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_RECORDING)
                         .apply();
                 break;
             case Constants.TRACKING_STATE_RECORDING:
                 // already recording so pause
-                stopRecording();
-                stopUploading();
+                // pause journey -> stop waypoint updates
+                pauseJourney();
                 sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_PAUSED)
                         .apply();
                 break;
             case Constants.TRACKING_STATE_PAUSED:
                 // paused journey, resume
                 // recording and paused -> resume
-                startRecording();
+                // continue journey -> continue waypoints
+                continueJourney();
                 sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_RECORDING)
                         .apply();
                 break;
@@ -219,60 +219,10 @@ public class DriverHomeActivity extends FragmentActivity {
         int newState = sps.getInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED);
         updateControls(newState);
 
-
-/*        if (recording && !paused) {
-            // pause alarm
-            recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_PAUSED);
-            alarmManager.cancel(recorderAlarmIntent);
-            recordButton.setBackgroundResource(R.drawable.orange_button);
-            recordButton.setText(R.string.resume_button);
-            paused = true;
-        } else {
-            // recording and paused -> resume
-            // not recording -> start
-            int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
-                    Constants.RECORD_LOCATION_INTERVAL);
-            recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
-            // start alarm to record location data to local db
-            alarmManager.setRepeating(
-                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime(),
-                    recordInterval * 1000, // 1000 = 1 second
-                    recorderAlarmIntent);
-            if (paused) {
-                recordButton.setBackgroundResource(R.drawable.green_button);
-                recordButton.setText(R.string.pause_button);
-                paused = false;
-            }
-        }
-
-        if (!recording) {
-            // initialise
-            sps.edit().putBoolean(Constants.DRIVER_TRACKING_STATE, true)
-                    .putFloat(Constants.DRIVER_ACCUMULATED_DISTANCE, 0f)
-                    .putBoolean(Constants.PREFERENCES_INITIALISED, true)
-                    .putString(Constants.DRIVER_JOURNEY_ID, UUID.randomUUID().toString())
-                    .apply();
-
-            // start uploader service via alarm
-            Intent uploaderIntent = new Intent(this, UploaderAlarmReceiver.class);
-            PendingIntent uploaderAlarmIntent = PendingIntent.getBroadcast(this, UPLOADER_ALARM, uploaderIntent, 0);
-
-            int uploadInterval = sps.getInt(Constants.PREFERENCES_UPLOAD_LOCATION_INTERVAL_KEY,
-                    Constants.UPLOAD_LOCATION_INTERVAL);
-            uploaderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
-
-            alarmManager.setRepeating(
-                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime(),
-                    uploadInterval * 1000, // 1000 = 1 second
-                    uploaderAlarmIntent);
-            recording = true;
-        }*/
-
     }
 
-    private void startRecording() {
+    private void startJourney() {
+        if (D) Log.d(TAG, "startJourney");
 
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
 
@@ -280,50 +230,67 @@ public class DriverHomeActivity extends FragmentActivity {
         int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
                 Constants.RECORD_LOCATION_INTERVAL);
 
+        // processLocation direct for journey start
+        Intent newIntent = new Intent(this, RecorderService.class);
+        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_START);
+        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, sps.getString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING));
+        startService(newIntent);
+
+/*        // followed by periodic updates of waypoints
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
         PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
         recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
-        // start alarm to record location data to local db
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(),
-                recordInterval * 1000, recorderAlarmIntent);
+                recordInterval * 1000, recorderAlarmIntent);*/
+
     }
 
-    private void startUploading() {
+    public void pauseJourney() {
+        if (D) Log.d(TAG, "pauseJourney");
 
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
 
         SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        int uploadInterval = sps.getInt(Constants.PREFERENCES_UPLOAD_LOCATION_INTERVAL_KEY,
-                Constants.UPLOAD_LOCATION_INTERVAL);
 
-        Intent uploaderIntent = new Intent(this, UploaderAlarmReceiver.class);
-        PendingIntent uploaderAlarmIntent = PendingIntent.getBroadcast(this, UPLOADER_ALARM, uploaderIntent, 0);
-        uploaderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
-        // start alarm to upload data to server
-        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(),
-                uploadInterval * 1000, uploaderAlarmIntent);
-    }
-
-    private void stopRecording() {
-
-        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-
+        // pause (cancel) local location update requests
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
         PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
+        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_PAUSED);
         alarmManager.cancel(recorderAlarmIntent);
+
+        // send pause command to server
+        Intent newIntent = new Intent(this, RecorderService.class);
+        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_PAUSE);
+        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, sps.getString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING));
+        startService(newIntent);
+
     }
 
-    private void stopUploading() {
+    public void continueJourney() {
+        if (D) Log.d(TAG, "continueJourney");
 
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
 
-        Intent uploaderIntent = new Intent(this, UploaderAlarmReceiver.class);
-        PendingIntent uploaderAlarmIntent = PendingIntent.getBroadcast(this, UPLOADER_ALARM, uploaderIntent, 0);
-        alarmManager.cancel(uploaderAlarmIntent);
+        SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
+        int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
+                Constants.RECORD_LOCATION_INTERVAL);
+
+        // send pause command to server
+        Intent newIntent = new Intent(this, RecorderService.class);
+        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_CONTINUE);
+        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, sps.getString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING));
+        startService(newIntent);
+
+/*        // followed by periodic updates of waypoints
+        Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
+        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(),
+                recordInterval * 1000, recorderAlarmIntent);*/
     }
 
-    public void finaliseJourney(View v) {
-        Log.d(TAG, "finaliseJourney");
+    public void stopJourney(View v) {
+        Log.d(TAG, "stopJourney");
 
         if (!checkIfGooglePlayEnabled()) {
             DialogHelper.errorToast(this, "Google Maps is not available, please try again in a few moments");
@@ -332,100 +299,25 @@ public class DriverHomeActivity extends FragmentActivity {
 
         SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
 
-        stopRecording();
-        // finalise journey
+        // cancel local location update requests
+        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+        Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
+        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_STOPPED);
+        alarmManager.cancel(recorderAlarmIntent);
+
+        // signal stop journey to server
         Intent newIntent = new Intent(this, RecorderService.class);
-        newIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_STOPPED);
+        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_STOP);
         newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, sps.getString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING));
         startService(newIntent);
-
-/*        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-
-        Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_STOPPED);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
-        // stop alarm
-        alarmManager.cancel(recorderAlarmIntent);*/
-        // manually finalise journey
-
-
-        // stop service to read location data and send to server
-        stopUploading();
-        /*Intent uploaderIntent = new Intent(this, UploaderAlarmReceiver.class);
-        uploaderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_STOPPED);
-        PendingIntent uploaderAlarmIntent = PendingIntent.getBroadcast(this, UPLOADER_ALARM, uploaderIntent, 0);
-        // stop alarm
-        alarmManager.cancel(uploaderAlarmIntent);*/
 
         sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED)
                 .putString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING)
                 .apply();
         updateControls(Constants.TRACKING_STATE_STOPPED);
 
-        //recording = false;
     }
-
-/*    private void startJourney() {
-        Log.d(TAG, "startJourney");
-
-        SharedPreferences sharedPreferences = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        int interval = sharedPreferences.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY, Constants.RECORD_LOCATION_INTERVAL);
-        int journeyId = sharedPreferences.getInt(Constants.DRIVER_JOURNEY_ID, 0);
-
-        Intent intent = new Intent(this, JourneyAlarmReceiver.class);
-        intent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, journeyId, intent, 0);
-
-        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setRepeating(
-                AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime(),
-                interval * 1000, // 1000 = 1 second
-                pendingIntent);
-    }
-
-    private void stopJourney() {
-        Log.d(TAG, "stopJourney");
-
-        SharedPreferences sharedPreferences = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        int journeyId = sharedPreferences.getInt(Constants.DRIVER_JOURNEY_ID, 0);
-
-        Intent intent = new Intent(this, JourneyAlarmReceiver.class);
-        intent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_STOPPED);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, journeyId, intent, 0);
-
-        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.cancel(pendingIntent);
-
-    }*/
-
-    // called when trackingButton is tapped
-/*    protected void trackLocation(View v) {
-
-        SharedPreferences sharedPreferences = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        if (!checkIfGooglePlayEnabled()) {
-            return;
-        }
-
-        if (recording) {
-            recording = false;
-            editor.putBoolean(Constants.DRIVER_TRACKING_STATE, false)
-                    .putString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING);
-            stopJourney();
-        } else {
-            recording = true;
-            editor.putBoolean(Constants.DRIVER_TRACKING_STATE, true)
-                    .putFloat(Constants.DRIVER_ACCUMULATED_DISTANCE, 0f)
-                    .putBoolean(Constants.PREFERENCES_INITIALISED, true)
-                    .putString(Constants.DRIVER_JOURNEY_ID, UUID.randomUUID().toString());
-            startJourney();
-        }
-
-        editor.apply();
-        setTrackingButtonState();
-    }*/
 
     private boolean checkIfGooglePlayEnabled() {
         return GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;

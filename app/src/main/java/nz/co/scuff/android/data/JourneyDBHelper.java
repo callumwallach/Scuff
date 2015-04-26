@@ -26,6 +26,10 @@ public class JourneyDBHelper extends SQLiteOpenHelper {
                     JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID + TEXT_TYPE + COMMA_SEP +
                     JourneyContract.JourneyEntry.COLUMN_NAME_DRIVER_ID + TEXT_TYPE + COMMA_SEP +
                     JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID + TEXT_TYPE + COMMA_SEP +
+                    JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE + TEXT_TYPE + COMMA_SEP +
+                    JourneyContract.JourneyEntry.COLUMN_NAME_STATE + INTEGER_TYPE + COMMA_SEP +
+
+                    JourneyContract.JourneyEntry.COLUMN_NAME_WAYPOINT_ID + TEXT_TYPE + COMMA_SEP +
                     JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE + TEXT_TYPE + COMMA_SEP +
                     JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE + TEXT_TYPE + COMMA_SEP +
                     JourneyContract.JourneyEntry.COLUMN_NAME_SPEED + REAL_TYPE + COMMA_SEP +
@@ -34,9 +38,7 @@ public class JourneyDBHelper extends SQLiteOpenHelper {
                     JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER + TEXT_TYPE + COMMA_SEP +
                     JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY + REAL_TYPE + COMMA_SEP +
                     JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE + REAL_TYPE + COMMA_SEP +
-                    JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE + TEXT_TYPE + COMMA_SEP +
-                    JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP + TEXT_TYPE + COMMA_SEP +
-                    JourneyContract.JourneyEntry.COLUMN_NAME_ACTIVE + INTEGER_TYPE +
+                    JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP + TEXT_TYPE +
                     " )";
 
     private static final String SQL_DELETE_ACTIVE_JOURNEYS =

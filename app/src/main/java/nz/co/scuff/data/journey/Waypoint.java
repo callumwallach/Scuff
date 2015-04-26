@@ -1,55 +1,51 @@
 package nz.co.scuff.data.journey;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import android.location.Location;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.joda.time.DateTimeUtils;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 
 /**
  * Created by Callum on 20/04/2015.
  */
-@XmlRootElement
-@Entity
 public class Waypoint implements Serializable {
 
-    //private static final long serialVersionUID = 1L;
-
-    @Transient
-    private final Logger l = LoggerFactory.getLogger(Waypoint.class.getName());
-
-    @Id
-    private long id;
-    @NotNull
+    private String id;
     private double latitude;
-    @NotNull
     private double longitude;
-    @NotNull
     private float speed;
-    @NotNull
     private float bearing;
-    @NotNull
     private float totalDistance;
-    @NotNull
     private String provider;
-    @NotNull
     private float accuracy;
-    @NotNull
     private double altitude;
-    @NotNull
+    private int state;
     private Timestamp timestamp;
 
     public Waypoint() {
     }
 
-    public long getId() {
+    public Waypoint(String id, float totalDistance, int state, Location location) {
+        this.id = id;
+        this.latitude = location.getLatitude();
+        this.longitude = location.getLongitude();
+        this.speed = location.getSpeed();
+        this.bearing = location.getBearing();
+        this.totalDistance = totalDistance;
+        this.provider = location.getProvider();
+        this.accuracy = location.getAccuracy();
+        this.altitude = location.getAltitude();
+        this.timestamp = new Timestamp(DateTimeUtils.currentTimeMillis());
+        this.state = state;
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -117,6 +113,14 @@ public class Waypoint implements Serializable {
         this.altitude = altitude;
     }
 
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
     public Timestamp getTimestamp() {
         return timestamp;
     }
@@ -132,14 +136,12 @@ public class Waypoint implements Serializable {
 
         Waypoint waypoint = (Waypoint) o;
 
-        if (id != waypoint.id) return false;
+        return id.equals(waypoint.id);
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        return id.hashCode();
     }
-
 }

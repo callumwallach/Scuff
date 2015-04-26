@@ -16,17 +16,9 @@ public class RecorderAlarmReceiver extends WakefulBroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive");
 
-/*
-        String driverName = intent.getStringExtra(Constants.DRIVER_DRIVER_ID);
-        String routeName = intent.getStringExtra(Constants.DRIVER_ROUTE_ID);*/
-
-/*
-        newIntent.putExtra(Constants.DRIVER_DRIVER_ID, driverName);
-        newIntent.putExtra(Constants.DRIVER_ROUTE_ID, routeName);*/
-
         int state = intent.getExtras().getInt(Constants.TRACKING_STATE_TYPE);
 
-        Log.d(TAG, "record state = " + state);
+        Log.d(TAG, "processLocation state = " + state);
 
         Intent newIntent = new Intent(context, RecorderService.class);
         newIntent.putExtra(Constants.TRACKING_STATE_TYPE, state);
@@ -36,12 +28,9 @@ public class RecorderAlarmReceiver extends WakefulBroadcastReceiver {
                 context.startService(newIntent);
                 break;
             case Constants.TRACKING_STATE_PAUSED:
-                // do nothing - not recording
-                break;
             case Constants.TRACKING_STATE_STOPPED:
-                //context.startService(newIntent);
-                break;
             default:
+                // do nothing, should never get here anyway
                 break;
         }
 

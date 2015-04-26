@@ -1,8 +1,5 @@
 package nz.co.scuff.data.journey;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,34 +7,21 @@ import java.util.Set;
 /**
  * Created by Callum on 20/04/2015.
  */
-@XmlRootElement
-@Entity
 public class Journey implements Serializable {
 
     //private static final long serialVersionUID = 2L;
 
     public enum TrackingState {
-        ACTIVE, PAUSED, COMPLETED
+        RECORDING, PAUSED, COMPLETED
     }
 
-    @Id
     private String id;
-    @NotNull
-    private String appId;
-    @NotNull
+    private long appId;
     private String schoolId;
-    @NotNull
     private String driverId;
-    @NotNull
     private String routeId;
-    @NotNull
     private String source;
-    @NotNull
-    @Enumerated(EnumType.STRING)
     private TrackingState state;
-
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name="journeyId", referencedColumnName="id")
     private Set<Waypoint> waypoints;
 
     public Journey() {
@@ -52,11 +36,11 @@ public class Journey implements Serializable {
         this.id = id;
     }
 
-    public String getAppId() {
+    public long getAppId() {
         return appId;
     }
 
-    public void setAppId(String appId) {
+    public void setAppId(long appId) {
         this.appId = appId;
     }
 

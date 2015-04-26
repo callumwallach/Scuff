@@ -15,7 +15,7 @@ public class Family implements Parcelable {
     public Family() {}
 
     public Family(String name) {
-        this.id = 1;
+        this.id = 1L;
         this.name = name;
         this.passengers = new HashSet<>();
         this.drivers = new HashSet<>();

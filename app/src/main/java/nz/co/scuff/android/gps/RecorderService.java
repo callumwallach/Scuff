@@ -25,8 +25,11 @@ public class RecorderService extends IntentService implements
         LocationListener {
 
     private static final String TAG = "RecorderService";
+    private static final boolean D = true;
 
-    private boolean currentlyProcessingLocation = false;
+    private int actionType = -1;
+    private int stateType = -1;
+    private String journeyId;
     private GoogleApiClient locationClient;
 
     public RecorderService() {
@@ -36,50 +39,58 @@ public class RecorderService extends IntentService implements
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "onHandleIntent");
-/*
-        String driverName = intent.getStringExtra(Constants.DRIVER_DRIVER_ID);
-        String routeName = intent.getStringExtra(Constants.DRIVER_ROUTE_ID);
 
-        Intent newIntent = new Intent(context, UploadService.class);
-        newIntent.putExtra(Constants.DRIVER_DRIVER_ID, driverName);
-        newIntent.putExtra(Constants.DRIVER_ROUTE_ID, routeName);
+        journeyId = intent.getExtras().getString(Constants.DRIVER_JOURNEY_ID);
+        actionType = intent.getExtras().getInt(Constants.TRACKING_ACTION_TYPE, -1);
+        stateType = intent.getExtras().getInt(Constants.TRACKING_STATE_TYPE, -1);
 
-        context.startService(newIntent);
-        */
-        int state = intent.getExtras().getInt(Constants.TRACKING_STATE_TYPE);
-
-        switch (state) {
-            case Constants.TRACKING_STATE_RECORDING:
-                // if still attempting to get location (and alarm called again) ignore
-                if (!currentlyProcessingLocation) {
-                    currentlyProcessingLocation = true;
-                    startTracking();
-                }
-                break;
-            case Constants.TRACKING_STATE_STOPPED:
-                // finalise journey
-                String journeyId = intent.getExtras().getString(Constants.DRIVER_JOURNEY_ID);
-                endJourney(journeyId);
-                break;
-            case Constants.TRACKING_STATE_PAUSED:
-            default:
-                DialogHelper.errorToast(this, "invalid PAUSE tracking state");
-        }
+        findLocation();
 
         // release wake lock
         RecorderAlarmReceiver.completeWakefulIntent(intent);
 
     }
 
-    private void endJourney(String journeyId) {
-        Log.d(TAG, "end journey - start");
-        int updatedRows = JourneyDatasource.endJourney(journeyId);
-        Log.d(TAG, "end journey - updated ["+updatedRows+"] rows");
+    protected void processLocation(Location location) {
+        Log.d(TAG, "processLocation");
+
+        long rowId = -1;
+        if (stateType != -1) {
+            // regular record
+            if (D) Log.d(TAG, "record journey[" + journeyId + "]");
+            rowId = JourneyDatasource.recordJourney(journeyId, location);
+        } else
+        if (actionType != -1) {
+            switch (actionType) {
+                case Constants.TRACKING_ACTION_START:
+                    // create journey + create waypoint
+                    if (D) Log.d(TAG, "start journey[" + journeyId + "]");
+                    rowId = JourneyDatasource.startJourney(journeyId, location);
+                    break;
+                case Constants.TRACKING_ACTION_PAUSE:
+                    // pause journey + create waypoint
+                    if (D) Log.d(TAG, "pause journey[" + journeyId + "]");
+                    rowId = JourneyDatasource.pauseJourney(journeyId, location);
+                    break;
+                case Constants.TRACKING_ACTION_CONTINUE:
+                    // update journey + create waypoint
+                    if (D) Log.d(TAG, "continue journey[" + journeyId + "]");
+                    rowId = JourneyDatasource.continueJourney(journeyId, location);
+                    break;
+                case Constants.TRACKING_ACTION_STOP:
+                    // close journey + create waypoint
+                    if (D) Log.d(TAG, "stop journey[" + journeyId + "]");
+                    rowId = JourneyDatasource.stopJourney(journeyId, location);
+                    break;
+                default:
+                    DialogHelper.errorToast(this, "invalid tracking action state");
+            }
+        }
+        Log.d(TAG, "Insert new row=" + rowId);
     }
 
-    private void startTracking() {
-        Log.d(TAG, "startTracking");
-
+    private void findLocation() {
+        Log.d(TAG, "findLocation");
         if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS) {
             locationClient = new GoogleApiClient.Builder(this)
                     .addApi(LocationServices.API)
@@ -94,12 +105,6 @@ public class RecorderService extends IntentService implements
         }
     }
 
-    protected void sendLocationDataToDB(Location location) {
-        Log.d(TAG, "sendLocationDataToDB");
-        long rowId = JourneyDatasource.recordWaypoint(location);
-        Log.d(TAG, "finished insert id=" + rowId);
-    }
-
     @Override
     public void onLocationChanged(Location location) {
         Log.d(TAG, "onLocationChanged");
@@ -108,7 +113,7 @@ public class RecorderService extends IntentService implements
             // have desired accuracy of 500m so quit service, onDestroy will be called and stop our location updates
             if (location.getAccuracy() < Constants.MIN_LOCATION_ACCURACY) {
                 stopLocationUpdates();
-                sendLocationDataToDB(location);
+                processLocation(location);
             }
         }
     }

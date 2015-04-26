@@ -1,5 +1,6 @@
 package nz.co.scuff.android.data;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -7,12 +8,13 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 
 import java.util.Locale;
 
-public class LoopJHttpClient {
+public class ScuffHttpClient {
 
-    private static final String TAG = "LoopJHttpClient";
+    private static final String TAG = "ScuffJHttpClient";
     private static final boolean D = true;
 
     private static AsyncHttpClient client = new AsyncHttpClient();
@@ -23,6 +25,10 @@ public class LoopJHttpClient {
 
     public static void post(String url, RequestParams requestParams, AsyncHttpResponseHandler responseHandler) {
         client.post(url, requestParams, responseHandler);
+    }
+
+    public static void post(Context ctx, String url, HttpEntity entity, String contentType, AsyncHttpResponseHandler responseHandler) {
+        client.post(ctx, url, entity, contentType, responseHandler);
     }
 
     public static void debugLoopJ(String methodName,String url, RequestParams requestParams, byte[] response, Header[] headers, int statusCode, Throwable t) {
