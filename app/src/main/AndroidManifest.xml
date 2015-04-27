@@ -84,13 +84,10 @@
         <receiver android:name=".gps.RecorderAlarmReceiver"
             android:exported="false">
         </receiver>
-        <receiver android:name=".gps.UploaderAlarmReceiver"
-            android:exported="false">
-        </receiver>
-        <service android:name=".gps.UploaderService"
+        <service android:name=".gps.LocationRecorderService"
             android:exported="false">
         </service>
-        <service android:name=".gps.RecorderService"
+        <service android:name=".gps.CommandRecorderService"
             android:exported="false">
         </service>
     </application>

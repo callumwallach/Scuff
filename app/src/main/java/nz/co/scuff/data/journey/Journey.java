@@ -1,6 +1,7 @@
 package nz.co.scuff.data.journey;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,6 +22,7 @@ public class Journey implements Serializable {
     private String driverId;
     private String routeId;
     private String source;
+    private Timestamp created;
     private TrackingState state;
     private Set<Waypoint> waypoints;
 
@@ -74,6 +76,14 @@ public class Journey implements Serializable {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public Timestamp getCreated() {
+        return created;
+    }
+
+    public void setCreated(Timestamp created) {
+        this.created = created;
     }
 
     public TrackingState getState() {

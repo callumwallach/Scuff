@@ -1,7 +1,5 @@
 package nz.co.scuff.server;
 
-import java.util.HashMap;
-
 import nz.co.scuff.data.journey.Journey;
 import retrofit.Callback;
 import retrofit.client.Response;
@@ -12,11 +10,6 @@ import retrofit.http.POST;
  * Created by Callum on 26/04/2015.
  */
 public interface ScuffServerInterface {
-
-/*
-    @POST("/journeys/start/map")
-    void startJourney(@Body HashMap map, Callback<Response> cb);
-*/
 
     @POST("/journeys/start")
     void startJourney(@Body Journey journey, Callback<Response> cb);

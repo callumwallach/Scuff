@@ -11,26 +11,31 @@ import nz.co.scuff.android.util.Constants;
 public class RecorderAlarmReceiver extends WakefulBroadcastReceiver {
 
     private static final String TAG = "RecorderAlarmReceiver";
+    private static final boolean D = true;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive");
 
         int state = intent.getExtras().getInt(Constants.TRACKING_STATE_TYPE);
+        String journeyId = intent.getExtras().getString(Constants.DRIVER_JOURNEY_ID);
 
-        Log.d(TAG, "processLocation state = " + state);
+        if (D) Log.d(TAG, "stateType=" + state + " journeyId="+journeyId);
 
-        Intent newIntent = new Intent(context, RecorderService.class);
+        Intent newIntent = new Intent(context, LocationRecorderService.class);
         newIntent.putExtra(Constants.TRACKING_STATE_TYPE, state);
+        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
 
         switch (state) {
             case Constants.TRACKING_STATE_RECORDING:
+                if (D) Log.d(TAG, "starting location service");
                 context.startService(newIntent);
                 break;
             case Constants.TRACKING_STATE_PAUSED:
             case Constants.TRACKING_STATE_STOPPED:
             default:
                 // do nothing, should never get here anyway
+                Log.e(TAG, "Error invalid state["+state+"]");
                 break;
         }
 

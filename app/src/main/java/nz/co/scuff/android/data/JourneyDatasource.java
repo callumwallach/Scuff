@@ -13,11 +13,13 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.format.ISODateTimeFormat;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ServerInterfaceGenerator;
 import nz.co.scuff.android.util.ScuffContextProvider;
+import nz.co.scuff.data.journey.FlatJourney;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.Waypoint;
 import nz.co.scuff.server.ScuffServerInterface;
@@ -76,9 +78,9 @@ public final class JourneyDatasource {
         journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_DRIVER_ID, sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
         journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID, sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
         journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE, "Android");
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_STATE, 1);
+        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_STATE, 1);*/
 
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_WAYPOINT_ID, location.getLatitude());
+/*        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_WAYPOINT_ID, location.getLatitude());
         journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE, location.getLatitude());
         journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE, location.getLongitude());
         journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED, location.getSpeed());
@@ -90,6 +92,16 @@ public final class JourneyDatasource {
         journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP, DateTime.now().toString(ISODateTimeFormat.dateTime()));*/
 
         // populate journey POJO
+        /*Journey journey = new Journey();
+        journey.setId(journeyId);
+        journey.setAppId(sp.getLong(Constants.DRIVER_APP_ID, -1));
+        journey.setSchoolId(sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"));
+        journey.setDriverId(sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
+        journey.setRouteId(sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
+        journey.setSource("Android");
+        journey.setState(Journey.TrackingState.RECORDING);
+        //journey.addWaypoint(new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), 0, Constants.TRACKING_STATE_RECORDING, location));*/
+
         Journey journey = new Journey();
         journey.setId(journeyId);
         journey.setAppId(sp.getLong(Constants.DRIVER_APP_ID, -1));
@@ -98,7 +110,10 @@ public final class JourneyDatasource {
         journey.setRouteId(sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
         journey.setSource("Android");
         journey.setState(Journey.TrackingState.RECORDING);
-        //journey.addWaypoint(new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), 0, Constants.TRACKING_STATE_RECORDING, location));
+        journey.setCreated(new Timestamp(DateTimeUtils.currentTimeMillis()));
+        journey.addWaypoint(new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), 0, Constants.TRACKING_STATE_RECORDING, location));
+
+        if (D) Log.d(TAG, "posting journey="+journey);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
         client.startJourney(journey, new Callback<Response>() {
@@ -170,7 +185,7 @@ public final class JourneyDatasource {
         Journey journey = new Journey();
         journey.setId(journeyId);
         journey.setState(Journey.TrackingState.COMPLETED);
-        //journey.addWaypoint(new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), calculateTotalDistance(location), Constants.TRACKING_STATE_STOPPED, location));
+        journey.addWaypoint(new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), calculateTotalDistance(location), Constants.TRACKING_STATE_STOPPED, location));
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
         client.stopJourney(journey, new Callback<Response>() {
@@ -193,7 +208,7 @@ public final class JourneyDatasource {
         // populate journey POJO
         Journey journey = new Journey();
         journey.setId(journeyId);
-        journey.setState(Journey.TrackingState.RECORDING);
+        //journey.setState(Journey.TrackingState.RECORDING);
         journey.addWaypoint(new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), calculateTotalDistance(location), Constants.TRACKING_STATE_RECORDING, location));
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
