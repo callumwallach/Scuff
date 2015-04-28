@@ -1,4 +1,4 @@
-package nz.co.scuff.android;
+package nz.co.scuff.android.ui;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -28,6 +28,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 import java.util.Set;
 
+import nz.co.scuff.android.R;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.school.Route;

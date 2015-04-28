@@ -1,4 +1,4 @@
-package nz.co.scuff.android;
+package nz.co.scuff.android.ui;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -22,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 
+import nz.co.scuff.android.R;
 import nz.co.scuff.data.school.Route;
 
 

@@ -1,4 +1,4 @@
-package nz.co.scuff.android;
+package nz.co.scuff.android.ui;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import nz.co.scuff.android.R;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.android.util.ImageHelper;
 

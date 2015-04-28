@@ -1,6 +1,7 @@
-package nz.co.scuff.android;
+package nz.co.scuff.android.ui;
 
 import android.app.AlarmManager;
+import android.app.FragmentManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -28,13 +29,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import nz.co.scuff.android.R;
 import nz.co.scuff.android.gps.RecorderAlarmReceiver;
 import nz.co.scuff.android.gps.CommandRecorderService;
+import nz.co.scuff.android.util.TrackingState;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.family.Driver;
+import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.Constants;
@@ -49,6 +55,9 @@ public class DriverHomeActivity extends FragmentActivity {
     private static final String EMPTY_STRING = "";
     private static final int RECORDER_ALARM = 0;
 
+    private RetainedFragment dataFragment;
+    private Journey journey;
+
     private GoogleMap googleMap;
 
     //private boolean recording = false;
@@ -59,6 +68,24 @@ public class DriverHomeActivity extends FragmentActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_driver_home);
+
+        // handle lifecycle events, recreate state
+        // http://developer.android.com/guide/topics/resources/runtime-changes.html
+        // find the retained fragment on activity restarts
+        FragmentManager fm = getFragmentManager();
+        dataFragment = (RetainedFragment) fm.findFragmentByTag("data");
+
+        // create the fragment and data the first time
+        if (dataFragment == null) {
+            // add the fragment
+            dataFragment = new RetainedFragment();
+            fm.beginTransaction().add(dataFragment, "data").commit();
+            // load the data from the web
+            // TODO load incomplete journey (if any) from db
+            // if (loadFromDB() == null ? new JourneyState() : loaded
+            JourneyState journeyState = new JourneyState();
+            dataFragment.setData(journeyState);
+        }
 
         populateDrivers();
         //populateRoutes();
@@ -191,6 +218,10 @@ public class DriverHomeActivity extends FragmentActivity {
                 sps.edit().putBoolean(Constants.PREFERENCES_INITIALISED, true)
                         .putString(Constants.DRIVER_JOURNEY_ID, journeyId)
                         .apply();
+
+/*                Journey journey = new Journey(journeyId, sp.getLong(Constants.DRIVER_APP_ID, -1), sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"),
+                        sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"), sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"), "Android",
+                        0, 0, new Timestamp(DateTimeUtils.currentTimeMillis()), null, TrackingState.RECORDING);*/
 
                 // start journey -> send journey initial waypoint
                 startJourney();
@@ -372,14 +403,20 @@ public class DriverHomeActivity extends FragmentActivity {
     public void onResume() {
         Log.d(TAG, "onResume");
         super.onResume();
-
-        //updateControls();
-
-        //setTrackingButtonState();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        // store the data in the fragment
+        // TODO not necessary as updating JourneyState as we go. Perhaps just use Journey
+        //dataFragment.setData();
+    }
+
 }

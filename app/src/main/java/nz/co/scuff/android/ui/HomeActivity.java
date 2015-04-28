@@ -1,4 +1,4 @@
-package nz.co.scuff.android;
+package nz.co.scuff.android.ui;
 
 
 import android.app.Activity;
@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import nz.co.scuff.android.R;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.test.TestDataProvider;
