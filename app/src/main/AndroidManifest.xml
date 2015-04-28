@@ -20,7 +20,7 @@
         android:required="true" />
 
     <application
-        android:name=".util.ScuffContextProvider"
+        android:name=".util.ScuffApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -74,6 +74,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="nz.co.scuff.android.HomeActivity" />
         </activity>
+
+        <meta-data
+            android:name="AA_MODELS"
+            android:value="nz.co.scuff.data.journey.Journey, nz.co.scuff.data.journey.Waypoint" />
+        <meta-data android:name="AA_DB_NAME" android:value="Scuff.db" />
+        <meta-data android:name="AA_DB_VERSION" android:value="1" />
+        <meta-data android:name="AA_SERIALIZERS"
+            android:value="nz.co.scuff.android.util.TimestampSerializer" />
 
         <receiver android:name=".gps.GPSBootReceiver"
             android:exported="false">

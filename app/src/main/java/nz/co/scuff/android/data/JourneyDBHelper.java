@@ -7,9 +7,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 /**
  * Created by Callum on 17/04/2015.
  */
-public class JourneyDBHelper extends SQLiteOpenHelper {
+public class JourneyDBHelper /*extends SQLiteOpenHelper */{
 
-    // If you change the database schema, you must increment the database version.
+/*    // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "scuff.db";
 
@@ -61,5 +61,5 @@ public class JourneyDBHelper extends SQLiteOpenHelper {
 
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
-    }
+    }*/
 }

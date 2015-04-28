@@ -35,7 +35,7 @@ import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.data.JourneyDatasource;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
-import nz.co.scuff.android.util.ScuffContextProvider;
+import nz.co.scuff.android.util.ScuffApplication;
 
 
 public class PassengerHomeActivity extends FragmentActivity
@@ -67,7 +67,7 @@ public class PassengerHomeActivity extends FragmentActivity
 
 
 
-        Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
+        Family family = ((ScuffApplication)getApplicationContext()).getFamily();
         LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
         Set<Passenger> passengers = family.getPassengers();
 /*
@@ -95,7 +95,7 @@ public class PassengerHomeActivity extends FragmentActivity
 
     private void populateRoutes() {
 
-        School school = ((ScuffContextProvider)getApplicationContext()).getSchool();
+        School school = ((ScuffApplication)getApplicationContext()).getSchool();
         Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
         ArrayAdapter<Route> dataAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, new ArrayList<>(school.getRoutes()));

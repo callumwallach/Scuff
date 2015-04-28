@@ -28,7 +28,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeUtils;
 
 import java.util.ArrayList;
 
@@ -40,7 +39,7 @@ import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
-import nz.co.scuff.android.util.ScuffContextProvider;
+import nz.co.scuff.android.util.ScuffApplication;
 
 public class DriverHomeActivity extends FragmentActivity {
 
@@ -70,7 +69,7 @@ public class DriverHomeActivity extends FragmentActivity {
 
         boolean initialised = sps.getBoolean(Constants.PREFERENCES_INITIALISED, false);
         if (!initialised) {
-            Family family = ((ScuffContextProvider) getApplicationContext()).getFamily();
+            Family family = ((ScuffApplication) getApplicationContext()).getFamily();
             SharedPreferences.Editor editor = sps.edit();
             editor.putBoolean(Constants.PREFERENCES_INITIALISED, true);
             editor.putInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY, Constants.RECORD_LOCATION_INTERVAL);
@@ -82,8 +81,8 @@ public class DriverHomeActivity extends FragmentActivity {
 
     private void populateDrivers() {
 
-        final Family family = ((ScuffContextProvider) getApplicationContext()).getFamily();
-        final School school = ((ScuffContextProvider) getApplicationContext()).getSchool();
+        final Family family = ((ScuffApplication) getApplicationContext()).getFamily();
+        final School school = ((ScuffApplication) getApplicationContext()).getSchool();
 
         Spinner driverSpinner = (Spinner) findViewById(R.id.driver_spinner);
 
@@ -186,11 +185,10 @@ public class DriverHomeActivity extends FragmentActivity {
         switch (currentState) {
             case Constants.TRACKING_STATE_STOPPED:
                 // start a new journey
-                String journeyId = ((ScuffContextProvider) getApplicationContext()).getFamily().getId() + ":" +
+                String journeyId = ((ScuffApplication) getApplicationContext()).getFamily().getId() + ":" +
                         sps.getString(Constants.DRIVER_DRIVER_ID, "ERROR") + ":" +
                         DateTime.now().getMillis();
-                sps.edit().putFloat(Constants.DRIVER_ACCUMULATED_DISTANCE, 0f)
-                        .putBoolean(Constants.PREFERENCES_INITIALISED, true)
+                sps.edit().putBoolean(Constants.PREFERENCES_INITIALISED, true)
                         .putString(Constants.DRIVER_JOURNEY_ID, journeyId)
                         .apply();
 
@@ -238,12 +236,11 @@ public class DriverHomeActivity extends FragmentActivity {
         newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
         startService(newIntent);
 
-
         // followed by periodic updates of waypoints
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
         recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
         recorderIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
                 recordInterval * 1000, recorderAlarmIntent);
 
@@ -252,14 +249,13 @@ public class DriverHomeActivity extends FragmentActivity {
     public void pauseJourney() {
         if (D) Log.d(TAG, "pauseJourney");
 
-        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-
         SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
 
         // pause (cancel) local location update requests
+        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
         recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_PAUSED);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(recorderAlarmIntent);
 
         // send pause command to server
@@ -290,7 +286,7 @@ public class DriverHomeActivity extends FragmentActivity {
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
         recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
         recorderIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
                 recordInterval * 1000, recorderAlarmIntent);
     }
@@ -308,8 +304,8 @@ public class DriverHomeActivity extends FragmentActivity {
         // cancel local location update requests
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, 0);
         recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_STOPPED);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(recorderAlarmIntent);
 
         // signal stop journey to server
@@ -319,7 +315,7 @@ public class DriverHomeActivity extends FragmentActivity {
         startService(newIntent);
 
         sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED)
-                .putString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING)
+                .remove(Constants.DRIVER_JOURNEY_ID)
                 .apply();
         updateControls(Constants.TRACKING_STATE_STOPPED);
 

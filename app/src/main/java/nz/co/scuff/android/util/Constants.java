@@ -12,12 +12,9 @@ public interface Constants {
     String DRIVER_TRACKING_STATE = "D_TR";
     String DRIVER_APP_ID = "D_APID";
     String DRIVER_JOURNEY_ID = "D_JID";
-    String DRIVER_ACCUMULATED_DISTANCE = "D_AD";
     String DRIVER_SCHOOL_ID = "D_SCID";
     String DRIVER_DRIVER_ID = "D_DRID";
     String DRIVER_ROUTE_ID = "D_ROID";
-    String DRIVER_PREVIOUS_LAT = "D_PLAT";
-    String DRIVER_PREVIOUS_LONG = "D_PLONG";
 
     String PASSENGER_SCHOOL_ID = "P_SCID";
     String PASSENGER_ROUTE_ID = "P_ROID";

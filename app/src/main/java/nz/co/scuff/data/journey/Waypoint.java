@@ -2,51 +2,97 @@ package nz.co.scuff.data.journey;
 
 import android.location.Location;
 
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
+import com.google.gson.annotations.Expose;
+
 import org.joda.time.DateTimeUtils;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * Created by Callum on 20/04/2015.
  */
-public class Waypoint implements Serializable {
+@Table(name="Waypoint")
+public class Waypoint extends Model implements Serializable, Comparable {
 
-    private String id;
+    @Expose
+    @Column(name="WaypointId")
+    private String waypointId;
+    @Expose
+    @Column(name="Latitude")
     private double latitude;
+    @Expose
+    @Column(name="Longitude")
     private double longitude;
+    @Expose
+    @Column(name="Speed")
     private float speed;
+    @Expose
+    @Column(name="Bearing")
     private float bearing;
-    private float totalDistance;
+    @Expose
+    @Column(name="Distance")
+    private float distance;
+    @Expose
+    @Column(name="Duration")
+    private long duration;
+    @Expose
+    @Column(name="Provider")
     private String provider;
+    @Expose
+    @Column(name="Accuracy")
     private float accuracy;
+    @Expose
+    @Column(name="Altitude")
     private double altitude;
+    @Expose
+    @Column(name="State")
     private int state;
-    private Timestamp timestamp;
+    @Expose
+    @Column(name="Created")
+    private Timestamp created;
+
+    // for use with ActiveAndroid. Not serialised
+    @Column(name="JourneyFK")
+    private Journey journey;
+
+    public Journey getJourney() {
+        return journey;
+    }
+
+    public void setJourney(Journey journey) {
+        this.journey = journey;
+    }
 
     public Waypoint() {
     }
 
-    public Waypoint(String id, float totalDistance, int state, Location location) {
-        this.id = id;
+    public Waypoint(String waypointId, float distance, long duration, int state, Location location) {
+        this.waypointId = waypointId;
         this.latitude = location.getLatitude();
         this.longitude = location.getLongitude();
         this.speed = location.getSpeed();
         this.bearing = location.getBearing();
-        this.totalDistance = totalDistance;
+        this.distance = distance;
+        this.duration = duration;
         this.provider = location.getProvider();
         this.accuracy = location.getAccuracy();
         this.altitude = location.getAltitude();
-        this.timestamp = new Timestamp(DateTimeUtils.currentTimeMillis());
+        this.created = new Timestamp(DateTimeUtils.currentTimeMillis());
         this.state = state;
     }
 
-    public String getId() {
-        return id;
+    public String getWaypointId() {
+        return waypointId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setWaypointId(String id) {
+        this.waypointId = id;
     }
 
     public double getLatitude() {
@@ -81,12 +127,20 @@ public class Waypoint implements Serializable {
         this.bearing = bearing;
     }
 
-    public float getTotalDistance() {
-        return totalDistance;
+    public float getDistance() {
+        return distance;
     }
 
-    public void setTotalDistance(float totalDistance) {
-        this.totalDistance = totalDistance;
+    public void setDistance(float distance) {
+        this.distance = distance;
+    }
+
+    public long getDuration() {
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 
     public String getProvider() {
@@ -121,27 +175,43 @@ public class Waypoint implements Serializable {
         this.state = state;
     }
 
-    public Timestamp getTimestamp() {
-        return timestamp;
+    public Timestamp getCreated() {
+        return created;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+    public void setCreated(Timestamp created) {
+        this.created = created;
+    }
+
+    public static Waypoint getLastWaypoint(Journey journey) {
+         List<Waypoint> waypoints = new Select()
+                .from(Waypoint.class)
+                .where("JourneyFK = ?", journey.getId())
+                .orderBy("Created DESC")
+                .execute();
+        return waypoints.iterator().hasNext() ? waypoints.iterator().next() : null;
+    }
+
+    @Override
+    public int compareTo(Object another) {
+        Waypoint other = (Waypoint)another;
+        return this.created.compareTo(other.created);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         Waypoint waypoint = (Waypoint) o;
 
-        return id.equals(waypoint.id);
+        return !(waypointId != null ? !waypointId.equals(waypoint.waypointId) : waypoint.waypointId != null);
 
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return waypointId != null ? waypointId.hashCode() : 0;
     }
 }

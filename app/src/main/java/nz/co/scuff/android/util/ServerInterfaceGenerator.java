@@ -21,6 +21,7 @@ public class ServerInterfaceGenerator {
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                .excludeFieldsWithoutExposeAnnotation()
                 .create();
 
         RestAdapter.Builder builder = new RestAdapter.Builder()

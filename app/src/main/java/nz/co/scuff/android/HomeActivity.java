@@ -18,7 +18,7 @@ import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.test.TestDataProvider;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.ScuffContextProvider;
+import nz.co.scuff.android.util.ScuffApplication;
 
 
 public class HomeActivity extends Activity {
@@ -35,11 +35,11 @@ public class HomeActivity extends Activity {
     }
 
     private void loadTestData() {
-        Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
+        Family family = ((ScuffApplication)getApplicationContext()).getFamily();
         if (family == null){
             TestDataProvider.populateTestData();
             family = TestDataProvider.getFamily();
-            ((ScuffContextProvider) getApplicationContext()).setFamily(family);
+            ((ScuffApplication) getApplicationContext()).setFamily(family);
         }
         final TextView welcome = (TextView) findViewById(R.id.family_label);
         welcome.setText(family.getName() + " family");
@@ -48,7 +48,7 @@ public class HomeActivity extends Activity {
 
     private void populateSchools() {
 
-        final Family family = ((ScuffContextProvider) getApplicationContext()).getFamily();
+        final Family family = ((ScuffApplication) getApplicationContext()).getFamily();
         Spinner schoolSpinner = (Spinner) findViewById(R.id.school_spinner);
         ArrayAdapter<School> dataAdapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_spinner_item, new ArrayList<>(family.getAllSchools()));
@@ -62,7 +62,7 @@ public class HomeActivity extends Activity {
                 editor.putString(Constants.DRIVER_SCHOOL_ID, selectedSchool.toString());
                 editor.putString(Constants.PASSENGER_SCHOOL_ID, selectedSchool.toString());
                 editor.apply();
-                ((ScuffContextProvider) getApplicationContext()).setSchool(selectedSchool);
+                ((ScuffApplication) getApplicationContext()).setSchool(selectedSchool);
 
                 if (!family.getDriversSchools().contains(selectedSchool)) {
                     // disable "driver" button

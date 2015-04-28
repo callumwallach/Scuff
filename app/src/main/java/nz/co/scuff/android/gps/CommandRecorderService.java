@@ -45,9 +45,6 @@ public class CommandRecorderService extends IntentService implements
 
         findLocation();
 
-        // release wake lock
-        RecorderAlarmReceiver.completeWakefulIntent(intent);
-
     }
 
     protected void processLocation(Location location) {

@@ -1,0 +1,1 @@
+-- ALTER TABLE Journeys ADD COLUMN state TEXT;
