@@ -14,11 +14,13 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
+import nz.co.scuff.data.util.TrackingState;
+
 /**
  * Created by Callum on 20/04/2015.
  */
 @Table(name="Waypoint")
-public class Waypoint extends Model implements Serializable, Comparable {
+public class Waypoint extends Model implements Comparable, Serializable {
 
     @Expose
     @Column(name="WaypointId")
@@ -52,7 +54,7 @@ public class Waypoint extends Model implements Serializable, Comparable {
     private double altitude;
     @Expose
     @Column(name="State")
-    private int state;
+    private TrackingState state;
     @Expose
     @Column(name="Created")
     private Timestamp created;
@@ -72,7 +74,7 @@ public class Waypoint extends Model implements Serializable, Comparable {
     public Waypoint() {
     }
 
-    public Waypoint(String waypointId, float distance, long duration, int state, Location location) {
+    public Waypoint(String waypointId, float distance, long duration, TrackingState state, Location location) {
         this.waypointId = waypointId;
         this.latitude = location.getLatitude();
         this.longitude = location.getLongitude();
@@ -167,11 +169,11 @@ public class Waypoint extends Model implements Serializable, Comparable {
         this.altitude = altitude;
     }
 
-    public int getState() {
+    public TrackingState getState() {
         return state;
     }
 
-    public void setState(int state) {
+    public void setState(TrackingState state) {
         this.state = state;
     }
 
@@ -184,7 +186,7 @@ public class Waypoint extends Model implements Serializable, Comparable {
     }
 
     public static Waypoint getLastWaypoint(Journey journey) {
-         List<Waypoint> waypoints = new Select()
+        List<Waypoint> waypoints = new Select()
                 .from(Waypoint.class)
                 .where("JourneyFK = ?", journey.getId())
                 .orderBy("Created DESC")
@@ -212,6 +214,9 @@ public class Waypoint extends Model implements Serializable, Comparable {
 
     @Override
     public int hashCode() {
-        return waypointId != null ? waypointId.hashCode() : 0;
+        int result = super.hashCode();
+        result = 31 * result + (waypointId != null ? waypointId.hashCode() : 0);
+        return result;
     }
+
 }

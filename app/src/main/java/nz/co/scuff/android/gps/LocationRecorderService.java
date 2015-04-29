@@ -17,6 +17,9 @@ import com.google.android.gms.location.LocationServices;
 
 import nz.co.scuff.android.data.JourneyDatasource;
 import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.ScuffApplication;
+import nz.co.scuff.data.util.TrackingState;
+import nz.co.scuff.data.journey.Journey;
 
 public class LocationRecorderService extends IntentService implements
         GoogleApiClient.ConnectionCallbacks,
@@ -26,8 +29,6 @@ public class LocationRecorderService extends IntentService implements
     private static final String TAG = "LocationRecorderService";
     private static final boolean D = true;
 
-    private int stateType = -1;
-    private String journeyId;
     private GoogleApiClient locationClient;
 
     public LocationRecorderService() {
@@ -38,30 +39,16 @@ public class LocationRecorderService extends IntentService implements
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "onHandleIntent");
 
-        journeyId = intent.getExtras().getString(Constants.DRIVER_JOURNEY_ID);
-        stateType = intent.getExtras().getInt(Constants.TRACKING_STATE_TYPE, -1);
-        Log.d(TAG, "journeyId="+journeyId+" stateType="+stateType);
-
         findLocation();
-
         // release wake lock
         RecorderAlarmReceiver.completeWakefulIntent(intent);
-
     }
 
     protected void processLocation(Location location) {
         Log.d(TAG, "processLocation");
-        Log.d(TAG, "journeyId="+journeyId+" stateType="+stateType);
 
-        long rowId = -1;
-        if (stateType != -1) {
-            // regular record
-            if (D) Log.d(TAG, "record journey[" + journeyId + "]");
-            rowId = JourneyDatasource.recordJourney(journeyId, location);
-        } else {
-            Log.e(TAG, "Should never happen");
-        }
-        Log.d(TAG, "Modified row=" + rowId);
+        // regular record
+        JourneyDatasource.recordJourney(location);
     }
 
     private void findLocation() {

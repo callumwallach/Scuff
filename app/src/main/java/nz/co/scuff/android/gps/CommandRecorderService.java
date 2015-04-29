@@ -16,8 +16,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import nz.co.scuff.android.data.JourneyDatasource;
+import nz.co.scuff.android.util.ActionType;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
+import nz.co.scuff.android.util.ScuffApplication;
+import nz.co.scuff.data.journey.Journey;
 
 public class CommandRecorderService extends IntentService implements
         GoogleApiClient.ConnectionCallbacks,
@@ -27,8 +30,7 @@ public class CommandRecorderService extends IntentService implements
     private static final String TAG = "CommandRecorderService";
     private static final boolean D = true;
 
-    private int actionType = -1;
-    private String journeyId;
+    private ActionType actionType;
     private GoogleApiClient locationClient;
 
     public CommandRecorderService() {
@@ -39,44 +41,34 @@ public class CommandRecorderService extends IntentService implements
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "onHandleIntent");
 
-        journeyId = intent.getExtras().getString(Constants.DRIVER_JOURNEY_ID);
-        actionType = intent.getExtras().getInt(Constants.TRACKING_ACTION_TYPE, -1);
-        Log.d(TAG, "journeyId="+journeyId+" actionType="+actionType);
-
+        this.actionType = (ActionType)intent.getExtras().getSerializable(Constants.JOURNEY_STATE_KEY);
+        Log.d(TAG, "actionType="+actionType);
         findLocation();
-
     }
 
     protected void processLocation(Location location) {
         Log.d(TAG, "processLocation");
-        Log.d(TAG, "journeyId="+journeyId+" actionType="+actionType);
 
-        long rowId = -1;
-        switch (actionType) {
-            case Constants.TRACKING_ACTION_START:
+        switch (this.actionType) {
+            case START:
                 // create journey + create waypoint
-                if (D) Log.d(TAG, "start journey[" + journeyId + "]");
-                rowId = JourneyDatasource.startJourney(journeyId, location);
+                JourneyDatasource.startJourney(location);
                 break;
-            case Constants.TRACKING_ACTION_PAUSE:
+            case PAUSE:
                 // pause journey + create waypoint
-                if (D) Log.d(TAG, "pause journey[" + journeyId + "]");
-                rowId = JourneyDatasource.pauseJourney(journeyId, location);
+                JourneyDatasource.pauseJourney(location);
                 break;
-            case Constants.TRACKING_ACTION_CONTINUE:
+            case CONTINUE:
                 // update journey + create waypoint
-                if (D) Log.d(TAG, "continue journey[" + journeyId + "]");
-                rowId = JourneyDatasource.continueJourney(journeyId, location);
+                JourneyDatasource.continueJourney(location);
                 break;
-            case Constants.TRACKING_ACTION_STOP:
+            case STOP:
                 // close journey + create waypoint
-                if (D) Log.d(TAG, "stop journey[" + journeyId + "]");
-                rowId = JourneyDatasource.stopJourney(journeyId, location);
+                JourneyDatasource.stopJourney(location);
                 break;
             default:
                 DialogHelper.errorToast(this, "invalid tracking action state");
         }
-        Log.d(TAG, "Insert new row=" + rowId);
     }
 
     private void findLocation() {

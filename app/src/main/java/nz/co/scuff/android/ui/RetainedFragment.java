@@ -3,13 +3,15 @@ package nz.co.scuff.android.ui;
 import android.os.Bundle;
 import android.app.Fragment;
 
+import nz.co.scuff.data.journey.Journey;
+
 /**
  * A simple {@link Fragment} subclass.
  */
 public class RetainedFragment extends Fragment {
 
     // data object we want to retain
-    private JourneyState data;
+    private Journey data;
 
     // this method is only called once for this fragment
     @Override
@@ -19,11 +21,11 @@ public class RetainedFragment extends Fragment {
         setRetainInstance(true);
     }
 
-    public void setData(JourneyState data) {
+    public void setData(Journey data) {
         this.data = data;
     }
 
-    public JourneyState getData() {
+    public Journey getData() {
         return data;
     }
 

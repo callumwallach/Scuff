@@ -1,7 +1,6 @@
 package nz.co.scuff.android.ui;
 
 import android.app.AlarmManager;
-import android.app.FragmentManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -37,7 +36,8 @@ import java.util.ArrayList;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.gps.RecorderAlarmReceiver;
 import nz.co.scuff.android.gps.CommandRecorderService;
-import nz.co.scuff.android.util.TrackingState;
+import nz.co.scuff.android.util.ActionType;
+import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.journey.Journey;
@@ -52,58 +52,60 @@ public class DriverHomeActivity extends FragmentActivity {
     private static final String TAG = "DriverHomeActivity";
     private static final boolean D = true;
 
-    private static final String EMPTY_STRING = "";
     private static final int RECORDER_ALARM = 0;
 
-    private RetainedFragment dataFragment;
-    private Journey journey;
-
     private GoogleMap googleMap;
-
-    //private boolean recording = false;
-    //private boolean paused = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            // restore state
+            Journey savedState = (Journey)savedInstanceState.getSerializable(Constants.JOURNEY_KEY);
+            assert(savedState != null);
+            assert(!savedState.getState().equals(TrackingState.COMPLETED));
+            ((ScuffApplication) this.getApplication()).setJourney(savedState);
+        }
         setContentView(R.layout.activity_driver_home);
 
-        // handle lifecycle events, recreate state
-        // http://developer.android.com/guide/topics/resources/runtime-changes.html
-        // find the retained fragment on activity restarts
-        FragmentManager fm = getFragmentManager();
-        dataFragment = (RetainedFragment) fm.findFragmentByTag("data");
+        Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
 
-        // create the fragment and data the first time
-        if (dataFragment == null) {
-            // add the fragment
-            dataFragment = new RetainedFragment();
-            fm.beginTransaction().add(dataFragment, "data").commit();
-            // load the data from the web
-            // TODO load incomplete journey (if any) from db
-            // if (loadFromDB() == null ? new JourneyState() : loaded
-            JourneyState journeyState = new JourneyState();
-            dataFragment.setData(journeyState);
+        // if this.journey == null check database for incomplete journey
+        // TODO complete any found or delete them
+        if (journey == null) {
+            for (Journey j : Journey.findIncomplete()) {
+                // TODO restart tracking based on how old journey is?
+                // TODO connect up GPSBootReceiver
+                // clean up incomplete journeys - close/delete them
+                j.setState(TrackingState.COMPLETED);
+                j.save();
+            }
         }
 
         populateDrivers();
-        //populateRoutes();
+
+        updateControls(journey == null ? TrackingState.COMPLETED : journey.getState());
 
         SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        updateControls(sps.getInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED));
-        //recording = sharedPreferences.getInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED);
-
         boolean initialised = sps.getBoolean(Constants.PREFERENCES_INITIALISED, false);
         if (!initialised) {
-            Family family = ((ScuffApplication) getApplicationContext()).getFamily();
-            SharedPreferences.Editor editor = sps.edit();
-            editor.putBoolean(Constants.PREFERENCES_INITIALISED, true);
-            editor.putInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY, Constants.RECORD_LOCATION_INTERVAL);
-            editor.putLong(Constants.DRIVER_APP_ID, family.getId());
-            editor.apply();
+            sps.edit().putBoolean(Constants.PREFERENCES_INITIALISED, true)
+                    .putInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY, Constants.RECORD_LOCATION_INTERVAL)
+                    .apply();
         }
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        // save journey state if one in progress
+        Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
+        if (journey != null) {
+            assert(!journey.getState().equals(TrackingState.COMPLETED));
+            outState.putSerializable(Constants.JOURNEY_KEY, journey);
+        }
     }
 
     private void populateDrivers() {
@@ -121,9 +123,6 @@ public class DriverHomeActivity extends FragmentActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Driver selectedDriver = (Driver) parent.getItemAtPosition(position);
-                SharedPreferences.Editor editor = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE).edit();
-                editor.putString(Constants.DRIVER_DRIVER_ID, selectedDriver.toString());
-                editor.apply();
                 populateRoutes(school, selectedDriver);
             }
 
@@ -144,10 +143,6 @@ public class DriverHomeActivity extends FragmentActivity {
         routeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                SharedPreferences.Editor editor = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE).edit();
-                editor.putString(Constants.DRIVER_ROUTE_ID, parent.getItemAtPosition(position).toString());
-                editor.apply();
-
                 if (googleMap == null) {
                     googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap)).getMap();
                 }
@@ -158,7 +153,6 @@ public class DriverHomeActivity extends FragmentActivity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
             }
         });
 
@@ -172,8 +166,7 @@ public class DriverHomeActivity extends FragmentActivity {
         this.googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        String provider = locationManager.getBestProvider(criteria, true);
+        String provider = locationManager.getBestProvider(new Criteria(), true);
         Location myLocation = locationManager.getLastKnownLocation(provider);
 
         if (D) Log.d(TAG, "My location = " + myLocation);
@@ -202,52 +195,52 @@ public class DriverHomeActivity extends FragmentActivity {
         Log.d(TAG, "recordJourney");
 
         if (!checkIfGooglePlayEnabled()) {
-            DialogHelper.errorToast(this, "Google Maps is not available, please try again in a few moments");
+            DialogHelper.errorToast(this, "Google Maps is not available, please try again in a " +
+                    "few moments or check your connection if the problem persists");
             return;
         }
 
-        SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        int currentState = sps.getInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED);
+        Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
+        if (journey == null) {
+            // create new journey
+            ScuffApplication scuffContext = ((ScuffApplication) getApplicationContext());
+            String journeyId = scuffContext.getAppId() + ":" + DateTime.now().getMillis();
+            Driver driver = (Driver)((Spinner) findViewById(R.id.driver_spinner)).getSelectedItem();
+            Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
-        switch (currentState) {
-            case Constants.TRACKING_STATE_STOPPED:
-                // start a new journey
-                String journeyId = ((ScuffApplication) getApplicationContext()).getFamily().getId() + ":" +
-                        sps.getString(Constants.DRIVER_DRIVER_ID, "ERROR") + ":" +
-                        DateTime.now().getMillis();
-                sps.edit().putBoolean(Constants.PREFERENCES_INITIALISED, true)
-                        .putString(Constants.DRIVER_JOURNEY_ID, journeyId)
-                        .apply();
+            journey = new Journey(journeyId, scuffContext.getAppId(),
+                    scuffContext.getSchool().getName(), driver.getName(), route.getName(),
+                    "Android", 0, 0, new Timestamp(DateTimeUtils.currentTimeMillis()),
+                    null, TrackingState.COMPLETED);
+            // save to database (and assign mId)
+            journey.save();
+            // cache in app state
+            ((ScuffApplication) this.getApplication()).setJourney(journey);
+            Log.d(TAG, "new journey id=" + journey.getId());
+        }
 
-/*                Journey journey = new Journey(journeyId, sp.getLong(Constants.DRIVER_APP_ID, -1), sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"),
-                        sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"), sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"), "Android",
-                        0, 0, new Timestamp(DateTimeUtils.currentTimeMillis()), null, TrackingState.RECORDING);*/
-
-                // start journey -> send journey initial waypoint
+        switch (journey.getState()) {
+            case COMPLETED:
+                // start journey -> send journey + initial waypoint
+                journey.setState(TrackingState.RECORDING);
                 startJourney();
-                sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_RECORDING)
-                        .apply();
                 break;
-            case Constants.TRACKING_STATE_RECORDING:
+            case RECORDING:
                 // already recording so pause
                 // pause journey -> stop waypoint updates
+                journey.setState(TrackingState.PAUSED);
                 pauseJourney();
-                sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_PAUSED)
-                        .apply();
                 break;
-            case Constants.TRACKING_STATE_PAUSED:
-                // paused journey, resume
+            case PAUSED:
                 // recording and paused -> resume
                 // continue journey -> continue waypoints
+                journey.setState(TrackingState.RECORDING);
                 continueJourney();
-                sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_RECORDING)
-                        .apply();
                 break;
             default:
 
         }
-        int newState = sps.getInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED);
-        updateControls(newState);
+        updateControls(journey.getState());
 
     }
 
@@ -259,18 +252,14 @@ public class DriverHomeActivity extends FragmentActivity {
         SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
         int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
                 Constants.RECORD_LOCATION_INTERVAL);
-        String journeyId = sps.getString(Constants.DRIVER_JOURNEY_ID, "ERROR");
 
         // processLocation direct for journey start
         Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_START);
-        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
+        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.START);
         startService(newIntent);
 
         // followed by periodic updates of waypoints
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
-        recorderIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
         PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
                 recordInterval * 1000, recorderAlarmIntent);
@@ -285,14 +274,12 @@ public class DriverHomeActivity extends FragmentActivity {
         // pause (cancel) local location update requests
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_PAUSED);
         PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(recorderAlarmIntent);
 
         // send pause command to server
         Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_PAUSE);
-        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, sps.getString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING));
+        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.PAUSE);
         startService(newIntent);
 
     }
@@ -305,18 +292,14 @@ public class DriverHomeActivity extends FragmentActivity {
         SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
         int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
                 Constants.RECORD_LOCATION_INTERVAL);
-        String journeyId = sps.getString(Constants.DRIVER_JOURNEY_ID, "ERROR");
 
         // send pause command to server
         Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_CONTINUE);
-        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
+        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.CONTINUE);
         startService(newIntent);
 
         // followed by periodic updates of waypoints
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_RECORDING);
-        recorderIntent.putExtra(Constants.DRIVER_JOURNEY_ID, journeyId);
         PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
                 recordInterval * 1000, recorderAlarmIntent);
@@ -330,25 +313,20 @@ public class DriverHomeActivity extends FragmentActivity {
             return;
         }
 
-        SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-
         // cancel local location update requests
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        recorderIntent.putExtra(Constants.TRACKING_STATE_TYPE, Constants.TRACKING_STATE_STOPPED);
         PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(recorderAlarmIntent);
 
+        Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
         // signal stop journey to server
+        journey.setState(TrackingState.COMPLETED);
         Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.TRACKING_ACTION_TYPE, Constants.TRACKING_ACTION_STOP);
-        newIntent.putExtra(Constants.DRIVER_JOURNEY_ID, sps.getString(Constants.DRIVER_JOURNEY_ID, EMPTY_STRING));
+        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.STOP);
         startService(newIntent);
 
-        sps.edit().putInt(Constants.DRIVER_TRACKING_STATE, Constants.TRACKING_STATE_STOPPED)
-                .remove(Constants.DRIVER_JOURNEY_ID)
-                .apply();
-        updateControls(Constants.TRACKING_STATE_STOPPED);
+        updateControls(TrackingState.COMPLETED);
 
     }
 
@@ -356,26 +334,26 @@ public class DriverHomeActivity extends FragmentActivity {
         return GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS;
     }
 
-    private void updateControls(int state) {
+    private void updateControls(TrackingState state) {
         Log.d(TAG, "update controls to state="+state);
 
         Button start = (Button) findViewById(R.id.record_tracking_button);
         Button stop = (Button) findViewById(R.id.stop_tracking_button);
 
         switch( state ) {
-            case Constants.TRACKING_STATE_RECORDING:
+            case RECORDING:
                 start.setEnabled(true);
                 start.setBackgroundResource(R.drawable.green_button);
                 start.setText(R.string.pause_button);
                 stop.setEnabled(true);
                 break;
-            case Constants.TRACKING_STATE_PAUSED:
+            case PAUSED:
                 start.setEnabled(true);
                 start.setBackgroundResource(R.drawable.orange_button);
                 start.setText(R.string.resume_button);
                 stop.setEnabled(true);
                 break;
-            case Constants.TRACKING_STATE_STOPPED:
+            case COMPLETED:
                 start.setEnabled(true);
                 start.setBackgroundResource(R.drawable.green_button);
                 start.setText(R.string.start_button);
@@ -387,21 +365,23 @@ public class DriverHomeActivity extends FragmentActivity {
 
     }
 
-/*    private void setTrackingButtonState() {
-        if (recording) {
-            trackingButton.setBackgroundResource(R.drawable.green_button);
-            trackingButton.setTextColor(Color.BLACK);
-            trackingButton.setText(R.string.stop_button);
-        } else {
-            trackingButton.setBackgroundResource(R.drawable.red_button);
-            trackingButton.setTextColor(Color.WHITE);
-            trackingButton.setText(R.string.start_button);
+    @Override
+    public void onStart() {
+        Log.d(TAG, "onStart");
+        super.onStart();
+
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if (!gpsEnabled) {
+            // Create a dialog here that requests the user to enable GPS, and
+            // TODO use an intent with the android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS action
+            // to take the user to the Settings screen to enable GPS when they click "OK"
+            DialogHelper.dialog(this, "GPS is not active", "Please turn GPS on or wait for a stronger signal");
         }
-    }*/
+    }
 
     @Override
     public void onResume() {
-        Log.d(TAG, "onResume");
         super.onResume();
     }
 
@@ -413,10 +393,6 @@ public class DriverHomeActivity extends FragmentActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        // store the data in the fragment
-        // TODO not necessary as updating JourneyState as we go. Perhaps just use Journey
-        //dataFragment.setData();
     }
 
 }

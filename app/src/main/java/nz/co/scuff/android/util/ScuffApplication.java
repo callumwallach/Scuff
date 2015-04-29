@@ -1,12 +1,12 @@
 package nz.co.scuff.android.util;
 
-import android.app.Application;
 import android.content.Context;
+import android.telephony.TelephonyManager;
 
-import com.activeandroid.ActiveAndroid;
-//import com.activeandroid.app.Application;
+import com.activeandroid.app.Application;
 
 import nz.co.scuff.data.family.Family;
+import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.school.School;
 
 /**
@@ -20,14 +20,18 @@ public class ScuffApplication extends Application {
     public void onCreate() {
         super.onCreate();
 //        ActiveAndroid.dispose();
-        ActiveAndroid.initialize(this);
-        ActiveAndroid.setLoggingEnabled(true);
+//        ActiveAndroid.initialize(this);
+//        ActiveAndroid.setLoggingEnabled(true);
         context = getApplicationContext();
     }
 
     public static Context getContext() {
         return context;
     }
+
+    private School school;
+    private Family family;
+    private Journey journey;
 
     public Family getFamily() {
         return family;
@@ -45,8 +49,18 @@ public class ScuffApplication extends Application {
         school = s;
     }
 
-    private School school;
-    private Family family;
+    public Journey getJourney() {
+        return journey;
+    }
+
+    public void setJourney(Journey journey) {
+        this.journey = journey;
+    }
+
+    public String getAppId() {
+        TelephonyManager tMgr = (TelephonyManager)this.getSystemService(Context.TELEPHONY_SERVICE);
+        return tMgr.getLine1Number();
+    }
 
 
 }

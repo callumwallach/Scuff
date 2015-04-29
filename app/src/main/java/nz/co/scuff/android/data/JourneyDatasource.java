@@ -1,7 +1,5 @@
 package nz.co.scuff.android.data;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.location.Location;
 import android.util.Log;
 
@@ -12,9 +10,9 @@ import org.joda.time.Seconds;
 import java.sql.Timestamp;
 
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.ServerInterfaceGenerator;
 import nz.co.scuff.android.util.ScuffApplication;
-import nz.co.scuff.android.util.TrackingState;
+import nz.co.scuff.android.util.ServerInterfaceGenerator;
+import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.Waypoint;
 import nz.co.scuff.server.ScuffServerInterface;
@@ -29,8 +27,6 @@ public final class JourneyDatasource {
 
     private static final String TAG = "JourneyDatasource";
     private static final boolean D = true;
-
-    private static final String SERVER_URL = "http://10.0.3.2:8080/scuff";
 
     private static float calculateDistance(Location here, Waypoint there) {
         Location location = new Location("Last Location");
@@ -55,89 +51,13 @@ public final class JourneyDatasource {
         return seconds.getSeconds();
     }
 
-/*    private static float calculateTotalDistance(Location location) {
+    public static int startJourney(Location location) {
+        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "startJourney journey="+journey+" location="+location);
 
-        SharedPreferences sp = ScuffApplication.getContext().
-                getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-
-        float totalDistanceInMeters = sp.getFloat(Constants.DRIVER_ACCUMULATED_DISTANCE, 0f);
-        boolean initialised = sp.getBoolean(Constants.PREFERENCES_INITIALISED, false);
-
-        if (!initialised) {
-            editor.putBoolean(Constants.PREFERENCES_INITIALISED, true);
-        } else {
-            Location previousLocation = new Location("");
-            previousLocation.setLatitude(sp.getFloat(Constants.DRIVER_PREVIOUS_LAT, 0f));
-            previousLocation.setLongitude(sp.getFloat(Constants.DRIVER_PREVIOUS_LONG, 0f));
-
-            float distance = location.distanceTo(previousLocation);
-            totalDistanceInMeters += distance;
-            editor.putFloat(Constants.DRIVER_ACCUMULATED_DISTANCE, totalDistanceInMeters);
-        }
-
-        editor.putFloat(Constants.DRIVER_PREVIOUS_LAT, (float)location.getLatitude());
-        editor.putFloat(Constants.DRIVER_PREVIOUS_LONG, (float) location.getLongitude());
-        editor.apply();
-
-        return totalDistanceInMeters;
-    }*/
-
-    public static int startJourney(String journeyId, Location location) {
-        if (D) Log.d(TAG, "startJourney location="+location);
-
-        SharedPreferences sp = ScuffApplication.getContext()
-                .getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-
-/*        HashMap<String, Object> journey = new HashMap<>();
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_JOURNEY_ID, sp.getString(Constants.DRIVER_JOURNEY_ID, "ERROR"));
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_APP_ID, sp.getLong(Constants.DRIVER_APP_ID, -1L));
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID, sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"));
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_DRIVER_ID, sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID, sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE, "Android");
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_STATE, 1);*/
-
-/*        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_WAYPOINT_ID, location.getLatitude());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE, location.getLatitude());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE, location.getLongitude());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED, location.getSpeed());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_BEARING, location.getBearing());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_DISTANCE, calculateTotalDistance(location));
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER, location.getProvider());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY, location.getAccuracy());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE, location.getAltitude());
-        journey.put(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP, DateTime.now().toString(ISODateTimeFormat.dateTime()));*/
-
-        // populate journey POJO
-        /*Journey journey = new Journey();
-        journey.setJourneyId(journeyId);
-        journey.setAppId(sp.getLong(Constants.DRIVER_APP_ID, -1));
-        journey.setSchoolId(sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"));
-        journey.setDriverId(sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
-        journey.setRouteId(sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
-        journey.setSource("Android");
-        journey.setState(Journey.TrackingState.RECORDING);
-        //journey.addWaypoint(new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), 0, Constants.TRACKING_STATE_RECORDING, location));*/
-
-        /*DateTime.now().toDate();*/
-
-        Journey journey = new Journey(journeyId, sp.getLong(Constants.DRIVER_APP_ID, -1), sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"),
-                sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"), sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"), "Android",
-                0, 0, new Timestamp(DateTimeUtils.currentTimeMillis()), null, TrackingState.RECORDING);
-
-/*        journey.setJourneyId(journeyId);
-        journey.setAppId(sp.getLong(Constants.DRIVER_APP_ID, -1));
-        journey.setSchoolId(sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"));
-        journey.setDriverId(sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
-        journey.setRouteId(sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
-        journey.setSource("Android");
-        journey.setState(Journey.TrackingState.RECORDING);
-        journey.setCreated(new Timestamp(DateTimeUtils.currentTimeMillis()));*/
-        journey.save();
-
-        Waypoint waypoint = new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(), 0, 0,
-                Constants.TRACKING_STATE_RECORDING, location);
+        //journey.save();
+        Waypoint waypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
+                0, 0, TrackingState.RECORDING, location);
         waypoint.setJourney(journey);
         waypoint.save();
 
@@ -146,7 +66,7 @@ public final class JourneyDatasource {
 
         if (D) Log.d(TAG, "posting journey="+journey);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
         client.startJourney(journey, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
@@ -161,37 +81,35 @@ public final class JourneyDatasource {
         return 1;
     }
 
-    public static int pauseJourney(String journeyId, Location location) {
-        if (D) Log.d(TAG, "pauseJourney location="+location);
+    public static int pauseJourney(Location location) {
+        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "pauseJourney journey="+journey+" location="+location);
 
         // update journey with new waypoint
-        Journey foundJourney = Journey.findByJourneyId(journeyId);
-        Waypoint lastWaypoint = Waypoint.getLastWaypoint(foundJourney);
-
-
-        Waypoint newWaypoint = new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(),
+        Waypoint lastWaypoint = Waypoint.getLastWaypoint(journey);
+        Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
                 calculateDistance(location, lastWaypoint), calculateTimeSince(lastWaypoint),
-                Constants.TRACKING_STATE_PAUSED, location);
+                TrackingState.PAUSED, location);
 
-        newWaypoint.setJourney(foundJourney);
+        newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        foundJourney.addWaypoint(newWaypoint);
-        foundJourney.setTotalDistance(foundJourney.getTotalDistance() + newWaypoint.getDistance());
-        foundJourney.setTotalDuration(foundJourney.getTotalDuration() + newWaypoint.getDuration());
-        foundJourney.setState(TrackingState.PAUSED);
-        foundJourney.save();
-
-        // populate journey POJO
-        Journey journey = new Journey();
-        journey.setJourneyId(journeyId);
-        journey.setTotalDistance(foundJourney.getTotalDistance());
-        journey.setTotalDuration(foundJourney.getTotalDuration());
+        journey.addWaypoint(newWaypoint);
+        journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
+        journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
         journey.setState(TrackingState.PAUSED);
-        journey.addWaypoint(newWaypoint);
+        journey.save();
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
-        client.pauseJourney(journey, new Callback<Response>() {
+        // populate journey POJO
+        Journey transferJourney = new Journey();
+        transferJourney.setJourneyId(journey.getJourneyId());
+        transferJourney.setTotalDistance(journey.getTotalDistance());
+        transferJourney.setTotalDuration(journey.getTotalDuration());
+        transferJourney.setState(journey.getState());
+        transferJourney.addWaypoint(newWaypoint);
+
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        client.pauseJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -205,34 +123,33 @@ public final class JourneyDatasource {
         return 1;
     }
 
-    public static int continueJourney(String journeyId, Location location) {
-        if (D) Log.d(TAG, "continueJourney location="+location);
+    public static int continueJourney(Location location) {
+        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "continueJourney journey="+journey+" location="+location);
 
         // update journey with new waypoint
-        Journey foundJourney = Journey.findByJourneyId(journeyId);
+        Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
+                0, 0, TrackingState.RECORDING, location);
 
-        Waypoint newWaypoint = new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(),
-                0, 0, Constants.TRACKING_STATE_RECORDING, location);
-
-        newWaypoint.setJourney(foundJourney);
+        newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        foundJourney.addWaypoint(newWaypoint);
-        foundJourney.setTotalDistance(foundJourney.getTotalDistance() + newWaypoint.getDistance());
-        foundJourney.setTotalDuration(foundJourney.getTotalDuration() + newWaypoint.getDuration());
-        foundJourney.setState(TrackingState.RECORDING);
-        foundJourney.save();
-
-        // populate journey POJO
-        Journey journey = new Journey();
-        journey.setJourneyId(journeyId);
-        journey.setTotalDistance(foundJourney.getTotalDistance());
-        journey.setTotalDuration(foundJourney.getTotalDuration());
+        journey.addWaypoint(newWaypoint);
+        journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
+        journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
         journey.setState(TrackingState.RECORDING);
-        journey.addWaypoint(newWaypoint);
+        journey.save();
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
-        client.continueJourney(journey, new Callback<Response>() {
+        // populate journey POJO
+        Journey transferJourney = new Journey();
+        transferJourney.setJourneyId(journey.getJourneyId());
+        transferJourney.setTotalDistance(journey.getTotalDistance());
+        transferJourney.setTotalDuration(journey.getTotalDuration());
+        transferJourney.setState(journey.getState());
+        transferJourney.addWaypoint(newWaypoint);
+
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        client.continueJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -246,39 +163,40 @@ public final class JourneyDatasource {
         return 1;
     }
 
-    public static int stopJourney(String journeyId, Location location) {
-        if (D) Log.d(TAG, "stopJourney location="+location);
+    public static int stopJourney(Location location) {
+        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "stopJourney journey="+journey+" location="+location);
 
         // update journey with new waypoint
-        Journey foundJourney = Journey.findByJourneyId(journeyId);
-        Waypoint lastWaypoint = Waypoint.getLastWaypoint(foundJourney);
-
-
-        Waypoint newWaypoint = new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(),
+        Waypoint lastWaypoint = Waypoint.getLastWaypoint(journey);
+        Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
                 calculateDistance(location, lastWaypoint), calculateTimeSince(lastWaypoint),
-                Constants.TRACKING_STATE_STOPPED, location);
+                TrackingState.COMPLETED, location);
 
-        newWaypoint.setJourney(foundJourney);
+        newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        foundJourney.addWaypoint(newWaypoint);
-        foundJourney.setCompleted(new Timestamp(DateTimeUtils.currentTimeMillis()));
-        foundJourney.setTotalDistance(foundJourney.getTotalDistance() + newWaypoint.getDistance());
-        foundJourney.setTotalDuration(foundJourney.getTotalDuration() + newWaypoint.getDuration());
-        foundJourney.setState(TrackingState.COMPLETED);
-        foundJourney.save();
+        journey.addWaypoint(newWaypoint);
+        journey.setCompleted(new Timestamp(DateTimeUtils.currentTimeMillis()));
+        journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
+        journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
+        journey.setState(TrackingState.COMPLETED);
+        journey.save();
+
+        // clear cache
+        ((ScuffApplication) ScuffApplication.getContext()).setJourney(null);
 
         // populate journey POJO
-        Journey journey = new Journey();
-        journey.setJourneyId(journeyId);
-        journey.setCompleted(foundJourney.getCompleted());
-        journey.setTotalDistance(foundJourney.getTotalDistance());
-        journey.setTotalDuration(foundJourney.getTotalDuration());
-        journey.setState(foundJourney.getState());
-        journey.addWaypoint(newWaypoint);
+        Journey transferJourney = new Journey();
+        transferJourney.setJourneyId(journey.getJourneyId());
+        transferJourney.setCompleted(journey.getCompleted());
+        transferJourney.setTotalDistance(journey.getTotalDistance());
+        transferJourney.setTotalDuration(journey.getTotalDuration());
+        transferJourney.setState(journey.getState());
+        transferJourney.addWaypoint(newWaypoint);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
-        client.stopJourney(journey, new Callback<Response>() {
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        client.stopJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -292,35 +210,34 @@ public final class JourneyDatasource {
         return 1;
     }
 
-    public static int recordJourney(String journeyId, Location location) {
-        if (D) Log.d(TAG, "recordJourney location="+location);
+    public static int recordJourney(Location location) {
+        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "recordJourney journey="+journey+" location="+location);
 
         // update journey with new waypoint
-        Journey foundJourney = Journey.findByJourneyId(journeyId);
-        Waypoint lastWaypoint = Waypoint.getLastWaypoint(foundJourney);
-
-        Waypoint newWaypoint = new Waypoint(journeyId+":"+DateTimeUtils.currentTimeMillis(),
+        Waypoint lastWaypoint = Waypoint.getLastWaypoint(journey);
+        Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
                 calculateDistance(location, lastWaypoint), calculateTimeSince(lastWaypoint),
-                Constants.TRACKING_STATE_RECORDING, location);
+                TrackingState.RECORDING, location);
 
-        newWaypoint.setJourney(foundJourney);
+        newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        foundJourney.addWaypoint(newWaypoint);
-        foundJourney.setTotalDistance(foundJourney.getTotalDistance() + newWaypoint.getDistance());
-        foundJourney.setTotalDuration(foundJourney.getTotalDuration() + newWaypoint.getDuration());
-        foundJourney.save();
+        journey.addWaypoint(newWaypoint);
+        journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
+        journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
+        journey.save();
 
         // populate journey POJO
-        Journey journey = new Journey();
-        journey.setJourneyId(journeyId);
+        Journey transferJourney = new Journey();
+        transferJourney.setJourneyId(journey.getJourneyId());
         //journey.setState(Journey.TrackingState.RECORDING);
-        journey.setTotalDistance(foundJourney.getTotalDistance());
-        journey.setTotalDuration(foundJourney.getTotalDuration());
-        journey.addWaypoint(newWaypoint);
+        transferJourney.setTotalDistance(journey.getTotalDistance());
+        transferJourney.setTotalDuration(journey.getTotalDuration());
+        transferJourney.addWaypoint(newWaypoint);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, SERVER_URL);
-        client.recordJourney(journey, new Callback<Response>() {
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        client.recordJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -333,62 +250,6 @@ public final class JourneyDatasource {
         });
         return 1;
     }
-
-/*    public static int stopJourney(String journeyId, Location location) {
-
-        if (D) Log.d(TAG, "stopJourney journeyId="+journeyId);
-
-        // copy journey from active to completed
-        JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffContextProvider.getContext());
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(JourneyContract.JourneyEntry.COLUMN_NAME_STATE, 0);
-
-        String selection = JourneyContract.JourneyEntry.COLUMN_NAME_JOURNEY_ID + "=?";
-        String[] selectionArgs = { journeyId };
-        return db.update(JourneyContract.JourneyEntry.TABLE_NAME, values, selection,
-                selectionArgs);
-
-    }*/
-
-/*    public static long record(Location location) {
-
-        SharedPreferences sp = ScuffApplication.getContext().
-                getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-
-        if (D) Log.d(TAG, "processLocation waypoint journey=["+sp.getString(Constants.DRIVER_JOURNEY_ID, "ERROR")+"]");
-
-        HashMap<String, Object> waypointValues = new HashMap<>();
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_JOURNEY_ID, sp.getString(Constants.DRIVER_JOURNEY_ID, "ERROR"));
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_APP_ID, sp.getLong(Constants.DRIVER_APP_ID, -1));
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID, sp.getString(Constants.DRIVER_SCHOOL_ID, "ERROR"));
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_DRIVER_ID, sp.getString(Constants.DRIVER_DRIVER_ID, "ERROR"));
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID, sp.getString(Constants.DRIVER_ROUTE_ID, "ERROR"));
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_SOURCE, "Android");
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_STATE, 1);
-
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_WAYPOINT_ID, location.getLatitude());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE, location.getLatitude());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE, location.getLongitude());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED, location.getSpeed());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_BEARING, location.getBearing());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_DISTANCE, calculateTotalDistance(location));
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER, location.getProvider());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY, location.getAccuracy());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE, location.getAltitude());
-        waypointValues.put(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP, DateTime.now().toString(ISODateTimeFormat.dateTime()));
-
-        JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffApplication.getContext());
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        Parcel parcel = Parcel.obtain();
-        parcel.writeMap(waypointValues);
-        parcel.setDataPosition(0);
-        ContentValues contentValues = ContentValues.CREATOR.createFromParcel(parcel);
-
-        return db.insert(JourneyContract.JourneyEntry.TABLE_NAME, null, contentValues);
-    }*/
 
     public static Location get() {
 
