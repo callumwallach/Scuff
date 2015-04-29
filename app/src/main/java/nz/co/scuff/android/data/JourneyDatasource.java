@@ -67,7 +67,7 @@ public final class JourneyDatasource {
         if (D) Log.d(TAG, "posting journey="+journey);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.startJourney(journey, new Callback<Response>() {
+        client.start(journey, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -109,7 +109,7 @@ public final class JourneyDatasource {
         transferJourney.addWaypoint(newWaypoint);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.pauseJourney(transferJourney, new Callback<Response>() {
+        client.update(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -149,7 +149,7 @@ public final class JourneyDatasource {
         transferJourney.addWaypoint(newWaypoint);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.continueJourney(transferJourney, new Callback<Response>() {
+        client.update(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -196,7 +196,7 @@ public final class JourneyDatasource {
         transferJourney.addWaypoint(newWaypoint);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.stopJourney(transferJourney, new Callback<Response>() {
+        client.update(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -231,13 +231,13 @@ public final class JourneyDatasource {
         // populate journey POJO
         Journey transferJourney = new Journey();
         transferJourney.setJourneyId(journey.getJourneyId());
-        //journey.setState(Journey.TrackingState.RECORDING);
         transferJourney.setTotalDistance(journey.getTotalDistance());
         transferJourney.setTotalDuration(journey.getTotalDuration());
+        transferJourney.setState(journey.getState());
         transferJourney.addWaypoint(newWaypoint);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.recordJourney(transferJourney, new Callback<Response>() {
+        client.update(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -252,6 +252,10 @@ public final class JourneyDatasource {
     }
 
     public static Location get() {
+
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        //client.getWaypoint();
+
 
 /*        JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffApplication.getContext());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
