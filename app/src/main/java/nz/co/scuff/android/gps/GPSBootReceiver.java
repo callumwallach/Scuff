@@ -18,7 +18,7 @@ public class GPSBootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        Log.d(TAG, "onReceive");
+/*        Log.d(TAG, "onReceive");
 
         AlarmManager alarmManager = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent gpsTrackerIntent = new Intent(context, RecorderAlarmReceiver.class);
@@ -35,6 +35,6 @@ public class GPSBootReceiver extends BroadcastReceiver {
                     pendingIntent);
         } else {
             alarmManager.cancel(pendingIntent);
-        }
+        }*/
     }
 }

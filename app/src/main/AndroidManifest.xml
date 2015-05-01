@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- to get phone number -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -84,28 +84,64 @@
         <meta-data
             android:name="AA_MODELS"
             android:value="nz.co.scuff.data.journey.Journey, nz.co.scuff.data.journey.Waypoint" />
-        <meta-data android:name="AA_DB_NAME" android:value="Scuff.db" />
-        <meta-data android:name="AA_DB_VERSION" android:value="1" />
-        <meta-data android:name="AA_SERIALIZERS"
+        <meta-data
+            android:name="AA_DB_NAME"
+            android:value="Scuff.db" />
+        <meta-data
+            android:name="AA_DB_VERSION"
+            android:value="1" />
+        <meta-data
+            android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />
         <meta-data
             android:name="AA_DB_RESET"
             android:value="true" />
 
-<!--        <receiver android:name=".gps.GPSBootReceiver"
+        <!--
+            <receiver android:name=".gps.GPSBootReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-        </receiver>-->
-        <receiver android:name=".gps.RecorderAlarmReceiver"
-            android:exported="false">
         </receiver>
-        <service android:name=".gps.LocationRecorderService"
-            android:exported="false">
+        -->
+        <!--
+            <receiver
+            android:name=".gps.RecorderAlarmReceiver"
+            android:exported="false" >
+        </receiver>
+
+        <service
+            android:name=".gps.LocationRecorderService"
+            android:exported="false" >
         </service>
-        <service android:name=".gps.CommandRecorderService"
-            android:exported="false">
+        <service
+            android:name=".gps.CommandRecorderService"
+            android:exported="false" >
+        </service>
+        -->
+        <receiver
+            android:name=".gps.PassengerAlarmReceiver"
+            android:enabled="true"
+            android:exported="false" >
+        </receiver>
+        <receiver
+            android:name=".gps.DriverAlarmReceiver"
+            android:enabled="true"
+            android:exported="false" >
+        </receiver>
+
+        <service
+            android:name=".gps.DriverIntentService"
+            android:exported="false" >
+        </service>
+        <service
+            android:name=".gps.PassengerIntentService"
+            android:exported="false" >
+        </service>
+        <service
+            android:name=".gps.DriverLocationIntentService"
+            android:exported="false" >
         </service>
     </application>
 

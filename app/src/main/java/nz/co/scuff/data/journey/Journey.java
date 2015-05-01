@@ -190,6 +190,18 @@ public class Journey extends Model implements Comparable, Serializable {
         this.waypoints = waypoints;
     }
 
+    public Waypoint getCurrentWaypoint() {
+        if (waypoints.size() == 0) {
+            List<Waypoint> foundWaypoints = new Select()
+                    .from(Waypoint.class)
+                    .where("JourneyFK = ?", getId())
+                    .orderBy("Created DESC")
+                    .execute();
+            waypoints.addAll(foundWaypoints);
+        }
+        return waypoints.first();
+    }
+
     public static Journey findByJourneyId(String journeyId) {
         List<Journey> journeys = new Select()
                 .from(Journey.class)
@@ -231,53 +243,21 @@ public class Journey extends Model implements Comparable, Serializable {
         return result;
     }
 
-/*    protected Journey(Parcel in) {
-        journeyId = in.readString();
-        appId = in.readString();
-        schoolId = in.readString();
-        driverId = in.readString();
-        routeId = in.readString();
-        source = in.readString();
-        totalDistance = in.readFloat();
-        totalDuration = in.readLong();
-        created = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
-        completed = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
-        state = (TrackingState) in.readValue(TrackingState.class.getClassLoader());
-        waypoints = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
-    }
-
     @Override
-    public int describeContents() {
-        return 0;
+    public String toString() {
+        return "Journey{" +
+                "journeyId='" + journeyId + '\'' +
+                ", appId='" + appId + '\'' +
+                ", schoolId='" + schoolId + '\'' +
+                ", driverId='" + driverId + '\'' +
+                ", routeId='" + routeId + '\'' +
+                ", source='" + source + '\'' +
+                ", totalDistance=" + totalDistance +
+                ", totalDuration=" + totalDuration +
+                ", created=" + created +
+                ", completed=" + completed +
+                ", state=" + state +
+                '}';
     }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(journeyId);
-        dest.writeString(appId);
-        dest.writeString(schoolId);
-        dest.writeString(driverId);
-        dest.writeString(routeId);
-        dest.writeString(source);
-        dest.writeFloat(totalDistance);
-        dest.writeLong(totalDuration);
-        dest.writeValue(created);
-        dest.writeValue(completed);
-        dest.writeValue(state);
-        dest.writeValue(waypoints);
-    }
-
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<Journey> CREATOR = new Parcelable.Creator<Journey>() {
-        @Override
-        public Journey createFromParcel(Parcel in) {
-            return new Journey(in);
-        }
-
-        @Override
-        public Journey[] newArray(int size) {
-            return new Journey[size];
-        }
-    };*/
 }
 

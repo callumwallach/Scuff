@@ -33,10 +33,12 @@ import org.joda.time.DateTimeUtils;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 
+import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
-import nz.co.scuff.android.gps.RecorderAlarmReceiver;
-import nz.co.scuff.android.gps.CommandRecorderService;
-import nz.co.scuff.android.util.ActionType;
+import nz.co.scuff.android.gps.DriverAlarmReceiver;
+import nz.co.scuff.android.gps.DriverIntentService;
+import nz.co.scuff.android.util.CommandType;
+import nz.co.scuff.android.util.LocationEvent;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.family.Family;
 import nz.co.scuff.data.family.Driver;
@@ -52,9 +54,11 @@ public class DriverHomeActivity extends FragmentActivity {
     private static final String TAG = "DriverHomeActivity";
     private static final boolean D = true;
 
-    private static final int RECORDER_ALARM = 0;
+    private static final int DRIVER_ALARM = 0;
 
+    //private BroadcastReceiver receiver;
     private GoogleMap googleMap;
+    private CommandType commandType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +72,18 @@ public class DriverHomeActivity extends FragmentActivity {
             ((ScuffApplication) this.getApplication()).setJourney(savedState);
         }
         setContentView(R.layout.activity_driver_home);
+
+        initialiseMap();
+        // TODO temp track my movements until start of recording
+        //trackMyMovements();
+
+/*        this.receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Location location = intent.getParcelableExtra(Constants.LOCATION_UPDATED_KEY);
+                updateMap(location);
+            }
+        };*/
 
         Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
 
@@ -142,24 +158,86 @@ public class DriverHomeActivity extends FragmentActivity {
         routeSpinner.setAdapter(dataAdapter);
         routeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (googleMap == null) {
-                    googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap)).getMap();
-                }
-                if (googleMap != null) {
-                    setUpMap();
-                }
-            }
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
 
     }
 
-    private void setUpMap() {
+    private void initialiseMap() {
+        if (D) Log.d(TAG, "Initialise map");
 
+        if (googleMap == null) {
+            googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap)).getMap();
+        }
+
+        this.googleMap.setMyLocationEnabled(true);
+        this.googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        String provider = locationManager.getBestProvider(criteria, true);
+        Location myLocation = locationManager.getLastKnownLocation(provider);
+
+        if (D) Log.d(TAG, "My location = " + myLocation);
+        if (myLocation == null) {
+            // GPS not turned on? use school location
+            DialogHelper.dialog(this, "GPS is not active", "Please turn GPS on or wait for a stronger signal");
+            return;
+        }
+
+        /*double latitude = (myLocation == null ? this.school.getLatitude() : myLocation.getLatitude());
+        double longitude = (myLocation == null ? this.school.getLongitude() : myLocation.getLongitude());
+        LatLng latlng = new LatLng(latitude, longitude);*/
+        LatLng myLatlng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+
+        if (D) Log.d(TAG, "My latlng = " + myLatlng);
+
+        this.googleMap.clear();
+        this.googleMap.addMarker(new MarkerOptions()
+                .position(myLatlng)
+                .title("Bus location")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
+        this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatlng, 15));
+
+    }
+
+    private void updateMap(Location location) {
+        if (D) Log.d(TAG, "Updating map with location="+location);
+
+        LatLng busLatlng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        this.googleMap.clear();
+        this.googleMap.addMarker(new MarkerOptions()
+                .position(busLatlng)
+                .title("Bus position")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
+        this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
+
+    }
+
+    public void onEventMainThread(LocationEvent event) {
+        if (D) Log.d(TAG, "Main thread message location event="+event);
+        // update new location on map
+        updateMap(event.getLocation());
+    }
+
+/*    private void trackMyMovements(Route route) {
+        if (D) Log.d(TAG, "Track my movements");
+
+        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+
+        // start new listener using FLAG_CANCEL_CURRENT
+        Intent startIntent = new Intent(this, DriverAlarmReceiver.class);
+        PendingIntent startAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, startIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(),
+                Constants.LISTEN_LOCATION_INTERVAL * 1000, startAlarmIntent);
+
+    }*/
+
+/*    private void setUpMap() {
         if (D) Log.d(TAG, "Setting up map");
 
         this.googleMap.setMyLocationEnabled(true);
@@ -175,24 +253,33 @@ public class DriverHomeActivity extends FragmentActivity {
             DialogHelper.dialog(this, "GPS is not active", "Please turn GPS on or wait for a stronger signal");
             return;
         }
-
-        /*double latitude = (myLocation == null ? this.school.getLatitude() : myLocation.getLatitude());
-        double longitude = (myLocation == null ? this.school.getLongitude() : myLocation.getLongitude());
-        LatLng latlng = new LatLng(latitude, longitude);*/
-        LatLng driverLatlng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-
-        if (D) Log.d(TAG, "Driver latlng = " + driverLatlng);
-
-        this.googleMap.addMarker(new MarkerOptions()
-                .position(driverLatlng)
-                .title("Bus position")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
-        this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(driverLatlng, 15));
+        updateMap(myLocation);
 
     }
 
+    private void updateMap(Location location) {
+        if (D) Log.d(TAG, "Update map location="+location);
+
+        LatLng busLatlng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        if (D) Log.d(TAG, "Driver latlng = " + busLatlng);
+
+        if (this.googleMap == null) {
+            this.googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap)).getMap();
+        }
+
+        // Redraw the map
+        this.googleMap.clear();
+        this.googleMap.addMarker(new MarkerOptions()
+                .position(busLatlng)
+                .title("Bus location")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
+        this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
+
+    }*/
+
     public void recordJourney(View v) {
-        Log.d(TAG, "recordJourney");
+        if (D) Log.d(TAG, "recordJourney");
 
         if (!checkIfGooglePlayEnabled()) {
             DialogHelper.errorToast(this, "Google Maps is not available, please try again in a " +
@@ -216,7 +303,7 @@ public class DriverHomeActivity extends FragmentActivity {
             journey.save();
             // cache in app state
             ((ScuffApplication) this.getApplication()).setJourney(journey);
-            Log.d(TAG, "new journey id=" + journey.getId());
+            if (D) Log.d(TAG, "new journey id=" + journey.getId());
         }
 
         switch (journey.getState()) {
@@ -247,6 +334,8 @@ public class DriverHomeActivity extends FragmentActivity {
     private void startJourney() {
         if (D) Log.d(TAG, "startJourney");
 
+        this.commandType = CommandType.START;
+
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
 
         SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
@@ -254,38 +343,62 @@ public class DriverHomeActivity extends FragmentActivity {
                 Constants.RECORD_LOCATION_INTERVAL);
 
         // processLocation direct for journey start
+        Intent driverIntent = new Intent(this, DriverIntentService.class);
+        driverIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.START);
+        startService(driverIntent);
+
+        // followed by periodic updates of waypoints (uses LocationIntentService)
+        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
+                recordInterval * 1000, pendingAlarmIntent);
+
+/*        // processLocation direct for journey start
         Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.START);
+        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.START);
         startService(newIntent);
 
         // followed by periodic updates of waypoints
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
-                recordInterval * 1000, recorderAlarmIntent);
+                recordInterval * 1000, recorderAlarmIntent);*/
 
     }
 
     public void pauseJourney() {
         if (D) Log.d(TAG, "pauseJourney");
 
-        SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
+        this.commandType = CommandType.PAUSE;
 
         // pause (cancel) local location update requests
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.cancel(pendingAlarmIntent);
+
+        // send pause command to server
+        Intent newIntent = new Intent(this, DriverIntentService.class);
+        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.PAUSE);
+        startService(newIntent);
+
+        /*// pause (cancel) local location update requests
+        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(recorderAlarmIntent);
 
         // send pause command to server
         Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.PAUSE);
-        startService(newIntent);
+        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.PAUSE);
+        startService(newIntent);*/
 
     }
 
     public void continueJourney() {
         if (D) Log.d(TAG, "continueJourney");
+
+        this.commandType = CommandType.CONTINUE;
 
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
 
@@ -293,21 +406,36 @@ public class DriverHomeActivity extends FragmentActivity {
         int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
                 Constants.RECORD_LOCATION_INTERVAL);
 
-        // send pause command to server
+        // processLocation direct for journey continue
+        Intent driverIntent = new Intent(this, DriverIntentService.class);
+        driverIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.CONTINUE);
+        startService(driverIntent);
+
+        // followed by periodic updates of waypoints (uses LocationIntentService)
+        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
+                recordInterval * 1000, pendingAlarmIntent);
+
+/*        // send pause command to server
         Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.CONTINUE);
+        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.CONTINUE);
         startService(newIntent);
 
         // followed by periodic updates of waypoints
         Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
-                recordInterval * 1000, recorderAlarmIntent);
+                recordInterval * 1000, recorderAlarmIntent);*/
     }
 
     public void stopJourney(View v) {
         Log.d(TAG, "stopJourney");
 
+        this.commandType = CommandType.STOP;
+
+        // check as direct from ui
+        // TODO more robust
         if (!checkIfGooglePlayEnabled()) {
             DialogHelper.errorToast(this, "Google Maps is not available, please try again in a few moments");
             return;
@@ -315,19 +443,33 @@ public class DriverHomeActivity extends FragmentActivity {
 
         // cancel local location update requests
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-        Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
-        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, RECORDER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.cancel(recorderAlarmIntent);
+        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.cancel(pendingAlarmIntent);
 
-        Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
+        ((ScuffApplication) this.getApplication()).getJourney().setState(TrackingState.COMPLETED);
+
         // signal stop journey to server
-        journey.setState(TrackingState.COMPLETED);
-        Intent newIntent = new Intent(this, CommandRecorderService.class);
-        newIntent.putExtra(Constants.JOURNEY_STATE_KEY, ActionType.STOP);
+        Intent newIntent = new Intent(this, DriverIntentService.class);
+        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.STOP);
         startService(newIntent);
 
         updateControls(TrackingState.COMPLETED);
 
+/*        // cancel local location update requests
+        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+        Intent recorderIntent = new Intent(this, RecorderAlarmReceiver.class);
+        PendingIntent recorderAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, recorderIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.cancel(recorderAlarmIntent);
+
+        ((ScuffApplication) this.getApplication()).getJourney().setState(TrackingState.COMPLETED);
+
+        // signal stop journey to server
+        Intent newIntent = new Intent(this, CommandRecorderService.class);
+        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.STOP);
+        startService(newIntent);
+
+        updateControls(TrackingState.COMPLETED);*/
     }
 
     private boolean checkIfGooglePlayEnabled() {
@@ -370,6 +512,8 @@ public class DriverHomeActivity extends FragmentActivity {
         Log.d(TAG, "onStart");
         super.onStart();
 
+        EventBus.getDefault().register(this);
+
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!gpsEnabled) {
@@ -378,6 +522,9 @@ public class DriverHomeActivity extends FragmentActivity {
             // to take the user to the Settings screen to enable GPS when they click "OK"
             DialogHelper.dialog(this, "GPS is not active", "Please turn GPS on or wait for a stronger signal");
         }
+/*        LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+                new IntentFilter(Constants.LOCATION_UPDATED)
+        );*/
     }
 
     @Override
@@ -387,6 +534,8 @@ public class DriverHomeActivity extends FragmentActivity {
 
     @Override
     protected void onStop() {
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        EventBus.getDefault().unregister(this);
         super.onStop();
     }
 

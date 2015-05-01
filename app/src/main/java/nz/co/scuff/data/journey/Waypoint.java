@@ -185,15 +185,6 @@ public class Waypoint extends Model implements Comparable, Serializable {
         this.created = created;
     }
 
-    public static Waypoint getLastWaypoint(Journey journey) {
-        List<Waypoint> waypoints = new Select()
-                .from(Waypoint.class)
-                .where("JourneyFK = ?", journey.getId())
-                .orderBy("Created DESC")
-                .execute();
-        return waypoints.iterator().hasNext() ? waypoints.iterator().next() : null;
-    }
-
     @Override
     public int compareTo(Object another) {
         Waypoint other = (Waypoint)another;
@@ -219,4 +210,21 @@ public class Waypoint extends Model implements Comparable, Serializable {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Waypoint{" +
+                "waypointId='" + waypointId + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", speed=" + speed +
+                ", bearing=" + bearing +
+                ", distance=" + distance +
+                ", duration=" + duration +
+                ", provider='" + provider + '\'' +
+                ", accuracy=" + accuracy +
+                ", altitude=" + altitude +
+                ", state=" + state +
+                ", created=" + created +
+                '}';
+    }
 }

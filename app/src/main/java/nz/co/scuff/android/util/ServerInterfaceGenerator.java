@@ -20,7 +20,7 @@ public class ServerInterfaceGenerator {
     public static <S> S createService(Class<S> serviceClass, String baseUrl) {
 
         Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                .setDateFormat(Constants.JSON_DATE_FORMAT)
                 .excludeFieldsWithoutExposeAnnotation()
                 .create();
 

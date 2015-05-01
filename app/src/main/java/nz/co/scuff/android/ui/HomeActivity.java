@@ -61,8 +61,8 @@ public class HomeActivity extends Activity {
                 School selectedSchool = (School)parent.getItemAtPosition(position);
                 SharedPreferences.Editor editor = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE).edit();
                 //editor.putString(Constants.DRIVER_SCHOOL_ID, selectedSchool.toString());
-                editor.putString(Constants.PASSENGER_SCHOOL_ID, selectedSchool.toString());
-                editor.apply();
+/*                editor.putString(Constants.PASSENGER_SCHOOL_ID, selectedSchool.toString());
+                editor.apply();*/
                 ((ScuffApplication) getApplicationContext()).setSchool(selectedSchool);
 
                 if (!family.getDriversSchools().contains(selectedSchool)) {

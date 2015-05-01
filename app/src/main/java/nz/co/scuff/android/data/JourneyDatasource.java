@@ -15,7 +15,8 @@ import nz.co.scuff.android.util.ServerInterfaceGenerator;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.Waypoint;
-import nz.co.scuff.server.ScuffServerInterface;
+import nz.co.scuff.server.DriverServerInterface;
+import nz.co.scuff.server.PassengerServerInterface;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -66,8 +67,8 @@ public final class JourneyDatasource {
 
         if (D) Log.d(TAG, "posting journey="+journey);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.start(journey, new Callback<Response>() {
+        DriverServerInterface client = ServerInterfaceGenerator.createService(DriverServerInterface.class, Constants.SERVER_URL);
+        client.postJourney(journey, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -86,7 +87,7 @@ public final class JourneyDatasource {
         if (D) Log.d(TAG, "pauseJourney journey="+journey+" location="+location);
 
         // update journey with new waypoint
-        Waypoint lastWaypoint = Waypoint.getLastWaypoint(journey);
+        Waypoint lastWaypoint = journey.getCurrentWaypoint();
         Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
                 calculateDistance(location, lastWaypoint), calculateTimeSince(lastWaypoint),
                 TrackingState.PAUSED, location);
@@ -108,8 +109,8 @@ public final class JourneyDatasource {
         transferJourney.setState(journey.getState());
         transferJourney.addWaypoint(newWaypoint);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.update(transferJourney, new Callback<Response>() {
+        DriverServerInterface client = ServerInterfaceGenerator.createService(DriverServerInterface.class, Constants.SERVER_URL);
+        client.postJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -148,8 +149,8 @@ public final class JourneyDatasource {
         transferJourney.setState(journey.getState());
         transferJourney.addWaypoint(newWaypoint);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.update(transferJourney, new Callback<Response>() {
+        DriverServerInterface client = ServerInterfaceGenerator.createService(DriverServerInterface.class, Constants.SERVER_URL);
+        client.postJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -168,7 +169,7 @@ public final class JourneyDatasource {
         if (D) Log.d(TAG, "stopJourney journey="+journey+" location="+location);
 
         // update journey with new waypoint
-        Waypoint lastWaypoint = Waypoint.getLastWaypoint(journey);
+        Waypoint lastWaypoint = journey.getCurrentWaypoint();
         Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
                 calculateDistance(location, lastWaypoint), calculateTimeSince(lastWaypoint),
                 TrackingState.COMPLETED, location);
@@ -195,8 +196,8 @@ public final class JourneyDatasource {
         transferJourney.setState(journey.getState());
         transferJourney.addWaypoint(newWaypoint);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.update(transferJourney, new Callback<Response>() {
+        DriverServerInterface client = ServerInterfaceGenerator.createService(DriverServerInterface.class, Constants.SERVER_URL);
+        client.postJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -215,7 +216,7 @@ public final class JourneyDatasource {
         if (D) Log.d(TAG, "recordJourney journey="+journey+" location="+location);
 
         // update journey with new waypoint
-        Waypoint lastWaypoint = Waypoint.getLastWaypoint(journey);
+        Waypoint lastWaypoint = journey.getCurrentWaypoint();
         Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
                 calculateDistance(location, lastWaypoint), calculateTimeSince(lastWaypoint),
                 TrackingState.RECORDING, location);
@@ -236,8 +237,8 @@ public final class JourneyDatasource {
         transferJourney.setState(journey.getState());
         transferJourney.addWaypoint(newWaypoint);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.update(transferJourney, new Callback<Response>() {
+        DriverServerInterface client = ServerInterfaceGenerator.createService(DriverServerInterface.class, Constants.SERVER_URL);
+        client.postJourney(transferJourney, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -251,10 +252,25 @@ public final class JourneyDatasource {
         return 1;
     }
 
-    public static Location get() {
+    public static Journey getJourney(String routeId, String schoolId) {
+        if (D) Log.d(TAG, "get journey for route=" + routeId + " school=" + schoolId);
 
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        //client.getWaypoint();
+        DriverServerInterface client = ServerInterfaceGenerator.createService(DriverServerInterface.class, Constants.SERVER_URL);
+        return client.getJourney(routeId, schoolId);
+    }
+
+    public static Waypoint getCurrentWaypoint(Journey journey) {
+        if (D) Log.d(TAG, "get current waypoint for journey="+journey);
+
+        PassengerServerInterface client = ServerInterfaceGenerator.createService(PassengerServerInterface.class, Constants.SERVER_URL);
+        return client.getCurrentWaypoint(journey.getRouteId(), journey.getSchoolId());
+    }
+
+    public static Waypoint getCurrentWaypoint(String routeId, String schoolId) {
+        if (D) Log.d(TAG, "get waypoint for route="+routeId+" school="+schoolId);
+
+        PassengerServerInterface client = ServerInterfaceGenerator.createService(PassengerServerInterface.class, Constants.SERVER_URL);
+        return client.getCurrentWaypoint(routeId, schoolId);
 
 
 /*        JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffApplication.getContext());
@@ -293,7 +309,6 @@ public final class JourneyDatasource {
             location.setTime(DateTime.parse(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP))).getMillis());
         }
         return location;*/
-        return null;
 
     }
 }
