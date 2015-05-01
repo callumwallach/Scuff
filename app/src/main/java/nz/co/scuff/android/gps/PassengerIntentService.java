@@ -4,6 +4,8 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
+import java.util.List;
+
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.data.JourneyDatasource;
 import nz.co.scuff.android.util.Constants;
@@ -27,9 +29,9 @@ public class PassengerIntentService extends IntentService {
         String schoolId = intent.getExtras().getString(Constants.PASSENGER_SCHOOL_KEY);
 
         // TODO optimise to avoid DB lookup on server
-        Waypoint waypoint = JourneyDatasource.getCurrentWaypoint(routeId, schoolId);
+        List<Waypoint> waypoints = JourneyDatasource.getCurrentWaypoint(routeId, schoolId);
 
-        EventBus.getDefault().post(new WaypointEvent(waypoint));
+        EventBus.getDefault().post(new WaypointEvent(waypoints));
 
     }
 

@@ -1,5 +1,7 @@
 package nz.co.scuff.android.util;
 
+import java.util.List;
+
 import nz.co.scuff.data.journey.Waypoint;
 
 /**
@@ -7,20 +9,24 @@ import nz.co.scuff.data.journey.Waypoint;
  */
 public class WaypointEvent {
 
-    private Waypoint waypoint;
+    private List<Waypoint> waypoints;
 
-    public WaypointEvent(Waypoint waypoint) {
-        this.waypoint = waypoint;
+    public WaypointEvent(List<Waypoint> waypoints) {
+        this.waypoints = waypoints;
     }
 
-    public Waypoint getWaypoint() {
-        return waypoint;
+    public List<Waypoint> getWaypoints() {
+        return waypoints;
     }
 
     @Override
     public String toString() {
-        return "WaypointEvent{" +
-                "waypoint=" + waypoint +
-                '}';
+        String toReturn = "WaypointEvent{" +
+                "waypoints=[";
+        for (Waypoint w : waypoints) {
+            toReturn += w;
+        }
+        toReturn += "]}";
+        return toReturn;
     }
 }

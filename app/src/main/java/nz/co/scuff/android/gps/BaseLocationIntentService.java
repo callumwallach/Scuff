@@ -112,9 +112,9 @@ public abstract class BaseLocationIntentService extends IntentService implements
                 // interval between updates. ignored because only around for one update?
                 setInterval(1000).
                 // set to default (6 x interval) as only getting one update
-                setFastestInterval(1000).
-                // min distance between locations
-                setSmallestDisplacement(10);
+                setFastestInterval(1000);
+                /* min distance between locations
+                setSmallestDisplacement(10);*/
         com.google.android.gms.common.api.PendingResult<Status> result =
                 LocationServices.FusedLocationApi.requestLocationUpdates(locationClient, locationRequest, this);
         // Callback is asynchronous. Use await() on a background thread or listen for the ResultCallback

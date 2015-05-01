@@ -29,21 +29,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.gps.PassengerAlarmReceiver;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.LocationEvent;
 import nz.co.scuff.android.util.WaypointEvent;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Family;
-import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.Waypoint;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
-import nz.co.scuff.android.data.JourneyDatasource;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
 
@@ -57,8 +55,8 @@ public class PassengerHomeActivity extends FragmentActivity
 
     private static final int PASSENGER_ALARM = 1;
 
-    private Journey journey;
     private GoogleMap googleMap;
+    private boolean newRouteSelected;
     //private School school;
 
     @Override
@@ -119,11 +117,13 @@ public class PassengerHomeActivity extends FragmentActivity
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (D) Log.d(TAG, "item " + position + " selected");
                 Route selectedRoute = (Route) parent.getItemAtPosition(position);
+                newRouteSelected = true;
                 listenForBus(selectedRoute);
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) { }
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
     }
@@ -149,8 +149,8 @@ public class PassengerHomeActivity extends FragmentActivity
     private void initialiseMap() {
         if (D) Log.d(TAG, "Initialise map");
 
-        if (googleMap == null) {
-            googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap)).getMap();
+        if (this.googleMap == null) {
+            this.googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap)).getMap();
         }
 
         this.googleMap.setMyLocationEnabled(true);
@@ -168,59 +168,56 @@ public class PassengerHomeActivity extends FragmentActivity
             return;
         }
 
-        /*double latitude = (myLocation == null ? this.school.getLatitude() : myLocation.getLatitude());
-        double longitude = (myLocation == null ? this.school.getLongitude() : myLocation.getLongitude());
-        LatLng latlng = new LatLng(latitude, longitude);*/
         LatLng myLatlng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
 
         if (D) Log.d(TAG, "My latlng = " + myLatlng);
 
         this.googleMap.clear();
-        this.googleMap.addMarker(new MarkerOptions()
+/*        this.googleMap.addMarker(new MarkerOptions()
                 .position(myLatlng)
                 .title("My location")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));*/
         this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatlng, 15));
 
     }
 
-    private void updateMap(Waypoint waypoint) {
-        if (D) Log.d(TAG, "Updating map with location="+waypoint);
+    private void updateMap(List<Waypoint> waypoints) {
+        if (D) Log.d(TAG, "Updating map with location="+waypoints);
 
-/*        Route route = (Route) ((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
-        // if first time or a change to the route drop down
-        if (this.journey == null || !this.journey.getRouteId().equals(route.getName())) {
-            School school = ((ScuffApplication) ScuffApplication.getContext()).getSchool();
-            this.journey = JourneyDatasource.getJourney(route.getName(), school.getName());
-        }*/
+        this.googleMap.clear();
 
-        /*Waypoint waypoint = JourneyDatasource.getCurrentWaypoint(this.journey);*/
-        if (waypoint == null) {
+        if (waypoints.size() == 0) {
             // no active buses on this route
-            DialogHelper.dialog(this, "Bus not found", "There are currently no active buses on this route");
+            if (!this.newRouteSelected) DialogHelper.dialog(this, "Bus not found", "There are currently no active buses on this route");
             return;
         }
 
-        this.googleMap.clear();
-        Location myLocation = this.googleMap.getMyLocation();
+/*        Location myLocation = this.googleMap.getMyLocation();
         LatLng myLatlng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         this.googleMap.addMarker(new MarkerOptions()
                 .position(myLatlng)
                 .title("My location")
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
-        if (D) Log.d(TAG, "Bus location = " + waypoint);
-        LatLng busLatlng = new LatLng(waypoint.getLatitude(), waypoint.getLongitude());
-        this.googleMap.addMarker(new MarkerOptions()
-                .position(busLatlng)
-                .title("Bus position")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
-        this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
+        this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
+
+        for (Waypoint waypoint : waypoints) {
+            if (D) Log.d(TAG, "Bus location = " + waypoint);
+            LatLng busLatlng = new LatLng(waypoint.getLatitude(), waypoint.getLongitude());
+            this.googleMap.addMarker(new MarkerOptions()
+                    .position(busLatlng)
+                    .title("Bus position")
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
+            if (this.newRouteSelected) {
+                this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
+                newRouteSelected = false;
+            }
+        }
 
     }
 
     public void onEventMainThread(WaypointEvent event) {
         if (D) Log.d(TAG, "Main thread message waypoint event="+event);
-        updateMap(event.getWaypoint());
+        updateMap(event.getWaypoints());
     }
 
 /*    public void onEventMainThread(LocationEvent event) {

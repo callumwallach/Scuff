@@ -24,6 +24,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -201,6 +202,7 @@ public class DriverHomeActivity extends FragmentActivity {
                 .title("Bus location")
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
         this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatlng, 15));
+        this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));
 
     }
 

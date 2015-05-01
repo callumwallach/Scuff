@@ -8,6 +8,7 @@ import org.joda.time.DateTimeUtils;
 import org.joda.time.Seconds;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ScuffApplication;
@@ -252,63 +253,25 @@ public final class JourneyDatasource {
         return 1;
     }
 
-    public static Journey getJourney(String routeId, String schoolId) {
+/*    public static Journey getJourney(String routeId, String schoolId) {
         if (D) Log.d(TAG, "get journey for route=" + routeId + " school=" + schoolId);
 
         DriverServerInterface client = ServerInterfaceGenerator.createService(DriverServerInterface.class, Constants.SERVER_URL);
         return client.getJourney(routeId, schoolId);
-    }
+    }*/
 
-    public static Waypoint getCurrentWaypoint(Journey journey) {
+/*    public static Waypoint getCurrentWaypoint(Journey journey) {
         if (D) Log.d(TAG, "get current waypoint for journey="+journey);
 
         PassengerServerInterface client = ServerInterfaceGenerator.createService(PassengerServerInterface.class, Constants.SERVER_URL);
         return client.getCurrentWaypoint(journey.getRouteId(), journey.getSchoolId());
-    }
+    }*/
 
-    public static Waypoint getCurrentWaypoint(String routeId, String schoolId) {
-        if (D) Log.d(TAG, "get waypoint for route="+routeId+" school="+schoolId);
+    public static List<Waypoint> getCurrentWaypoint(String routeId, String schoolId) {
+        if (D) Log.d(TAG, "get waypoint for each journey matching route="+routeId+" school="+schoolId);
 
         PassengerServerInterface client = ServerInterfaceGenerator.createService(PassengerServerInterface.class, Constants.SERVER_URL);
         return client.getCurrentWaypoint(routeId, schoolId);
-
-
-/*        JourneyDBHelper dbHelper = new JourneyDBHelper(ScuffApplication.getContext());
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-
-        SharedPreferences sp = ScuffApplication.getContext().
-                getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        String selection = JourneyContract.JourneyEntry.COLUMN_NAME_SCHOOL_ID +
-                "=? and " + JourneyContract.JourneyEntry.COLUMN_NAME_ROUTE_ID +
-                "=? and " + JourneyContract.JourneyEntry.COLUMN_NAME_STATE + "=?";
-        String[] selectionArgs = { sp.getString(Constants.PASSENGER_SCHOOL_ID, null),
-                sp.getString(Constants.PASSENGER_ROUTE_ID, null), "1"};
-        if (D) Log.d(TAG, "selectionArgs=" + selectionArgs[0] + " " + selectionArgs[1]);
-        String sortOrder = JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP + " DESC";
-
-        Cursor cursor = db.query(
-                JourneyContract.JourneyEntry.TABLE_NAME,  // The table to query
-                null,                                       // The columns to return
-                selection,                                // The columns for the WHERE clause
-                selectionArgs,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
-
-        Location location = null;
-        if (cursor.moveToFirst()) {
-            String provider = cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_PROVIDER));
-            location = new Location(provider);
-            location.setLatitude(Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_LATITUDE))));
-            location.setLongitude(Double.parseDouble(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_LONGITUDE))));
-            location.setSpeed(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_SPEED)));
-            location.setBearing(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_BEARING)));
-            location.setAccuracy(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_ACCURACY)));
-            location.setAltitude(cursor.getFloat(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_ALTITUDE)));
-            location.setTime(DateTime.parse(cursor.getString(cursor.getColumnIndexOrThrow(JourneyContract.JourneyEntry.COLUMN_NAME_TIMESTAMP))).getMillis());
-        }
-        return location;*/
 
     }
 }

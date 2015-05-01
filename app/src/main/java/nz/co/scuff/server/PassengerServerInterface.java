@@ -1,5 +1,7 @@
 package nz.co.scuff.server;
 
+import java.util.List;
+
 import nz.co.scuff.data.journey.Waypoint;
 import retrofit.http.GET;
 import retrofit.http.Query;
@@ -10,6 +12,6 @@ import retrofit.http.Query;
 public interface PassengerServerInterface {
 
     @GET("/waypoints")
-    Waypoint getCurrentWaypoint(@Query("routeId") String routeId, @Query("schoolId") String schoolId);
+    List<Waypoint> getCurrentWaypoint(@Query("routeId") String routeId, @Query("schoolId") String schoolId);
 
 }
