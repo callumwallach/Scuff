@@ -2,7 +2,6 @@ package nz.co.scuff.android.gps;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -14,11 +13,6 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-
-import de.greenrobot.event.EventBus;
-import nz.co.scuff.android.data.JourneyDatasource;
-import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.LocationEvent;
 
 public abstract class BaseLocationIntentService extends IntentService implements
         GoogleApiClient.ConnectionCallbacks,

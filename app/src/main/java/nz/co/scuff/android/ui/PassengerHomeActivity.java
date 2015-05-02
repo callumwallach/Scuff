@@ -36,10 +36,10 @@ import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.gps.PassengerAlarmReceiver;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.WaypointEvent;
+import nz.co.scuff.android.util.SnapshotEvent;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Family;
-import nz.co.scuff.data.journey.Waypoint;
+import nz.co.scuff.data.journey.Snapshot;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.DialogHelper;
@@ -181,14 +181,15 @@ public class PassengerHomeActivity extends FragmentActivity
 
     }
 
-    private void updateMap(List<Waypoint> waypoints) {
-        if (D) Log.d(TAG, "Updating map with location="+waypoints);
+    private void updateMap(List<Snapshot> snapshots) {
+        if (D) Log.d(TAG, "Updating map with snapshots="+ snapshots);
 
         this.googleMap.clear();
 
-        if (waypoints.size() == 0) {
+        if (snapshots.isEmpty()) {
             // no active buses on this route
-            if (!this.newRouteSelected) DialogHelper.dialog(this, "Bus not found", "There are currently no active buses on this route");
+            if (this.newRouteSelected) DialogHelper.dialog(this, "Bus not found", "There are currently no active buses on this route");
+            this.newRouteSelected = false;
             return;
         }
 
@@ -200,9 +201,9 @@ public class PassengerHomeActivity extends FragmentActivity
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
         this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
 
-        for (Waypoint waypoint : waypoints) {
-            if (D) Log.d(TAG, "Bus location = " + waypoint);
-            LatLng busLatlng = new LatLng(waypoint.getLatitude(), waypoint.getLongitude());
+        for (Snapshot snapshot : snapshots) {
+            if (D) Log.d(TAG, "Bus location = " + snapshot);
+            LatLng busLatlng = new LatLng(snapshot.getLatitude(), snapshot.getLongitude());
             this.googleMap.addMarker(new MarkerOptions()
                     .position(busLatlng)
                     .title("Bus position")
@@ -215,9 +216,9 @@ public class PassengerHomeActivity extends FragmentActivity
 
     }
 
-    public void onEventMainThread(WaypointEvent event) {
+    public void onEventMainThread(SnapshotEvent event) {
         if (D) Log.d(TAG, "Main thread message waypoint event="+event);
-        updateMap(event.getWaypoints());
+        updateMap(event.getSnapshots());
     }
 
 /*    public void onEventMainThread(LocationEvent event) {

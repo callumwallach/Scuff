@@ -5,7 +5,7 @@ import android.location.Location;
 import android.util.Log;
 
 import de.greenrobot.event.EventBus;
-import nz.co.scuff.android.data.JourneyDatasource;
+import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.LocationEvent;
@@ -49,24 +49,24 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
         if (D) Log.d(TAG, "Save and upload location="+location);
 
         if (this.recording) {
-            JourneyDatasource.recordJourney(location);
+            ScuffDatasource.recordJourney(location);
         } else {
             switch (this.commandType) {
                 case START:
                     // create journey + create waypoint
-                    JourneyDatasource.startJourney(location);
+                    ScuffDatasource.startJourney(location);
                     break;
                 case PAUSE:
                     // pause journey + create waypoint
-                    JourneyDatasource.pauseJourney(location);
+                    ScuffDatasource.pauseJourney(location);
                     break;
                 case CONTINUE:
                     // update journey + create waypoint
-                    JourneyDatasource.continueJourney(location);
+                    ScuffDatasource.continueJourney(location);
                     break;
                 case STOP:
                     // close journey + create waypoint
-                    JourneyDatasource.stopJourney(location);
+                    ScuffDatasource.stopJourney(location);
                     break;
                 default:
                     // do nothing

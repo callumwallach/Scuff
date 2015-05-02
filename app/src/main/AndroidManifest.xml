@@ -83,13 +83,14 @@
 
         <meta-data
             android:name="AA_MODELS"
-            android:value="nz.co.scuff.data.journey.Journey, nz.co.scuff.data.journey.Waypoint" />
+            android:value="nz.co.scuff.data.journey.Journey, nz.co.scuff.data.journey.Waypoint,
+            nz.co.scuff.data.journey.Snapshot" />
         <meta-data
             android:name="AA_DB_NAME"
             android:value="Scuff.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="1" />
+            android:value="9" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />
@@ -104,21 +105,6 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        -->
-        <!--
-            <receiver
-            android:name=".gps.RecorderAlarmReceiver"
-            android:exported="false" >
-        </receiver>
-
-        <service
-            android:name=".gps.LocationRecorderService"
-            android:exported="false" >
-        </service>
-        <service
-            android:name=".gps.CommandRecorderService"
-            android:exported="false" >
-        </service>
         -->
         <receiver
             android:name=".gps.PassengerAlarmReceiver"

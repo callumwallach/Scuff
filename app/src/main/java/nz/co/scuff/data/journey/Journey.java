@@ -61,7 +61,7 @@ public class Journey extends Model implements Comparable, Serializable {
 
     // relationships
     @Expose
-    @Column(name="Waypoints")
+    @Column(name="Waypoints", onDelete = Column.ForeignKeyAction.CASCADE)
     private SortedSet<Waypoint> waypoints;
 
     // active android relationship requirement
@@ -191,7 +191,7 @@ public class Journey extends Model implements Comparable, Serializable {
     }
 
     public Waypoint getCurrentWaypoint() {
-        if (waypoints.size() == 0) {
+        if (waypoints.isEmpty()) {
             List<Waypoint> foundWaypoints = new Select()
                     .from(Waypoint.class)
                     .where("JourneyFK = ?", getId())

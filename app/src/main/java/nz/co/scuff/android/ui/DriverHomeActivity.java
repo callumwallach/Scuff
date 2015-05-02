@@ -36,6 +36,7 @@ import java.util.ArrayList;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
+import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.gps.DriverAlarmReceiver;
 import nz.co.scuff.android.gps.DriverIntentService;
 import nz.co.scuff.android.util.CommandType;
@@ -96,7 +97,7 @@ public class DriverHomeActivity extends FragmentActivity {
                 // TODO connect up GPSBootReceiver
                 // clean up incomplete journeys - close/delete them
                 j.setState(TrackingState.COMPLETED);
-                j.save();
+                ScuffDatasource.saveJourney(j);
             }
         }
 
@@ -293,16 +294,17 @@ public class DriverHomeActivity extends FragmentActivity {
         if (journey == null) {
             // create new journey
             ScuffApplication scuffContext = ((ScuffApplication) getApplicationContext());
-            String journeyId = scuffContext.getAppId() + ":" + DateTime.now().getMillis();
+            long nowMillis = DateTime.now().getMillis();
+            String journeyId = scuffContext.getAppId() + ":" + nowMillis;
             Driver driver = (Driver)((Spinner) findViewById(R.id.driver_spinner)).getSelectedItem();
             Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
             journey = new Journey(journeyId, scuffContext.getAppId(),
                     scuffContext.getSchool().getName(), driver.getName(), route.getName(),
-                    "Android", 0, 0, new Timestamp(DateTimeUtils.currentTimeMillis()),
+                    "Android", 0, 0, new Timestamp(nowMillis),
                     null, TrackingState.COMPLETED);
             // save to database (and assign mId)
-            journey.save();
+            ScuffDatasource.saveJourney(journey);
             // cache in app state
             ((ScuffApplication) this.getApplication()).setJourney(journey);
             if (D) Log.d(TAG, "new journey id=" + journey.getId());
