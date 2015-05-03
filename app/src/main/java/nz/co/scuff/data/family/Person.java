@@ -15,10 +15,14 @@ public abstract class Person implements Parcelable {
     }
 
     private String name;
-    private String pix;
     private Gender gender;
+    private String pix;
 
     public Person() {}
+
+    public Person(String name, Gender gender) {
+        this(name, gender, null);
+    }
 
     public Person(String name, Gender gender, String pix) {
         this.name = name;

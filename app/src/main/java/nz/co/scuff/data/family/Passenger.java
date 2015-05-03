@@ -14,7 +14,11 @@ public class Passenger extends Person implements Parcelable {
 
     public Passenger() { }
 
-    public Passenger(String name, School school, Gender gender, String pix) {
+    public Passenger(String name, Gender gender, School school) {
+        this(name, gender, school, null);
+    }
+
+    public Passenger(String name, Gender gender, School school, String pix) {
         super(name, gender, pix);
         this.school = school;
     }

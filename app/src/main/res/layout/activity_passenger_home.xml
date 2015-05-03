@@ -1,6 +1,6 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:background="#0099cc"
+    android:layout_height="match_parent" android:background="@drawable/background"
     tools:context="nz.co.scuff.android.ui.PassengerHomeActivity">
 
     <!-- This FrameLayout insets its children based on system windows using
@@ -24,7 +24,7 @@
 
             <Spinner
                 android:id="@+id/route.spinner"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="10dp"
@@ -48,7 +48,7 @@
                     android:layout_height="match_parent">
                 </LinearLayout>-->
                 <LinearLayout
-                    android:background="#0099cc"
+                    android:background="@drawable/background"
                     android:orientation="vertical"
                     android:id="@+id/mapSlideOver"
                     android:padding="10dp"
@@ -69,7 +69,7 @@
 
                 <!-- Surface View Start -->
                 <LinearLayout
-                    android:background="#0099cc"
+                    android:background="@drawable/background"
                     android:id="@+id/bottom_wrapper2"
                     android:layout_width="match_parent"
                     android:weightSum="1"

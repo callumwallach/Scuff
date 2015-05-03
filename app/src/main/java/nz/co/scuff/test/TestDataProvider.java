@@ -51,10 +51,10 @@ public class TestDataProvider {
 
         Family family = new Family("Lin");
 
-        Passenger passenger1 = new Passenger("Cayden", school, Person.Gender.MALE, Constants.MALE_PROFILE_BLANK);
-        Passenger passenger2 = new Passenger("Mia", school, Person.Gender.FEMALE, Constants.FEMALE_PROFILE_BLANK);
-        Driver driver1 = new Driver("Christine", Person.Gender.FEMALE, Constants.FEMALE_PROFILE_BLANK);
-        Driver driver2 = new Driver("Callum", Person.Gender.MALE, Constants.MALE_PROFILE_BLANK);
+        Passenger passenger1 = new Passenger("Cayden", Person.Gender.MALE, school);
+        Passenger passenger2 = new Passenger("Mia", Person.Gender.FEMALE, school);
+        Driver driver1 = new Driver("Christine", Person.Gender.FEMALE);
+        Driver driver2 = new Driver("Callum", Person.Gender.MALE);
 
         family.addPassenger(passenger1);
         family.addPassenger(passenger2);

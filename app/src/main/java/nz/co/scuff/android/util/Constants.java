@@ -24,9 +24,6 @@ public interface Constants {
 
     float MIN_LOCATION_ACCURACY = 500.0f;
 
-    String MALE_PROFILE_BLANK = "male_profile_blank.jpg";
-    String FEMALE_PROFILE_BLANK = "female_profile_blank.jpg";
-
     String SERVER_URL = "http://10.0.3.2:8080/scuff";
     String JSON_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 

@@ -12,6 +12,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+
 import java.util.ArrayList;
 
 import nz.co.scuff.android.R;
@@ -29,6 +32,11 @@ public class HomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        // Create global configuration and initialize ImageLoader with this config
+        // TODO caching not enabled by default
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
+        ImageLoader.getInstance().init(config);
+
         // populate data for testing
         loadTestData();
         populateSchools();
@@ -36,11 +44,13 @@ public class HomeActivity extends Activity {
     }
 
     private void loadTestData() {
-        Family family = ((ScuffApplication)getApplicationContext()).getFamily();
+        ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
+        Family family = scuffContext.getFamily();
         if (family == null){
             TestDataProvider.populateTestData();
             family = TestDataProvider.getFamily();
-            ((ScuffApplication) getApplicationContext()).setFamily(family);
+            scuffContext.setFamily(family);
+            scuffContext.setDriver(family.getDrivers().iterator().next());
         }
         final TextView welcome = (TextView) findViewById(R.id.family_label);
         welcome.setText(family.getName() + " family");

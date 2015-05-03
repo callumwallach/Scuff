@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
@@ -27,6 +28,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +41,7 @@ import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.SnapshotEvent;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Family;
+import nz.co.scuff.data.family.Person;
 import nz.co.scuff.data.journey.Snapshot;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
@@ -78,25 +81,35 @@ public class PassengerHomeActivity extends FragmentActivity
 
 
 
-        Family family = ((ScuffApplication)getApplicationContext()).getFamily();
+        ScuffApplication scuffContext = (ScuffApplication)getApplicationContext();
+        Family family = scuffContext.getFamily();
         LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
-        Set<Passenger> passengers = family.getPassengers();
+        Set<Passenger> passengers = family.getPassengersForSchool(scuffContext.getSchool());
 /*
         ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
         getSupportFragmentManager().beginTransaction().add(R.id.mapSlideOver, childrenFragment).commit();
 */
 
-        for (Passenger c : passengers) {
+        for (Passenger passenger : passengers) {
             Button button = new Button(this);
-            String fileLocation = getFilesDir() + "/" + c.getPix();
-            if (D) Log.d(TAG, "file location = "+ fileLocation);
-            button.setBackground(Drawable.createFromPath(getFilesDir() + "/" + c.getPix()));
-            button.setText(c.getName());
+            Drawable profilePix;
+            if (passenger.getPix() != null) {
+                // load from disk
+                String fileLocation = getFilesDir() + "/" + passenger.getPix();
+                if (D) Log.d(TAG, "loading profile image from file location = "+ fileLocation);
+                profilePix = Drawable.createFromPath(fileLocation);
+            } else {
+                // default images based on gender
+                profilePix = passenger.getGender() == Person.Gender.MALE ?
+                        getResources().getDrawable(R.drawable.male_blank_icon) : getResources().getDrawable(R.drawable.female_blank_icon);
+            }
+            button.setBackground(profilePix);
+            button.setText(passenger.getName());
             //button.setGravity(Gravity.BOTTOM);
             button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             button.setTextColor(Color.BLACK);
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             layoutParams.bottomMargin = 10;
             button.setLayoutParams(layoutParams);
             mapSlideOver.addView(button);

@@ -1,6 +1,6 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:background="#0099cc" tools:context=".HomeActivity">
+    android:layout_height="match_parent" android:background="@drawable/background" tools:context=".HomeActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
@@ -56,7 +56,7 @@
 
             <Spinner
                 android:id="@+id/school.spinner"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="20dp"
                 android:prompt="@string/school_prompt" />
@@ -67,7 +67,7 @@
                 android:layout_margin="20dp"
                 android:text="@string/driver.button"
                 android:id="@+id/driver.button"
-                android:background="#ffff0402"
+                android:background="@drawable/red_button"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:onClick="goDriver" />
@@ -78,7 +78,7 @@
                 android:layout_margin="20dp"
                 android:text="@string/passenger.button"
                 android:id="@+id/passenger.button"
-                android:background="#ff0411ff"
+                android:background="@drawable/green_button"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:onClick="goPassenger"/>

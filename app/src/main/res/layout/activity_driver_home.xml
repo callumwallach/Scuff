@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0099cc"
+    android:background="@drawable/background"
     tools:context="nz.co.scuff.android.ui.DriverHomeActivity">
 
     <!-- This FrameLayout insets its children based on system windows using
@@ -27,14 +27,8 @@
                 android:layout_marginBottom="0dp">
 
                 <Spinner
-                    android:id="@+id/driver.spinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:prompt="@string/driver_prompt"
-                    android:layout_weight="1"/>
-                <Spinner
                     android:id="@+id/route.spinner"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:prompt="@string/route_prompt"
                     android:layout_weight="1"/>
@@ -47,7 +41,7 @@
                 android:layout_weight="1">
 
                 <LinearLayout
-                    android:background="#0099cc"
+                    android:background="@drawable/background"
                     android:orientation="vertical"
                     android:id="@+id/mapSlideOver"
                     android:padding="10dp"
@@ -58,7 +52,7 @@
 
                 <!-- Surface View Start -->
                 <LinearLayout
-                    android:background="#0099cc"
+                    android:background="@drawable/background"
                     android:id="@+id/bottom_wrapper2"
                     android:layout_width="match_parent"
                     android:weightSum="1"
