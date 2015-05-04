@@ -130,7 +130,7 @@ public class SelectRouteActivity extends ActionBarActivity implements ActionBar.
         Route selectedRoute = null;
         for (School school : family.getSchools()) {
             for (Route route : school.getRoutes()) {
-                if (route.getName().equals(tab.getText()))
+                if (route.getFirstName().equals(tab.getText()))
                     selectedRoute = route;
             }
         }

@@ -1,4 +1,4 @@
-package nz.co.scuff.android.gps;
+package nz.co.scuff.android.data;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -13,26 +13,34 @@ import java.util.List;
 import java.util.ListIterator;
 
 import de.greenrobot.event.EventBus;
-import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.SnapshotEvent;
 import nz.co.scuff.data.journey.JourneySnapshot;
 
-public class PassengerIntentService extends IntentService {
+public class UserIntentService extends IntentService {
 
-    private static final String TAG = "PassengerIntentService";
+    private static final String TAG = "UserIntentService";
     private static final boolean D = true;
 
-    public PassengerIntentService() {
-        super("PassengerIntentService");
+    public UserIntentService() {
+        super("UserIntentService");
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         if (D) Log.d(TAG, "onHandleIntent");
 
-        String routeId = intent.getExtras().getString(Constants.PASSENGER_ROUTE_KEY);
-        String schoolId = intent.getExtras().getString(Constants.PASSENGER_SCHOOL_KEY);
+        String userId = intent.getExtras().getString(Constants.USER_KEY);
+
+        // UI IS WAITING
+        // check local db
+        // if found check for updates from server
+        // if not there retrieve from server (first log in)
+        // store in db
+        // return user
+        // RELEASE UI
+
+/*
 
         // check locally
         List<JourneySnapshot> localSnapshots = JourneySnapshot.findByRouteAndSchool(routeId, schoolId);
@@ -87,6 +95,7 @@ public class PassengerIntentService extends IntentService {
             }
         }
         EventBus.getDefault().post(new SnapshotEvent(snapshotsToPost));
+*/
 
     }
 

@@ -17,7 +17,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import nz.co.scuff.android.R;
-import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.family.Child;
 
 /**
  * A fragment representing a list of Items.
@@ -34,7 +34,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
     private static final boolean D = true;
 
     private static final String CHILDREN_LIST = "CL";
-    private ArrayList<Passenger> passengers;
+    private ArrayList<Child> children;
 
     private OnFragmentInteractionListener mListener;
 
@@ -49,12 +49,12 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      */
     private ListAdapter mAdapter;
 
-    public static ChildrenFragment newInstance(ArrayList<Passenger> passengers) {
+    public static ChildrenFragment newInstance(ArrayList<Child> children) {
         if (D) Log.d(TAG, "Creating new instance");
 
         ChildrenFragment fragment = new ChildrenFragment();
         Bundle args = new Bundle();
-        args.putParcelableArrayList(CHILDREN_LIST, passengers);
+        //args.putParcelableArrayList(CHILDREN_LIST, children);
         fragment.setArguments(args);
         return fragment;
     }
@@ -71,10 +71,10 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            passengers = getArguments().getParcelableArrayList(CHILDREN_LIST);
+            //children = getArguments().getParcelableArrayList(CHILDREN_LIST);
         }
         mAdapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, passengers);
+                android.R.layout.simple_list_item_1, android.R.id.text1, children);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(this.passengers.get(position));
+            mListener.onFragmentInteraction(this.children.get(position));
         }
     }
 
@@ -142,7 +142,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(Passenger passenger);
+        public void onFragmentInteraction(Child child);
     }
 
 }

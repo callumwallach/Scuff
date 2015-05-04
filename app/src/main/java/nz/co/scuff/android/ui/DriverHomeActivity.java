@@ -41,7 +41,7 @@ import nz.co.scuff.android.gps.DriverIntentService;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.util.LocationEvent;
 import nz.co.scuff.data.util.TrackingState;
-import nz.co.scuff.data.family.Driver;
+import nz.co.scuff.data.family.Parent;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
@@ -113,7 +113,7 @@ public class DriverHomeActivity extends FragmentActivity {
         }
     }
 
-    private void populateRoutes(School school, Driver driver) {
+    private void populateRoutes(School school, Parent driver) {
 
         Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
         ArrayAdapter<Route> dataAdapter = new ArrayAdapter<>(this,
@@ -208,7 +208,7 @@ public class DriverHomeActivity extends FragmentActivity {
             Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
             journey = new Journey(journeyId, scuffContext.getAppId(),
-                    scuffContext.getSchool().getName(), scuffContext.getDriver().getName(), route.getName(),
+                    scuffContext.getSchool().getName(), scuffContext.getDriver().getFirstName(), route.getName(),
                     "Android", 0, 0, new Timestamp(nowMillis),
                     null, TrackingState.COMPLETED);
             // save to database (and assign mId)

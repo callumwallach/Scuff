@@ -13,11 +13,10 @@ public interface Constants {
     String JOURNEY_COMMAND_KEY = "JC_KEY";
     String JOURNEY_TRACKING_STATE_KEY = "JTS_KEY";
 
+    String USER_KEY = "U_KEY";
+
     String PASSENGER_ROUTE_KEY = "PR_KEY";
     String PASSENGER_SCHOOL_KEY = "PS_KEY";
-
-/*    String PASSENGER_SCHOOL_ID = "P_SCID";
-    String PASSENGER_ROUTE_ID = "P_ROID";*/
 
     int RECORD_LOCATION_INTERVAL = 15;
     int LISTEN_LOCATION_INTERVAL = 15;

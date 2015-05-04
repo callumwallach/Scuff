@@ -48,7 +48,7 @@ public class SchoolsFragment extends DialogFragment implements AbsListView.OnIte
     public static SchoolsFragment newInstance(ArrayList<School> schools) {
         SchoolsFragment fragment = new SchoolsFragment();
         Bundle args = new Bundle();
-        args.putParcelableArrayList(SCHOOL_LIST, schools);
+        //args.putArr(SCHOOL_LIST, schools);
         fragment.setArguments(args);
         return fragment;
     }
@@ -64,9 +64,9 @@ public class SchoolsFragment extends DialogFragment implements AbsListView.OnIte
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
+/*        if (getArguments() != null) {
             schools = getArguments().getParcelableArrayList(SCHOOL_LIST);
-        }
+        }*/
         mAdapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_list_item_1, android.R.id.text1, schools);
     }

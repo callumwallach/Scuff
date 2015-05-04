@@ -60,13 +60,11 @@ public class Waypoint extends Model implements Comparable, Serializable {
     private Timestamp created;
 
     // for use with ActiveAndroid. Not serialised
-    @Column(name="JourneyFK")
+    @Column(name="JourneyFK", onDelete = Column.ForeignKeyAction.CASCADE)
     private Journey journey;
-
     public Journey getJourney() {
         return journey;
     }
-
     public void setJourney(Journey journey) {
         this.journey = journey;
     }

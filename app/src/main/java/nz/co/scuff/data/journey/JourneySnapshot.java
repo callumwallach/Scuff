@@ -15,8 +15,8 @@ import nz.co.scuff.data.util.TrackingState;
 /**
  * Created by Callum on 20/04/2015.
  */
-@Table(name="Snapshots")
-public class Snapshot extends Model implements Comparable, Serializable {
+@Table(name="JourneySnapshots")
+public class JourneySnapshot extends Model implements Comparable, Serializable {
 
     @Expose
     @Column(name="JourneyId")
@@ -62,7 +62,7 @@ public class Snapshot extends Model implements Comparable, Serializable {
     @Column(name="Timestamp")
     private Timestamp timestamp;
 
-    public Snapshot() {}
+    public JourneySnapshot() {}
 
     public String getJourneyId() {
         return journeyId;
@@ -176,17 +176,17 @@ public class Snapshot extends Model implements Comparable, Serializable {
         this.timestamp = timestamp;
     }
 
-    public static List<Snapshot> findByRouteAndSchool(String routeId, String schoolId) {
+    public static List<JourneySnapshot> findByRouteAndSchool(String routeId, String schoolId) {
         return new Select()
-                .from(Snapshot.class)
+                .from(JourneySnapshot.class)
                 .where("RouteId = ?", routeId)
                 .where("SchoolId = ?", schoolId)
                 .execute();
     }
 
-    public static Snapshot findByJourneyId(String journeyId) {
-        List<Snapshot> journeys = new Select()
-                .from(Snapshot.class)
+    public static JourneySnapshot findByJourneyId(String journeyId) {
+        List<JourneySnapshot> journeys = new Select()
+                .from(JourneySnapshot.class)
                 .where("JourneyId = ?", journeyId)
                 .execute();
         return journeys.iterator().hasNext() ? journeys.iterator().next() : null;
@@ -194,7 +194,7 @@ public class Snapshot extends Model implements Comparable, Serializable {
 
     @Override
     public int compareTo(Object another) {
-        Snapshot other = (Snapshot)another;
+        JourneySnapshot other = (JourneySnapshot)another;
         return this.timestamp.compareTo(other.timestamp);
     }
 
@@ -203,7 +203,7 @@ public class Snapshot extends Model implements Comparable, Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Snapshot that = (Snapshot) o;
+        JourneySnapshot that = (JourneySnapshot) o;
 
         if (journeyId != null ? !journeyId.equals(that.journeyId) : that.journeyId != null) return false;
         return !(timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null);

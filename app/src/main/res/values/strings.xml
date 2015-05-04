@@ -5,7 +5,7 @@
     <string name="passenger.button">Passenger</string>
     <string name="welcome.label">Welcome</string>
     <string name="register.label">Register</string>
-    <string name="family.label"></string>
+    <string name="name.label"></string>
     <string name="empty.label"></string>
 
     <string name="title_activity_register_driver">Register Driver</string>

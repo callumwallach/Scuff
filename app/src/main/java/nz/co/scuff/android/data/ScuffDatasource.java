@@ -13,7 +13,9 @@ import java.util.List;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ScuffApplication;
 import nz.co.scuff.android.util.ServerInterfaceGenerator;
-import nz.co.scuff.data.journey.Snapshot;
+import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.data.family.UserSnapshot;
+import nz.co.scuff.data.journey.JourneySnapshot;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.Waypoint;
@@ -51,21 +53,6 @@ public final class ScuffDatasource {
         DateTime then = new DateTime(waypoint.getCreated().getTime());
         Seconds seconds = Seconds.secondsBetween(then, DateTime.now());
         return seconds.getSeconds();
-    }
-
-    public static long saveJourney(Journey journey) {
-        if (D) Log.d(TAG, "save journey="+journey);
-        return journey.save();
-    }
-
-    public static long saveSnapshot(Snapshot snapshot) {
-        if (D) Log.d(TAG, "save journey snapshot="+ snapshot);
-        return snapshot.save();
-    }
-
-    public static void deleteSnapshot(Snapshot snapshot) {
-        if (D) Log.d(TAG, "delete journey snapshot="+ snapshot);
-        snapshot.delete();
     }
 
     public static int startJourney(Location location) {
@@ -269,32 +256,40 @@ public final class ScuffDatasource {
     }
 
     // may be null (esp if tracking a bus and then bus completes journey
-    public static Snapshot getSnapshot(String journeyId) {
+    public static JourneySnapshot getSnapshot(String journeyId) {
         if (D) Log.d(TAG, "get snapshot for journey=" + journeyId);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
         return client.getSnapshot(journeyId);
     }
 
-    public static List<Snapshot> getSnapshots(String routeId, String schoolId) {
+    public static List<JourneySnapshot> getSnapshots(String routeId, String schoolId) {
         if (D) Log.d(TAG, "get snapshots for route=" + routeId + " school=" + schoolId);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
         return client.getSnapshotsByRouteAndSchool(routeId, schoolId);
     }
 
-/*    public static Waypoint getLastKnownLocation(Journey journey) {
-        if (D) Log.d(TAG, "get current waypoint for journey="+journey);
+    public static long saveJourney(Journey journey) {
+        if (D) Log.d(TAG, "save journey="+journey);
+        return journey.save();
+    }
 
-        PassengerServerInterface client = ServerInterfaceGenerator.createService(PassengerServerInterface.class, Constants.SERVER_URL);
-        return client.getLastKnownLocation(journey.getRouteId(), journey.getSchoolId());
-    }*/
+    public static long saveSnapshot(JourneySnapshot snapshot) {
+        if (D) Log.d(TAG, "save journey snapshot="+ snapshot);
+        return snapshot.save();
+    }
 
-/*    public static List<Waypoint> getLastLocation(String journeyId) {
-        if (D) Log.d(TAG, "get last location for journey="+journeyId);
+    public static void deleteSnapshot(JourneySnapshot snapshot) {
+        if (D) Log.d(TAG, "delete journey snapshot="+ snapshot);
+        snapshot.delete();
+    }
+
+    public static Parent getParentByEmail(String email) {
+        if (D) Log.d(TAG, "getParent by email="+email);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        return client.getLastLocation(journeyId);
-
-    }*/
+        UserSnapshot user = client.getParentByEmail(email);
+        return null;
+    }
 }

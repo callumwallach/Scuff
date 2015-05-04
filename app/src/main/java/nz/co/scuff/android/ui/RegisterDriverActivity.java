@@ -41,7 +41,7 @@ public class RegisterDriverActivity extends Activity {
         String name = ((EditText)findViewById(R.id.driver_name)).getText().toString();
         String email = ((EditText)findViewById(R.id.driver_email)).getText().toString();
         String phone = ((EditText)findViewById(R.id.driver_phone)).getText().toString();
-        driver.setName(name);
+        driver.setFirstName(name);
         driver.setEmail(email);
         driver.setPhone(phone);
 

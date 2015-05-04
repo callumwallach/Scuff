@@ -83,14 +83,13 @@
 
         <meta-data
             android:name="AA_MODELS"
-            android:value="nz.co.scuff.data.journey.Journey, nz.co.scuff.data.journey.Waypoint,
-            nz.co.scuff.data.journey.Snapshot" />
+            android:value="                 nz.co.scuff.data.journey.Journey, nz.co.scuff.data.journey.Waypoint, nz.co.scuff.data.journey.JourneySnapshot,                 nz.co.scuff.data.family.Parent, nz.co.scuff.data.family.Child, nz.co.scuff.data.family.ChildParent,                 nz.co.scuff.data.school.School, nz.co.scuff.data.school.Route,                 nz.co.scuff.data.school.ParentSchool, nz.co.scuff.data.school.ChildSchool, nz.co.scuff.data.school.ParentRoute" />
         <meta-data
             android:name="AA_DB_NAME"
             android:value="Scuff.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="9" />
+            android:value="14" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />
@@ -99,10 +98,10 @@
             android:value="true" />
 
         <!--
-            <receiver android:name=".gps.GPSBootReceiver"
+            <receiver android:firstName=".gps.GPSBootReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:firstName="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
         -->
@@ -127,6 +126,10 @@
         </service>
         <service
             android:name=".gps.DriverLocationIntentService"
+            android:exported="false" >
+        </service>
+        <service
+            android:name=".data.UserIntentService"
             android:exported="false" >
         </service>
     </application>

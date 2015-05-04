@@ -2,20 +2,20 @@ package nz.co.scuff.android.util;
 
 import java.util.List;
 
-import nz.co.scuff.data.journey.Snapshot;
+import nz.co.scuff.data.journey.JourneySnapshot;
 
 /**
  * Created by Callum on 30/04/2015.
  */
 public class SnapshotEvent {
 
-    private List<Snapshot> snapshots;
+    private List<JourneySnapshot> snapshots;
 
-    public SnapshotEvent(List<Snapshot> snapshots) {
+    public SnapshotEvent(List<JourneySnapshot> snapshots) {
         this.snapshots = snapshots;
     }
 
-    public List<Snapshot> getSnapshots() {
+    public List<JourneySnapshot> getSnapshots() {
         return snapshots;
     }
 
@@ -23,7 +23,7 @@ public class SnapshotEvent {
     public String toString() {
         String toReturn = "SnapshotEvent{" +
                 "snapshots=[";
-        for (Snapshot js : snapshots) {
+        for (JourneySnapshot js : snapshots) {
             toReturn += js;
             toReturn += " ";
         }

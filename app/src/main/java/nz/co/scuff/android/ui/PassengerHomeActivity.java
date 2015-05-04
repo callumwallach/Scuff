@@ -18,7 +18,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
@@ -28,7 +27,6 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +37,10 @@ import nz.co.scuff.android.R;
 import nz.co.scuff.android.gps.PassengerAlarmReceiver;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.SnapshotEvent;
-import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.family.Family;
+import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.family.Parent;
 import nz.co.scuff.data.family.Person;
-import nz.co.scuff.data.journey.Snapshot;
+import nz.co.scuff.data.journey.JourneySnapshot;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.DialogHelper;
@@ -82,29 +80,29 @@ public class PassengerHomeActivity extends FragmentActivity
 
 
         ScuffApplication scuffContext = (ScuffApplication)getApplicationContext();
-        Family family = scuffContext.getFamily();
+        Parent driver = scuffContext.getDriver();
         LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
-        Set<Passenger> passengers = family.getPassengersForSchool(scuffContext.getSchool());
+        Set<Child> children = driver.getChildren();
 /*
         ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
         getSupportFragmentManager().beginTransaction().add(R.id.mapSlideOver, childrenFragment).commit();
 */
 
-        for (Passenger passenger : passengers) {
+        for (Child child : children) {
             Button button = new Button(this);
             Drawable profilePix;
-            if (passenger.getPix() != null) {
+            if (child.getPicture() != null) {
                 // load from disk
-                String fileLocation = getFilesDir() + "/" + passenger.getPix();
+                String fileLocation = getFilesDir() + "/" + child.getPicture();
                 if (D) Log.d(TAG, "loading profile image from file location = "+ fileLocation);
                 profilePix = Drawable.createFromPath(fileLocation);
             } else {
                 // default images based on gender
-                profilePix = passenger.getGender() == Person.Gender.MALE ?
+                profilePix = child.getGender() == Person.Gender.MALE ?
                         getResources().getDrawable(R.drawable.male_blank_icon) : getResources().getDrawable(R.drawable.female_blank_icon);
             }
             button.setBackground(profilePix);
-            button.setText(passenger.getName());
+            button.setText(child.getFirstName());
             //button.setGravity(Gravity.BOTTOM);
             button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             button.setTextColor(Color.BLACK);
@@ -194,7 +192,7 @@ public class PassengerHomeActivity extends FragmentActivity
 
     }
 
-    private void updateMap(List<Snapshot> snapshots) {
+    private void updateMap(List<JourneySnapshot> snapshots) {
         if (D) Log.d(TAG, "Updating map with snapshots="+ snapshots);
 
         this.googleMap.clear();
@@ -214,7 +212,7 @@ public class PassengerHomeActivity extends FragmentActivity
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
         this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
 
-        for (Snapshot snapshot : snapshots) {
+        for (JourneySnapshot snapshot : snapshots) {
             if (D) Log.d(TAG, "Bus location = " + snapshot);
             LatLng busLatlng = new LatLng(snapshot.getLatitude(), snapshot.getLongitude());
             this.googleMap.addMarker(new MarkerOptions()
@@ -262,8 +260,8 @@ public class PassengerHomeActivity extends FragmentActivity
         DialogHelper.toast(this, school.getName());
     }
 
-    public void onFragmentInteraction(Passenger passenger) {
-        DialogHelper.toast(this, passenger.getName());
+    public void onFragmentInteraction(Child child) {
+        DialogHelper.toast(this, child.getFirstName());
     }
 
 }

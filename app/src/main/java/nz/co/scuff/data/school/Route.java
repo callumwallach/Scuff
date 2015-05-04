@@ -1,27 +1,52 @@
 package nz.co.scuff.data.school;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.google.gson.annotations.Expose;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Callum on 17/03/2015.
  */
-public class Route implements Parcelable {
+@Table(name="Routes")
+public class Route extends Model implements Comparable, Serializable {
 
+    @Expose
+    @Column(name="RouteId")
+    private long routeId;
+    @Expose
+    @Column(name="Name")
     private String name;
-    private Bus bus;
+    @Expose
+    @Column(name="RouteMap")
     private String routeMap;
+
+    private List<ParentRoute> parentRoutes;
+
+    // for use with ActiveAndroid. Not serialised
+    @Column(name="SchoolFK", onDelete = Column.ForeignKeyAction.CASCADE)
+    private School school;
 
     public Route(String name) {
         this.name = name;
-        this.bus = new Bus(name);
         this.routeMap = "Currently not available";
     }
 
     public Route(String name, String routeMap) {
         this.name = name;
-        this.bus = new Bus(name);
         this.routeMap = routeMap;
+    }
+
+    public long getRouteId() {
+        return routeId;
+    }
+
+    public void setRouteId(long routeId) {
+        this.routeId = routeId;
     }
 
     public String getName() {
@@ -32,14 +57,6 @@ public class Route implements Parcelable {
         this.name = name;
     }
 
-    public Bus getBus() {
-        return bus;
-    }
-
-    public void setBus(Bus bus) {
-        this.bus = bus;
-    }
-
     public String getRouteMap() {
         return routeMap;
     }
@@ -48,39 +65,54 @@ public class Route implements Parcelable {
         this.routeMap = routeMap;
     }
 
+    public School getSchool() {
+        return school;
+    }
+    public void setSchool(School school) {
+        this.school = school;
+    }
+
+    public void addParentRoute(ParentRoute parentRoute) {
+        if (this.parentRoutes == null) {
+            this.parentRoutes = new ArrayList<>();
+        }
+        this.parentRoutes.add(parentRoute);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Route route = (Route) o;
+
+        if (routeId != route.routeId) return false;
+        if (name != null ? !name.equals(route.name) : route.name != null) return false;
+        return !(routeMap != null ? !routeMap.equals(route.routeMap) : route.routeMap != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (routeId ^ (routeId >>> 32));
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (routeMap != null ? routeMap.hashCode() : 0);
+        return result;
+    }
+
     @Override
     public String toString() {
-        return name;
-    }
-
-    protected Route(Parcel in) {
-        name = in.readString();
-        bus = (Bus) in.readValue(Bus.class.getClassLoader());
-        routeMap = in.readString();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
+        final StringBuffer sb = new StringBuffer("Route{");
+        sb.append("routeId=").append(routeId);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", routeMap='").append(routeMap).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(name);
-        dest.writeValue(bus);
-        dest.writeString(routeMap);
+    public int compareTo(Object another) {
+        Route other = (Route)another;
+        return this.name.compareTo(other.name);
     }
-
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<Route> CREATOR = new Parcelable.Creator<Route>() {
-        @Override
-        public Route createFromParcel(Parcel in) {
-            return new Route(in);
-        }
-
-        @Override
-        public Route[] newArray(int size) {
-            return new Route[size];
-        }
-    };
 }

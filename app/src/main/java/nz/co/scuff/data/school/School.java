@@ -1,80 +1,76 @@
 package nz.co.scuff.data.school;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
+import com.google.gson.annotations.Expose;
 
-import java.util.HashSet;
+import java.io.Serializable;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.family.Driver;
-import nz.co.scuff.data.schedule.Schedule;
+import nz.co.scuff.data.family.Child;
 
 /**
  * Created by Callum on 17/03/2015.
  */
-public class School implements Parcelable {
+@Table(name="Schools")
+public class School extends Model implements Comparable, Serializable {
 
+    @Expose
+    @Column(name="SchoolId")
+    private long schoolId;
+    @Expose
+    @Column(name="Name")
     private String name;
+    @Expose
+    @Column(name="Latitude")
     private double latitude;
+    @Expose
+    @Column(name="Longitude")
     private double longitude;
-    private double elevation;
+    @Expose
+    @Column(name="Altitude")
+    private double altitude;
 
-    private HashSet<Route> routes;
-    private Schedule schedule;
+    // one to many
+    @Expose
+    private SortedSet<Route> routes;
 
-    private HashSet<Passenger> passengers;
-    private HashSet<Driver> drivers;
+    // many to many
+    private List<ChildSchool> childSchools;
+    private List<ParentSchool> parentSchools;
 
-    public School(String name, double latitude, double longitude, double elevation) {
+/*    // one to one
+    @Expose
+    @Column(name="Schedule", onDelete = Column.ForeignKeyAction.CASCADE)
+    private Schedule schedule;*/
+
+    public School() {
+        super();
+    }
+
+    public School(String name, double latitude, double longitude, double altitude) {
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.elevation = elevation;
+        this.altitude = altitude;
 
-        this.routes = new HashSet<>();
-        this.schedule = new Schedule();
-        this.passengers = new HashSet<>();
-        this.drivers = new HashSet<>();
+        this.routes = new TreeSet<>();
+        this.childSchools = new ArrayList<>();
+        this.parentSchools = new ArrayList<>();
+
+        //this.schedule = new Schedule();
     }
 
-    public Schedule getSchedule() {
-        return schedule;
+    public long getSchoolId() {
+        return schoolId;
     }
 
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
-    }
-
-    public boolean addChild(Passenger passenger) {
-        return this.passengers.add(passenger);
-    }
-
-    public boolean removeChild(Passenger passenger) {
-        return this.passengers.remove(passenger);
-    }
-
-    public HashSet<Passenger> getPassengers() {
-        return passengers;
-    }
-
-    public void setPassengers(HashSet<Passenger> passengers) {
-        this.passengers = passengers;
-    }
-
-    public boolean addDriver(Driver driver) {
-        return this.drivers.add(driver);
-    }
-
-    public boolean removeDriver(Driver driver) {
-        return this.drivers.remove(driver);
-    }
-
-    public HashSet<Driver> getDrivers() {
-        return drivers;
-    }
-
-    public void setDrivers(HashSet<Driver> drivers) {
-        this.drivers = drivers;
+    public void setSchoolId(long schoolId) {
+        this.schoolId = schoolId;
     }
 
     public String getName() {
@@ -101,89 +97,100 @@ public class School implements Parcelable {
         this.longitude = longitude;
     }
 
-    public double getElevation() {
-        return elevation;
+    public double getAltitude() {
+        return altitude;
     }
 
-    public void setElevation(double elevation) {
-        this.elevation = elevation;
+    public void setAltitude(double altitude) {
+        this.altitude = altitude;
     }
 
-    public boolean addRoute(Route route) {
-        return this.routes.add(route);
+    // active android relationship assist
+    public SortedSet<Route> getRoutes() {
+        return new TreeSet<>(getMany(Route.class, "SchoolFK"));
     }
-
-    public boolean removeRoute(Route route) {
-        return this.routes.remove(route);
-    }
-
-    public HashSet<Route> getRoutes() {
-        return routes;
-    }
-
-    public void setRoutes(HashSet<Route> routes) {
+    public void setRoutes(SortedSet<Route> routes) {
         this.routes = routes;
     }
+
+    public void addRoute(Route route) {
+        if (this.routes == null) {
+            this.routes = new TreeSet<>();
+        }
+        this.routes.add(route);
+    }
+
+    public List<ChildSchool> getChildSchools() {
+        return childSchools;
+    }
+
+    public void setChildSchools(List<ChildSchool> childSchools) {
+        this.childSchools = childSchools;
+    }
+
+    public List<ParentSchool> getParentSchools() {
+        return parentSchools;
+    }
+
+    public void setParentSchools(List<ParentSchool> parentSchools) {
+        this.parentSchools = parentSchools;
+    }
+
+    public void addParentSchool(ParentSchool parentSchool) {
+        if (this.parentSchools == null) {
+            this.parentSchools = new ArrayList<>();
+        }
+        this.parentSchools.add(parentSchool);
+    }
+
+    // TODO
+    public List<Child> getChildrenForRoute(Route route) {
+        return new ArrayList<>();
+    }
+
+/*    public Schedule getSchedule() {
+        return schedule;
+    }
+
+    public void setSchedule(Schedule schedule) {
+        this.schedule = schedule;
+    }*/
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         School school = (School) o;
 
-        return name.equals(school.name);
+        return schoolId == school.schoolId;
 
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        int result = super.hashCode();
+        result = 31 * result + (int) (schoolId ^ (schoolId >>> 32));
+        return result;
     }
 
     @Override
     public String toString() {
-        return name;
-    }
-
-    protected School(Parcel in) {
-        name = in.readString();
-        latitude = in.readDouble();
-        longitude = in.readDouble();
-        elevation = in.readDouble();
-        routes = (HashSet) in.readValue(HashSet.class.getClassLoader());
-        schedule = (Schedule) in.readValue(Schedule.class.getClassLoader());
-        passengers = (HashSet) in.readValue(HashSet.class.getClassLoader());
-        drivers = (HashSet) in.readValue(HashSet.class.getClassLoader());
+        final StringBuffer sb = new StringBuffer("School{");
+        sb.append("schoolId=").append(schoolId);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", latitude=").append(latitude);
+        sb.append(", longitude=").append(longitude);
+        sb.append(", altitude=").append(altitude);
+        //sb.append(", schedule=").append(schedule);
+        sb.append('}');
+        return sb.toString();
     }
 
     @Override
-    public int describeContents() {
-        return 0;
+    public int compareTo(Object another) {
+        School other = (School)another;
+        return this.name.compareTo(other.name);
     }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(name);
-        dest.writeDouble(latitude);
-        dest.writeDouble(longitude);
-        dest.writeDouble(elevation);
-        dest.writeValue(routes);
-        dest.writeValue(schedule);
-        dest.writeValue(passengers);
-        dest.writeValue(drivers);
-    }
-
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<School> CREATOR = new Parcelable.Creator<School>() {
-        @Override
-        public School createFromParcel(Parcel in) {
-            return new School(in);
-        }
-
-        @Override
-        public School[] newArray(int size) {
-            return new School[size];
-        }
-    };
 }
