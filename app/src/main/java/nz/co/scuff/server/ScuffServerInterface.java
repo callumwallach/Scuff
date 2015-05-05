@@ -2,8 +2,7 @@ package nz.co.scuff.server;
 
 import java.util.List;
 
-import nz.co.scuff.data.family.Parent;
-import nz.co.scuff.data.family.UserSnapshot;
+import nz.co.scuff.data.family.snapshot.ParentSnapshot;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.JourneySnapshot;
 import retrofit.Callback;
@@ -35,9 +34,9 @@ public interface ScuffServerInterface {
     List<JourneySnapshot> getSnapshotsByRouteAndSchool(@Query("routeId") String routeId, @Query("schoolId") String schoolId);
 
     @GET("/users/{id}")
-    UserSnapshot getParent(@Path("id") long id);
+    ParentSnapshot getParent(@Path("id") long id);
 
-    @GET("/users/{email}")
-    UserSnapshot getParentByEmail(@Path("email") String email);
+    @GET("/users")
+    ParentSnapshot getParentByEmail(@Query("email") String email);
 
 }

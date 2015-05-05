@@ -17,6 +17,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -74,6 +75,9 @@ public class DriverHomeActivity extends FragmentActivity {
         initialiseMap();
 
         ScuffApplication scuffContext = (ScuffApplication)getApplication();
+        Route route = scuffContext.getDriver().getScheduledRoute();
+        ((TextView) findViewById(R.id.route_label)).setText("Route: " + route.getName());
+
         Journey journey = scuffContext.getJourney();
 
         // if this.journey == null check database for incomplete journey
@@ -88,7 +92,7 @@ public class DriverHomeActivity extends FragmentActivity {
             }
         }
 
-        populateRoutes(scuffContext.getSchool(), scuffContext.getDriver());
+        //populateRoutes(scuffContext.getSchool(), scuffContext.getDriver());
 
         updateControls(journey == null ? TrackingState.COMPLETED : journey.getState());
 
@@ -113,10 +117,11 @@ public class DriverHomeActivity extends FragmentActivity {
         }
     }
 
-    private void populateRoutes(School school, Parent driver) {
+/*    private void populateRoutes(School school, Parent driver) {
 
         Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
         ArrayAdapter<Route> dataAdapter = new ArrayAdapter<>(this,
+                // TODO get routes i am driving for as per schedule
                 android.R.layout.simple_spinner_item, new ArrayList<>(driver.getRoutesForSchool(school)));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         routeSpinner.setAdapter(dataAdapter);
@@ -128,7 +133,7 @@ public class DriverHomeActivity extends FragmentActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-    }
+    }*/
 
     private void initialiseMap() {
         if (D) Log.d(TAG, "Initialise map");
@@ -202,11 +207,16 @@ public class DriverHomeActivity extends FragmentActivity {
         if (journey == null) {
             // create new journey
             ScuffApplication scuffContext = ((ScuffApplication) getApplicationContext());
+
+            // TODO check location to ensure they are near start of route
+
             long nowMillis = DateTime.now().getMillis();
             String journeyId = scuffContext.getAppId() + ":" + nowMillis;
             //Driver driver = (Driver)((Spinner) findViewById(R.id.driver_spinner)).getSelectedItem();
-            Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
+            //Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
+            // TODO update journeys to school, driver and route objects
+            Route route = scuffContext.getDriver().getScheduledRoute();
             journey = new Journey(journeyId, scuffContext.getAppId(),
                     scuffContext.getSchool().getName(), scuffContext.getDriver().getFirstName(), route.getName(),
                     "Android", 0, 0, new Timestamp(nowMillis),
@@ -359,8 +369,6 @@ public class DriverHomeActivity extends FragmentActivity {
                 start.setText(R.string.start_button);
                 stop.setEnabled(false);
                 break;
-            default:
-                Log.e(TAG, "Shouldn't happen");
         }
 
     }

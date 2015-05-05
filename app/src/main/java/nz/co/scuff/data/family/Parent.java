@@ -3,7 +3,6 @@ package nz.co.scuff.data.family;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
-import com.google.gson.annotations.Expose;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,6 +12,7 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import nz.co.scuff.data.family.snapshot.ParentSnapshot;
 import nz.co.scuff.data.school.ParentRoute;
 import nz.co.scuff.data.school.ParentSchool;
 import nz.co.scuff.data.school.Route;
@@ -24,23 +24,14 @@ import nz.co.scuff.data.school.School;
 @Table(name="Parents")
 public class Parent extends Person {
 
-    @Expose
-    @Column(name="ParentId")
-    private long parentId;
-
-    @Expose
     @Column(name="Email")
     private String email;
-    @Expose
     @Column(name="Phone")
     private String phone;
 
     // many to many
-    @Expose
     private List<ParentSchool> parentSchools;
-    @Expose
     private List<ChildParent> childParents;
-    @Expose
     private List<ParentRoute> parentRoutes;
 
     // generated
@@ -58,12 +49,20 @@ public class Parent extends Person {
         parentRoutes = new ArrayList<>();
     }
 
+    public Parent(ParentSnapshot snapshot) {
+        this(snapshot.getFirstName(), snapshot.getLastName(), snapshot.getGender(), snapshot.getPicture());
+        this.setParentId(snapshot.getParentId());
+        this.middleName = snapshot.getMiddleName();
+        this.email = snapshot.getEmail();
+        this.phone = snapshot.getPhone();
+    }
+
     public long getParentId() {
-        return parentId;
+        return super.getPersonId();
     }
 
     public void setParentId(long parentId) {
-        this.parentId = parentId;
+        super.setPersonId(parentId);
     }
 
     public String getEmail() {
@@ -127,9 +126,13 @@ public class Parent extends Person {
         this.parentRoutes.add(parentRoute);
     }
 
-    // TODO
     public SortedSet<School> getSchools() {
-        return new TreeSet<>();
+        List<School> schools = new Select()
+                .from(School.class)
+                .innerJoin(ParentSchool.class).on("schools.id = parentschools.schoolfk")
+                .where("parentschools.parentfk = ?", getId())
+                .execute();
+        return new TreeSet<>(schools);
     }
 
     // TODO
@@ -167,34 +170,31 @@ public class Parent extends Person {
         return new TreeSet<>(this.schoolRoutes.get(school));
     }
 
+    // TODO complete
+    public Route getScheduledRoute() {
+        List<Route> routes = new Select()
+                .from(Route.class)
+                .innerJoin(ParentRoute.class).on("routes.id = parentroutes.routefk")
+                .where("parentroutes.parentfk = ?", getId())
+                .execute();
+        return routes.iterator().hasNext() ? routes.iterator().next() : null;
+    }
+
+    public static Parent findParentByPK(long pk) {
+        return new Select()
+                .from(Parent.class)
+                .where("PersonId = ?", pk)
+                .executeSingle();
+    }
+
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer(super.toString());
         sb.append("Parent{");
-        sb.append("parentId=").append(parentId);
         sb.append(", email='").append(email).append('\'');
         sb.append(", phone='").append(phone).append('\'');
         sb.append('}');
         return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        Parent driver = (Parent) o;
-
-        return parentId == driver.parentId;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (int) (parentId ^ (parentId >>> 32));
-        return result;
     }
 
 }

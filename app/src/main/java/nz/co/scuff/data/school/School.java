@@ -3,7 +3,7 @@ package nz.co.scuff.data.school;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
-import com.google.gson.annotations.Expose;
+import com.activeandroid.query.Select;
 
 import java.io.Serializable;
 import java.util.List;
@@ -12,6 +12,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.school.snapshot.SchoolSnapshot;
 
 /**
  * Created by Callum on 17/03/2015.
@@ -19,24 +20,18 @@ import nz.co.scuff.data.family.Child;
 @Table(name="Schools")
 public class School extends Model implements Comparable, Serializable {
 
-    @Expose
     @Column(name="SchoolId")
     private long schoolId;
-    @Expose
     @Column(name="Name")
     private String name;
-    @Expose
     @Column(name="Latitude")
     private double latitude;
-    @Expose
     @Column(name="Longitude")
     private double longitude;
-    @Expose
     @Column(name="Altitude")
     private double altitude;
 
     // one to many
-    @Expose
     private SortedSet<Route> routes;
 
     // many to many
@@ -63,6 +58,11 @@ public class School extends Model implements Comparable, Serializable {
         this.parentSchools = new ArrayList<>();
 
         //this.schedule = new Schedule();
+    }
+
+    public School(SchoolSnapshot snapshot) {
+        this(snapshot.getName(), snapshot.getLatitude(), snapshot.getLongitude(), snapshot.getAltitude());
+        this.schoolId = snapshot.getSchoolId();
     }
 
     public long getSchoolId() {
@@ -128,6 +128,13 @@ public class School extends Model implements Comparable, Serializable {
         this.childSchools = childSchools;
     }
 
+    public void addChildSchool(ChildSchool childSchool) {
+        if (this.childSchools == null) {
+            this.childSchools = new ArrayList<>();
+        }
+        this.childSchools.add(childSchool);
+    }
+
     public List<ParentSchool> getParentSchools() {
         return parentSchools;
     }
@@ -155,6 +162,13 @@ public class School extends Model implements Comparable, Serializable {
     public void setSchedule(Schedule schedule) {
         this.schedule = schedule;
     }*/
+
+    public static School findBySchoolId(long schoolId) {
+        return new Select()
+                .from(School.class)
+                .where("SchoolId = ?", schoolId)
+                .executeSingle();
+    }
 
     @Override
     public boolean equals(Object o) {

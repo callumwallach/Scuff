@@ -1,6 +1,8 @@
-package nz.co.scuff.data.family;
+package nz.co.scuff.data.family.snapshot;
 
 import com.google.gson.annotations.Expose;
+
+import nz.co.scuff.data.family.Person;
 
 /**
  * Created by Callum on 4/05/2015.
@@ -8,7 +10,7 @@ import com.google.gson.annotations.Expose;
 public abstract class PersonSnapshot implements Comparable {
 
     @Expose
-    private long id;
+    private long personId;
     @Expose
     private String firstName;
     @Expose
@@ -23,12 +25,12 @@ public abstract class PersonSnapshot implements Comparable {
     public PersonSnapshot() {
     }
 
-    public long getId() {
-        return id;
+    public long getPersonId() {
+        return personId;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setPersonId(long personId) {
+        this.personId = personId;
     }
 
     public String getFirstName() {
@@ -78,7 +80,7 @@ public abstract class PersonSnapshot implements Comparable {
 
         PersonSnapshot that = (PersonSnapshot) o;
 
-        return id == that.id;
+        return personId == that.personId;
 
     }
 
@@ -92,13 +94,13 @@ public abstract class PersonSnapshot implements Comparable {
 
     @Override
     public int hashCode() {
-        return (int) (id ^ (id >>> 32));
+        return (int) (personId ^ (personId >>> 32));
     }
 
     @Override
     public String toString() {
         return "PersonSnapshot{" +
-                "id=" + id +
+                "personId=" + personId +
                 ", firstName='" + firstName + '\'' +
                 ", middleName='" + middleName + '\'' +
                 ", lastName='" + lastName + '\'' +

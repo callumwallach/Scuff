@@ -26,12 +26,20 @@
                 android:layout_marginRight="10dp"
                 android:layout_marginBottom="0dp">
 
-                <Spinner
+                <!--<Spinner
                     android:id="@+id/route.spinner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:prompt="@string/route_prompt"
+                    android:layout_weight="1"/>-->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text=""
+                    android:id="@+id/route_label"
                     android:layout_weight="1"/>
+
             </LinearLayout>
 
             <com.daimajia.swipe.SwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"

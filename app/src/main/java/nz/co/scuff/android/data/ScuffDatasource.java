@@ -13,9 +13,19 @@ import java.util.List;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ScuffApplication;
 import nz.co.scuff.android.util.ServerInterfaceGenerator;
+import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.family.ChildParent;
+import nz.co.scuff.data.family.snapshot.ChildSnapshot;
 import nz.co.scuff.data.family.Parent;
-import nz.co.scuff.data.family.UserSnapshot;
+import nz.co.scuff.data.family.snapshot.ParentSnapshot;
 import nz.co.scuff.data.journey.JourneySnapshot;
+import nz.co.scuff.data.school.ChildSchool;
+import nz.co.scuff.data.school.ParentRoute;
+import nz.co.scuff.data.school.ParentSchool;
+import nz.co.scuff.data.school.Route;
+import nz.co.scuff.data.school.School;
+import nz.co.scuff.data.school.snapshot.RouteSnapshot;
+import nz.co.scuff.data.school.snapshot.SchoolSnapshot;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.Waypoint;
@@ -289,7 +299,74 @@ public final class ScuffDatasource {
         if (D) Log.d(TAG, "getParent by email="+email);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        UserSnapshot user = client.getParentByEmail(email);
-        return null;
+        ParentSnapshot parentSnapshot = client.getParentByEmail(email);
+
+        Parent parent = Parent.findParentByPK(parentSnapshot.getParentId());
+        if (parent != null) {
+            // already in db
+            return parent;
+        }
+        parent = new Parent(parentSnapshot);
+        parent.save();
+
+        for (SchoolSnapshot schoolSnapshot : parentSnapshot.getSchools()) {
+            School school = new School(schoolSnapshot);
+            school.save();
+            ParentSchool parentSchool = new ParentSchool(parent, school);
+            parentSchool.save();
+            school.addParentSchool(parentSchool);
+            parent.addParentSchool(parentSchool);
+            for (RouteSnapshot routeSnapshot : schoolSnapshot.getRoutes()) {
+                Route route = new Route(routeSnapshot);
+                route.setSchool(school);
+                route.save();
+                school.addRoute(route);
+            }
+            school.save();
+        }
+
+        for (ChildSnapshot childSnapshot : parentSnapshot.getChildren()) {
+            Child child = new Child(childSnapshot);
+            child.save();
+            ChildParent childParent = new ChildParent(child, parent);
+            childParent.save();
+            child.addChildParent(childParent);
+            parent.addChildParent(childParent);
+            // all schools should already be in the db (from parent)
+            for (SchoolSnapshot schoolSnapshot : childSnapshot.getSchools()) {
+                School foundSchool = School.findBySchoolId(schoolSnapshot.getSchoolId());
+                ChildSchool childSchool = new ChildSchool(child, foundSchool);
+                child.addChildSchool(childSchool);
+                foundSchool.addChildSchool(childSchool);
+                foundSchool.save();
+            }
+            // all schools should already be in the db (from parent)
+            for (ParentSnapshot otherParentSnapshot : childSnapshot.getParents()) {
+                // if im not the parent
+                if (otherParentSnapshot.getParentId() != parent.getParentId()) {
+                    Parent otherParent = new Parent(otherParentSnapshot);
+                    otherParent.save();
+                    ChildParent childOtherParent = new ChildParent(child, otherParent);
+                    childOtherParent.save();
+                    child.addChildParent(childOtherParent);
+                    otherParent.addChildParent(childOtherParent);
+                    otherParent.save();
+                }
+            }
+            child.save();
+        }
+
+        // all routes should already be in the db (from school)
+        for (RouteSnapshot routeSnapshot : parentSnapshot.getRoutes()) {
+            Route foundRoute = Route.findByRouteId(routeSnapshot.getRouteId());
+            ParentRoute parentRoute = new ParentRoute(parent, foundRoute);
+            parentRoute.save();
+            foundRoute.addParentRoute(parentRoute);
+            parent.addParentRoute(parentRoute);
+            foundRoute.save();
+        }
+        parent.save();
+
+        return parent;
     }
 }

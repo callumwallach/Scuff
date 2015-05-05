@@ -36,6 +36,7 @@ import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.gps.PassengerAlarmReceiver;
 import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.RouteSpinnerAdapter;
 import nz.co.scuff.android.util.SnapshotEvent;
 import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.family.Parent;
@@ -119,7 +120,7 @@ public class PassengerHomeActivity extends FragmentActivity
 
         School school = ((ScuffApplication)getApplicationContext()).getSchool();
         Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
-        ArrayAdapter<Route> dataAdapter = new ArrayAdapter<>(this,
+        ArrayAdapter<Route> dataAdapter = new RouteSpinnerAdapter(this,
                 android.R.layout.simple_spinner_item, new ArrayList<>(school.getRoutes()));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         routeSpinner.setAdapter(dataAdapter);

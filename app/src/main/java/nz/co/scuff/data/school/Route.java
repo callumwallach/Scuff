@@ -3,11 +3,13 @@ package nz.co.scuff.data.school;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
-import com.google.gson.annotations.Expose;
+import com.activeandroid.query.Select;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
+import nz.co.scuff.data.school.snapshot.RouteSnapshot;
 
 /**
  * Created by Callum on 17/03/2015.
@@ -15,13 +17,10 @@ import java.util.List;
 @Table(name="Routes")
 public class Route extends Model implements Comparable, Serializable {
 
-    @Expose
     @Column(name="RouteId")
     private long routeId;
-    @Expose
     @Column(name="Name")
     private String name;
-    @Expose
     @Column(name="RouteMap")
     private String routeMap;
 
@@ -31,6 +30,8 @@ public class Route extends Model implements Comparable, Serializable {
     @Column(name="SchoolFK", onDelete = Column.ForeignKeyAction.CASCADE)
     private School school;
 
+    public Route() {}
+
     public Route(String name) {
         this.name = name;
         this.routeMap = "Currently not available";
@@ -39,6 +40,12 @@ public class Route extends Model implements Comparable, Serializable {
     public Route(String name, String routeMap) {
         this.name = name;
         this.routeMap = routeMap;
+    }
+
+    public Route(RouteSnapshot snapshot) {
+        this.routeId = snapshot.getRouteId();
+        this.name = snapshot.getName();
+        this.routeMap = snapshot.getRouteMap();
     }
 
     public long getRouteId() {
@@ -72,11 +79,26 @@ public class Route extends Model implements Comparable, Serializable {
         this.school = school;
     }
 
+    public List<ParentRoute> getParentRoutes() {
+        return parentRoutes;
+    }
+
+    public void setParentRoutes(List<ParentRoute> parentRoutes) {
+        this.parentRoutes = parentRoutes;
+    }
+
     public void addParentRoute(ParentRoute parentRoute) {
         if (this.parentRoutes == null) {
             this.parentRoutes = new ArrayList<>();
         }
         this.parentRoutes.add(parentRoute);
+    }
+
+    public static Route findByRouteId(long routeId) {
+        return new Select()
+                .from(Route.class)
+                .where("RouteId = ?", routeId)
+                .executeSingle();
     }
 
     @Override

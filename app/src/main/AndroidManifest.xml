@@ -89,7 +89,7 @@
             android:value="Scuff.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="14" />
+            android:value="18" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />

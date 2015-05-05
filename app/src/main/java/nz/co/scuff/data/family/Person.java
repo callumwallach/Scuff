@@ -2,7 +2,6 @@ package nz.co.scuff.data.family;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
-import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
 
@@ -15,19 +14,16 @@ public abstract class Person extends Model implements Comparable, Serializable {
         MALE, FEMALE
     }
 
-    @Expose
+    @Column(name="PersonId")
+    protected long personId;
     @Column(name="FirstName")
     protected String firstName;
-    @Expose
     @Column(name="MiddleName")
     protected String middleName;
-    @Expose
     @Column(name="LastName")
     protected String lastName;
-    @Expose
     @Column(name="Gender")
     protected Gender gender;
-    @Expose
     @Column(name="Picture")
     protected String picture;
 
@@ -42,6 +38,14 @@ public abstract class Person extends Model implements Comparable, Serializable {
         this.lastName = lastName;
         this.gender = gender;
         this.picture = picture;
+    }
+
+    public long getPersonId() {
+        return personId;
+    }
+
+    public void setPersonId(long personId) {
+        this.personId = personId;
     }
 
     public String getFirstName() {
@@ -93,9 +97,29 @@ public abstract class Person extends Model implements Comparable, Serializable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Person person = (Person) o;
+
+        return personId == person.personId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (int) (personId ^ (personId >>> 32));
+        return result;
+    }
+
+    @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("Person{");
-        sb.append("firstName='").append(firstName).append('\'');
+        sb.append("personId=").append(personId);
+        sb.append(", firstName='").append(firstName).append('\'');
         sb.append(", middleName='").append(middleName).append('\'');
         sb.append(", lastName='").append(lastName).append('\'');
         sb.append(", gender=").append(gender);
@@ -103,5 +127,4 @@ public abstract class Person extends Model implements Comparable, Serializable {
         sb.append('}');
         return sb.toString();
     }
-
 }
