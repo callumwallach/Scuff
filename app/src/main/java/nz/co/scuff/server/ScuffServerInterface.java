@@ -2,9 +2,9 @@ package nz.co.scuff.server;
 
 import java.util.List;
 
-import nz.co.scuff.data.family.snapshot.ParentSnapshot;
-import nz.co.scuff.data.journey.Journey;
-import nz.co.scuff.data.journey.JourneySnapshot;
+import nz.co.scuff.data.family.snapshot.DriverSnapshot;
+import nz.co.scuff.data.journey.snapshot.BusSnapshot;
+import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
 import retrofit.Callback;
 import retrofit.client.Response;
 import retrofit.http.Body;
@@ -18,25 +18,31 @@ import retrofit.http.Query;
  */
 public interface ScuffServerInterface {
 
-    @POST("/journeys")
-    void postJourney(@Body Journey journey, Callback<Response> cb);
+    @POST("/driving/journeys")
+    void postJourney(@Body JourneySnapshot journey, Callback<Response> cb);
 
-    @GET("/journeys/{id}")
+/*    @GET("/journeys/{id}")
     Journey getJourney(@Path("id") String journeyId);
 
     @GET("/journeys")
-    List<Journey> getJourneys(@Query("routeId") String routeId, @Query("schoolId") String schoolId);
+    List<Journey> getJourneys(@Query("routeId") String routeId, @Query("schoolId") String schoolId);*/
 
-    @GET("/journeys/snapshots/{id}")
-    JourneySnapshot getSnapshot(@Path("id") String journeyId);
+    @GET("/walking/{id}")
+    BusSnapshot getActiveBusSnapshot(@Path("id") String busId);
 
-    @GET("/journeys/snapshots")
-    List<JourneySnapshot> getSnapshotsByRouteAndSchool(@Query("routeId") String routeId, @Query("schoolId") String schoolId);
+    @GET("/walking")
+    List<BusSnapshot> getActiveBusSnapshots(@Query("routeId") long routeId, @Query("schoolId") long schoolId);
 
-    @GET("/users/{id}")
-    ParentSnapshot getParent(@Path("id") long id);
+    /*@GET("/walking/{id}")
+    JourneySnapshot getActiveJourneySnapshot(@Path("id") String journeyId, @Query("prune") boolean prune);
 
-    @GET("/users")
-    ParentSnapshot getParentByEmail(@Query("email") String email);
+    @GET("/walking")
+    List<JourneySnapshot> getActiveJourneySnapshots(@Query("routeId") String routeId, @Query("schoolId") String schoolId, @Query("prune") boolean prune);
+*/
+    @GET("/profiles/{id}")
+    DriverSnapshot getDriverSnapshot(@Path("id") long id);
+
+    @GET("/profiles")
+    DriverSnapshot getDriverSnapshotByEmail(@Query("email") String email);
 
 }

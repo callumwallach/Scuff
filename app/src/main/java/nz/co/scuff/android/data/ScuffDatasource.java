@@ -8,20 +8,24 @@ import org.joda.time.DateTimeUtils;
 import org.joda.time.Seconds;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ScuffApplication;
 import nz.co.scuff.android.util.ServerInterfaceGenerator;
-import nz.co.scuff.data.family.Child;
-import nz.co.scuff.data.family.ChildParent;
-import nz.co.scuff.data.family.snapshot.ChildSnapshot;
-import nz.co.scuff.data.family.Parent;
-import nz.co.scuff.data.family.snapshot.ParentSnapshot;
-import nz.co.scuff.data.journey.JourneySnapshot;
-import nz.co.scuff.data.school.ChildSchool;
-import nz.co.scuff.data.school.ParentRoute;
-import nz.co.scuff.data.school.ParentSchool;
+import nz.co.scuff.data.family.Driver;
+import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.journey.Bus;
+import nz.co.scuff.data.journey.snapshot.BusSnapshot;
+import nz.co.scuff.data.relationship.DriverPassenger;
+import nz.co.scuff.data.family.snapshot.PassengerSnapshot;
+import nz.co.scuff.data.family.snapshot.DriverSnapshot;
+import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
+import nz.co.scuff.data.relationship.PassengerRoute;
+import nz.co.scuff.data.relationship.PassengerSchool;
+import nz.co.scuff.data.relationship.DriverRoute;
+import nz.co.scuff.data.relationship.DriverSchool;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.data.school.snapshot.RouteSnapshot;
@@ -65,23 +69,37 @@ public final class ScuffDatasource {
         return seconds.getSeconds();
     }
 
+    // TODO deal with this another way
+    public static void cleanUpIncompleteJourney(Journey journey) {
+        if (D) Log.d(TAG, "cleaning up journey="+journey);
+        journey.delete();
+    }
+
     public static int startJourney(Location location) {
         Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
         if (D) Log.d(TAG, "startJourney journey="+journey+" location="+location);
 
-        //journey.save();
+        // save journey first
+        journey.save();
         Waypoint waypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
                 0, 0, TrackingState.RECORDING, location);
         waypoint.setJourney(journey);
         waypoint.save();
 
-        journey.addWaypoint(waypoint);
+        journey.getWaypoints().add(waypoint);
         journey.save();
 
-        if (D) Log.d(TAG, "posting journey="+journey);
+        // create snapshot for transport
+        JourneySnapshot journeySnapshot = journey.toSnapshot();
+        journeySnapshot.setSchool(journey.getSchool().toSnapshot());
+        journeySnapshot.setRoute(journey.getRoute().toSnapshot());
+        journeySnapshot.setDriver(journey.getDriver().toSnapshot());
+        // add first waypoint
+        journeySnapshot.getWaypoints().add(waypoint.toSnapshot());
 
+        if (D) Log.d(TAG, "posting journey snapshot="+journey);
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(journey, new Callback<Response>() {
+        client.postJourney(journeySnapshot, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -108,22 +126,25 @@ public final class ScuffDatasource {
         newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        journey.addWaypoint(newWaypoint);
+        journey.getWaypoints().add(newWaypoint);
         journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
         journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
         journey.setState(TrackingState.PAUSED);
         journey.save();
 
-        // populate journey POJO
-        Journey transferJourney = new Journey();
-        transferJourney.setJourneyId(journey.getJourneyId());
-        transferJourney.setTotalDistance(journey.getTotalDistance());
-        transferJourney.setTotalDuration(journey.getTotalDuration());
-        transferJourney.setState(journey.getState());
-        transferJourney.addWaypoint(newWaypoint);
+        // create journey snapshot for transport
+        JourneySnapshot journeySnapshot = journey.toSnapshot();
+        journeySnapshot.setSchool(journey.getSchool().toSnapshot());
+        journeySnapshot.setRoute(journey.getRoute().toSnapshot());
+        journeySnapshot.setDriver(journey.getDriver().toSnapshot());
+        journeySnapshot.setTotalDistance(journey.getTotalDistance());
+        journeySnapshot.setTotalDuration(journey.getTotalDuration());
+        journeySnapshot.setState(journey.getState());
+        // add waypoint
+        journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(transferJourney, new Callback<Response>() {
+        client.postJourney(journeySnapshot, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -148,22 +169,25 @@ public final class ScuffDatasource {
         newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        journey.addWaypoint(newWaypoint);
+        journey.getWaypoints().add(newWaypoint);
         journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
         journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
         journey.setState(TrackingState.RECORDING);
         journey.save();
 
-        // populate journey POJO
-        Journey transferJourney = new Journey();
-        transferJourney.setJourneyId(journey.getJourneyId());
-        transferJourney.setTotalDistance(journey.getTotalDistance());
-        transferJourney.setTotalDuration(journey.getTotalDuration());
-        transferJourney.setState(journey.getState());
-        transferJourney.addWaypoint(newWaypoint);
+        // create journey snapshot for transport
+        JourneySnapshot journeySnapshot = journey.toSnapshot();
+        journeySnapshot.setSchool(journey.getSchool().toSnapshot());
+        journeySnapshot.setRoute(journey.getRoute().toSnapshot());
+        journeySnapshot.setDriver(journey.getDriver().toSnapshot());
+        journeySnapshot.setTotalDistance(journey.getTotalDistance());
+        journeySnapshot.setTotalDuration(journey.getTotalDuration());
+        journeySnapshot.setState(journey.getState());
+        // add waypoint
+        journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(transferJourney, new Callback<Response>() {
+        client.postJourney(journeySnapshot, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -190,7 +214,7 @@ public final class ScuffDatasource {
         newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        journey.addWaypoint(newWaypoint);
+        journey.getWaypoints().add(newWaypoint);
         journey.setCompleted(new Timestamp(DateTimeUtils.currentTimeMillis()));
         journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
         journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
@@ -200,17 +224,20 @@ public final class ScuffDatasource {
         // clear cache
         ((ScuffApplication) ScuffApplication.getContext()).setJourney(null);
 
-        // populate journey POJO
-        Journey transferJourney = new Journey();
-        transferJourney.setJourneyId(journey.getJourneyId());
-        transferJourney.setCompleted(journey.getCompleted());
-        transferJourney.setTotalDistance(journey.getTotalDistance());
-        transferJourney.setTotalDuration(journey.getTotalDuration());
-        transferJourney.setState(journey.getState());
-        transferJourney.addWaypoint(newWaypoint);
+        // create journey snapshot for transport
+        JourneySnapshot journeySnapshot = journey.toSnapshot();
+        journeySnapshot.setSchool(journey.getSchool().toSnapshot());
+        journeySnapshot.setRoute(journey.getRoute().toSnapshot());
+        journeySnapshot.setDriver(journey.getDriver().toSnapshot());
+        journeySnapshot.setTotalDistance(journey.getTotalDistance());
+        journeySnapshot.setTotalDuration(journey.getTotalDuration());
+        journeySnapshot.setState(journey.getState());
+        journeySnapshot.setCompleted(journey.getCompleted());
+        // add waypoint
+        journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(transferJourney, new Callback<Response>() {
+        client.postJourney(journeySnapshot, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -237,21 +264,24 @@ public final class ScuffDatasource {
         newWaypoint.setJourney(journey);
         newWaypoint.save();
 
-        journey.addWaypoint(newWaypoint);
+        journey.getWaypoints().add(newWaypoint);
         journey.setTotalDistance(journey.getTotalDistance() + newWaypoint.getDistance());
         journey.setTotalDuration(journey.getTotalDuration() + newWaypoint.getDuration());
         journey.save();
 
-        // populate journey POJO
-        Journey transferJourney = new Journey();
-        transferJourney.setJourneyId(journey.getJourneyId());
-        transferJourney.setTotalDistance(journey.getTotalDistance());
-        transferJourney.setTotalDuration(journey.getTotalDuration());
-        transferJourney.setState(journey.getState());
-        transferJourney.addWaypoint(newWaypoint);
+        // create journey snapshot for transport
+        JourneySnapshot journeySnapshot = journey.toSnapshot();
+        journeySnapshot.setSchool(journey.getSchool().toSnapshot());
+        journeySnapshot.setRoute(journey.getRoute().toSnapshot());
+        journeySnapshot.setDriver(journey.getDriver().toSnapshot());
+        journeySnapshot.setTotalDistance(journey.getTotalDistance());
+        journeySnapshot.setTotalDuration(journey.getTotalDuration());
+        journeySnapshot.setState(journey.getState());
+        // add waypoint
+        journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(transferJourney, new Callback<Response>() {
+        client.postJourney(journeySnapshot, new Callback<Response>() {
             @Override
             public void success(Response response, Response response2) {
                 if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
@@ -264,109 +294,249 @@ public final class ScuffDatasource {
         });
         return 1;
     }
-
+/*
     // may be null (esp if tracking a bus and then bus completes journey
-    public static JourneySnapshot getSnapshot(String journeyId) {
-        if (D) Log.d(TAG, "get snapshot for journey=" + journeyId);
+    public static Journey getActiveJourney(String journeyId, boolean prune) {
+        if (D) Log.d(TAG, "get active snapshot for journey=" + journeyId);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        return client.getSnapshot(journeyId);
-    }
+        JourneySnapshot js = client.getActiveJourneySnapshot(journeyId, prune);
+        // already have journey
+        Journey journey = Journey.findByJourneyId(journeyId);
+        journey.setTotalDistance(js.getTotalDistance());
+        journey.setTotalDuration(js.getTotalDuration());
+        journey.setCompleted(js.getCompleted());
+        journey.setState(js.getState());
+        // update waypoints
+        WaypointSnapshot ws = js.getWaypoints().first();
+        Waypoint waypoint = new Waypoint(ws);
+        waypoint.save();
+        journey.getWaypoints().add(waypoint);
+        journey.save();
+        return journey;
+    }*/
 
-    public static List<JourneySnapshot> getSnapshots(String routeId, String schoolId) {
-        if (D) Log.d(TAG, "get snapshots for route=" + routeId + " school=" + schoolId);
+    public static List<Bus> getActiveBuses(long routeId, long schoolId) {
+        if (D) Log.d(TAG, "get active buses for route=" + routeId + " school=" + schoolId);
 
+        // fresh journey search
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        return client.getSnapshotsByRouteAndSchool(routeId, schoolId);
-    }
+        List<BusSnapshot> busSnapshots = client.getActiveBusSnapshots(routeId, schoolId);
 
-    public static long saveJourney(Journey journey) {
-        if (D) Log.d(TAG, "save journey="+journey);
-        return journey.save();
-    }
-
-    public static long saveSnapshot(JourneySnapshot snapshot) {
-        if (D) Log.d(TAG, "save journey snapshot="+ snapshot);
-        return snapshot.save();
-    }
-
-    public static void deleteSnapshot(JourneySnapshot snapshot) {
-        if (D) Log.d(TAG, "delete journey snapshot="+ snapshot);
-        snapshot.delete();
-    }
-
-    public static Parent getParentByEmail(String email) {
-        if (D) Log.d(TAG, "getParent by email="+email);
-
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        ParentSnapshot parentSnapshot = client.getParentByEmail(email);
-
-        Parent parent = Parent.findParentByPK(parentSnapshot.getParentId());
-        if (parent != null) {
-            // already in db
-            return parent;
-        }
-        parent = new Parent(parentSnapshot);
-        parent.save();
-
-        for (SchoolSnapshot schoolSnapshot : parentSnapshot.getSchools()) {
-            School school = new School(schoolSnapshot);
-            school.save();
-            ParentSchool parentSchool = new ParentSchool(parent, school);
-            parentSchool.save();
-            school.addParentSchool(parentSchool);
-            parent.addParentSchool(parentSchool);
-            for (RouteSnapshot routeSnapshot : schoolSnapshot.getRoutes()) {
-                Route route = new Route(routeSnapshot);
-                route.setSchool(school);
-                route.save();
-                school.addRoute(route);
+        List<Bus> buses = new ArrayList<>();
+        for (BusSnapshot bs : busSnapshots) {
+            Bus bus = Bus.findByJourneyId(bs.getJourneyId());
+            if (bus != null) {
+                // update
+                bus.setLatitude(bs.getLatitude());
+                bus.setLongitude(bs.getLongitude());
+                bus.setSpeed(bs.getSpeed());
+                bus.setBearing(bs.getBearing());
+                bus.setAccuracy(bs.getAccuracy());
+                bus.setAltitude(bs.getAltitude());
+                bus.setCreated(bs.getCreated());
+            } else {
+                bus = new Bus(bs);
             }
+            bus.save();
+            buses.add(bus);
+        }
+        return buses;
+
+    }
+
+/*    public static List<Journey> getActiveJourneys(String routeId, String schoolId, boolean prune) {
+        if (D) Log.d(TAG, "get active snapshots for route=" + routeId + " school=" + schoolId);
+
+        // fresh journey search
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        List<JourneySnapshot> journeySnapshots = client.getActiveJourneySnapshots(routeId, schoolId, prune);
+        List<Journey> journeys = new ArrayList<>();
+        for (JourneySnapshot js : journeySnapshots) {
+            Journey journey = new Journey(js);
+            journey.save();
+            // already have route
+            Route route = Route.findByRouteId(js.getRoute().getRouteId());
+            journey.setRoute(route);
+            // check for driver
+            Driver driver = Driver.findByPersonId(js.getDriver().getPersonId());
+            if (driver == null) {
+                driver = new Driver(js.getDriver());
+                driver.save();
+            }
+            journey.setDriver(driver);
+            // already have school
+            School school = School.findBySchoolId(js.getSchool().getSchoolId());
+            journey.setSchool(school);
+            // waypoints
+            WaypointSnapshot ws = js.getWaypoints().first();
+            Waypoint waypoint = new Waypoint(ws);
+            waypoint.save();
+            journey.getWaypoints().add(waypoint);
+            journey.save();
+            journeys.add(journey);
+        }
+        return journeys;
+
+    }*/
+
+    public static Driver getDriverByEmail(String email) {
+        if (D) Log.d(TAG, "getDriver by email="+email);
+
+        // check locally first
+        Driver driver = Driver.findDriverByEmail(email);
+        if (driver != null) {
+            return driver;
+        }
+
+        // not cached so load from server (first time)
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        DriverSnapshot driverSnapshot = client.getDriverSnapshotByEmail(email);
+        driver = new Driver(driverSnapshot);
+        driver.save();
+
+        // drivers schools
+        for (SchoolSnapshot schoolSnapshot : driverSnapshot.getSchoolsDrivenFor()) {
+            School school = School.findBySchoolId(schoolSnapshot.getSchoolId());
+            if (school == null) {
+                school = new School(schoolSnapshot);
+                school.save();
+            }
+            DriverSchool driverSchool = new DriverSchool(driver, school);
+            driverSchool.save();
+            school.getDriverSchools().add(driverSchool);
+            driver.getDriverSchools().add(driverSchool);
             school.save();
         }
 
-        for (ChildSnapshot childSnapshot : parentSnapshot.getChildren()) {
-            Child child = new Child(childSnapshot);
-            child.save();
-            ChildParent childParent = new ChildParent(child, parent);
-            childParent.save();
-            child.addChildParent(childParent);
-            parent.addChildParent(childParent);
-            // all schools should already be in the db (from parent)
-            for (SchoolSnapshot schoolSnapshot : childSnapshot.getSchools()) {
-                School foundSchool = School.findBySchoolId(schoolSnapshot.getSchoolId());
-                ChildSchool childSchool = new ChildSchool(child, foundSchool);
-                child.addChildSchool(childSchool);
-                foundSchool.addChildSchool(childSchool);
-                foundSchool.save();
+        // drivers children
+        for (PassengerSnapshot passengerSnapshot : driverSnapshot.getChildren()) {
+            Passenger passenger = Passenger.findByPersonId(passengerSnapshot.getPersonId());
+            if (passenger == null) {
+                passenger = new Passenger(passengerSnapshot);
+                passenger.save();
             }
-            // all schools should already be in the db (from parent)
-            for (ParentSnapshot otherParentSnapshot : childSnapshot.getParents()) {
-                // if im not the parent
-                if (otherParentSnapshot.getParentId() != parent.getParentId()) {
-                    Parent otherParent = new Parent(otherParentSnapshot);
-                    otherParent.save();
-                    ChildParent childOtherParent = new ChildParent(child, otherParent);
-                    childOtherParent.save();
-                    child.addChildParent(childOtherParent);
-                    otherParent.addChildParent(childOtherParent);
+            DriverPassenger driverPassenger = new DriverPassenger(driver, passenger);
+            driverPassenger.save();
+            passenger.getDriverPassengers().add(driverPassenger);
+            driver.getDriverPassengers().add(driverPassenger);
+
+            // childrens schools
+            for (SchoolSnapshot schoolSnapshot : passengerSnapshot.getSchools()) {
+                // check db first
+                School school = School.findBySchoolId(schoolSnapshot.getSchoolId());
+                if (school == null) {
+                    school = new School(schoolSnapshot);
+                    school.save();
+                }
+                PassengerSchool passengerSchool = new PassengerSchool(passenger, school);
+                passenger.getPassengerSchools().add(passengerSchool);
+                school.getPassengerSchools().add(passengerSchool);
+                school.save();
+            }
+            // childrens parents
+            for (DriverSnapshot otherDriverSnapshot : passengerSnapshot.getParents()) {
+                // if this isn't me
+                if (otherDriverSnapshot.getPersonId() != driver.getPersonId()) {
+                    Driver otherParent = Driver.findByPersonId(otherDriverSnapshot.getPersonId());
+                    if (otherParent == null) {
+                        otherParent = new Driver(otherDriverSnapshot);
+                        otherParent.save();
+                    }
+                    DriverPassenger passengerOtherParent = new DriverPassenger(otherParent, passenger);
+                    passengerOtherParent.save();
+                    passenger.getDriverPassengers().add(passengerOtherParent);
+                    otherParent.getDriverPassengers().add(passengerOtherParent);
                     otherParent.save();
                 }
             }
-            child.save();
+            // childrens routes
+            for (RouteSnapshot routeSnapshot : passengerSnapshot.getRegisteredRoutes()) {
+                Route route = Route.findByRouteId(routeSnapshot.getRouteId());
+                if (route == null) {
+                    route = new Route(routeSnapshot);
+                    route.save();
+                }
+                PassengerRoute passengerRoute = new PassengerRoute(passenger, route);
+                passenger.getPassengerRoutes().add(passengerRoute);
+                passengerRoute.save();
+            }
+            // childrens journeys
+            for (JourneySnapshot journeySnapshot : passengerSnapshot.getJourneys()) {
+                Journey journey = new Journey(journeySnapshot);
+                journey.save();
+                School jSchool = School.findBySchoolId(journeySnapshot.getSchool().getSchoolId());
+                if (jSchool == null) {
+                    jSchool = new School(journeySnapshot.getSchool());
+                    jSchool.save();
+                }
+                journey.setSchool(jSchool);
+                jSchool.getJourneys().add(journey);
+                jSchool.save();
+                Driver jDriver = Driver.findByPersonId(journeySnapshot.getDriver().getPersonId());
+                if (jDriver == null) {
+                    jDriver = new Driver(journeySnapshot.getDriver());
+                    jDriver.save();
+                }
+                journey.setDriver(jDriver);
+                jDriver.getJourneys().add(journey);
+                jDriver.save();
+                Route jRoute = Route.findByRouteId(journeySnapshot.getRoute().getRouteId());
+                if (jRoute == null) {
+                    jRoute = new Route(journeySnapshot.getRoute());
+                    jRoute.save();
+                }
+                journey.setRoute(jRoute);
+                journey.save();
+            }
+            passenger.save();
         }
-
-        // all routes should already be in the db (from school)
-        for (RouteSnapshot routeSnapshot : parentSnapshot.getRoutes()) {
-            Route foundRoute = Route.findByRouteId(routeSnapshot.getRouteId());
-            ParentRoute parentRoute = new ParentRoute(parent, foundRoute);
-            parentRoute.save();
-            foundRoute.addParentRoute(parentRoute);
-            parent.addParentRoute(parentRoute);
-            foundRoute.save();
+        // drivers journeys
+        for (JourneySnapshot journeySnapshot : driverSnapshot.getJourneys()) {
+            Journey dJourney = Journey.findByJourneyId(journeySnapshot.getJourneyId());
+            if (dJourney == null) {
+                dJourney = new Journey(journeySnapshot);
+                dJourney.save();
+            }
+            School jSchool = School.findBySchoolId(journeySnapshot.getSchool().getSchoolId());
+            if (jSchool == null) {
+                jSchool = new School(journeySnapshot.getSchool());
+                jSchool.save();
+            }
+            dJourney.setSchool(jSchool);
+            jSchool.getJourneys().add(dJourney);
+            jSchool.save();
+            // driver is me (and im in the db)
+            dJourney.setDriver(driver);
+            driver.getJourneys().add(dJourney);
+            dJourney.save();
+            Route jRoute = Route.findByRouteId(journeySnapshot.getRoute().getRouteId());
+            if (jRoute == null) {
+                jRoute = new Route(journeySnapshot.getRoute());
+                jRoute.save();
+            }
+            dJourney.setRoute(jRoute);
+            dJourney.save();
         }
-        parent.save();
+        // drivers routes
+        for (RouteSnapshot routeSnapshot : driverSnapshot.getRegisteredRoutes()) {
+            Route dRoute = Route.findByRouteId(routeSnapshot.getRouteId());
+            if (dRoute == null) {
+                dRoute = new Route(routeSnapshot);
+                dRoute.save();
+            }
+            School rSchool = School.findBySchoolId(routeSnapshot.getSchool().getSchoolId());
+            dRoute.setSchool(rSchool);
+            dRoute.save();
+            rSchool.getRoutes().add(dRoute);
+            rSchool.save();
+            DriverRoute driverRoute = new DriverRoute(driver, dRoute);
+            driverRoute.save();
+            driver.getDriverRoutes().add(driverRoute);
+        }
+        driver.save();
 
-        return parent;
+        return driver;
     }
+
 }

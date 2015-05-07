@@ -17,7 +17,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import nz.co.scuff.android.R;
-import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.family.Passenger;
 
 /**
  * A fragment representing a list of Items.
@@ -34,7 +34,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
     private static final boolean D = true;
 
     private static final String CHILDREN_LIST = "CL";
-    private ArrayList<Child> children;
+    private ArrayList<Passenger> children;
 
     private OnFragmentInteractionListener mListener;
 
@@ -49,7 +49,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      */
     private ListAdapter mAdapter;
 
-    public static ChildrenFragment newInstance(ArrayList<Child> children) {
+    public static ChildrenFragment newInstance(ArrayList<Passenger> children) {
         if (D) Log.d(TAG, "Creating new instance");
 
         ChildrenFragment fragment = new ChildrenFragment();
@@ -142,7 +142,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(Child child);
+        public void onFragmentInteraction(Passenger child);
     }
 
 }

@@ -4,14 +4,18 @@ import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
-import com.google.gson.annotations.Expose;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import nz.co.scuff.data.family.Driver;
+import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
+import nz.co.scuff.data.school.Route;
+import nz.co.scuff.data.school.School;
 import nz.co.scuff.data.util.TrackingState;
 
 /**
@@ -22,71 +26,68 @@ public class Journey extends Model implements Comparable, Serializable {
 
     //private static final long serialVersionUID = 2L;
 
-    @Expose
     @Column(name="JourneyId")
     private String journeyId;
-    @Expose
     @Column(name="AppId")
     private String appId;
-    @Expose
-    @Column(name="SchoolId")
-    private String schoolId;
-    @Expose
-    @Column(name="DriverId")
-    private String driverId;
-    @Expose
-    @Column(name="RouteId")
-    private String routeId;
-    @Expose
+
+    @Column(name="SchoolFK", onDelete = Column.ForeignKeyAction.CASCADE)
+    private School school;
+    @Column(name="RouteFK")
+    private Route route;
+    @Column(name="DriverFK")
+    private Driver driver;
+
     @Column(name="Source")
     private String source;
 
     // calculated fields
-    @Expose
     @Column(name="TotalDistance")
     private float totalDistance;
-    @Expose
     @Column(name="TotalDuration")
     private long totalDuration;
 
-    @Expose
     @Column(name="Created")
     private Timestamp created;
-    @Expose
     @Column(name="Completed")
     private Timestamp completed;
-    @Expose
     @Column(name="State")
     private TrackingState state;
 
     // relationships
-    @Expose
-    @Column(name="Waypoints", onDelete = Column.ForeignKeyAction.CASCADE)
+    /*@Column(name="Waypoints")*/
     private SortedSet<Waypoint> waypoints;
-
-    // active android relationship requirement
-    public List<Waypoint> waypoints() {
-        return getMany(Waypoint.class, "JourneyFK");
-    }
 
     public Journey() {
         waypoints = new TreeSet<>();
     }
 
-    public Journey(String journeyId, String appId, String schoolId, String driverId,
-                   String routeId, String source, float totalDistance, long totalDuration,
+/*    public Journey(String journeyId, String appId, School school, Driver driver,
+                   Route route, String source, float totalDistance, long totalDuration,
                    Timestamp created, Timestamp completed, TrackingState state) {
         this.journeyId = journeyId;
         this.appId = appId;
-        this.schoolId = schoolId;
-        this.driverId = driverId;
-        this.routeId = routeId;
+        this.school = school;
         this.source = source;
         this.totalDistance = totalDistance;
         this.totalDuration = totalDuration;
         this.created = created;
         this.completed = completed;
         this.state = state;
+        waypoints = new TreeSet<>();
+    }*/
+
+    public Journey(JourneySnapshot snapshot) {
+        this.journeyId = snapshot.getJourneyId();
+        this.appId = snapshot.getAppId();
+        this.source = snapshot.getSource();
+        // school, route and driver set manually
+        this.totalDistance = snapshot.getTotalDistance();
+        this.totalDuration = snapshot.getTotalDuration();
+        this.created = snapshot.getCreated();
+        this.completed = snapshot.getCompleted();
+        this.state = snapshot.getState();
+
         waypoints = new TreeSet<>();
     }
 
@@ -106,28 +107,28 @@ public class Journey extends Model implements Comparable, Serializable {
         this.appId = appId;
     }
 
-    public String getSchoolId() {
-        return schoolId;
+    public School getSchool() {
+        return school;
     }
 
-    public void setSchoolId(String schoolId) {
-        this.schoolId = schoolId;
+    public void setSchool(School school) {
+        this.school = school;
     }
 
-    public String getDriverId() {
-        return driverId;
+    public Route getRoute() {
+        return route;
     }
 
-    public void setDriverId(String driverId) {
-        this.driverId = driverId;
+    public void setRoute(Route route) {
+        this.route = route;
     }
 
-    public String getRouteId() {
-        return routeId;
+    public Driver getDriver() {
+        return driver;
     }
 
-    public void setRouteId(String routeId) {
-        this.routeId = routeId;
+    public void setDriver(Driver driver) {
+        this.driver = driver;
     }
 
     public String getSource() {
@@ -178,16 +179,23 @@ public class Journey extends Model implements Comparable, Serializable {
         this.state = state;
     }
 
-    public void addWaypoint(Waypoint waypoint) {
-        waypoints.add(waypoint);
-    }
-
     public SortedSet<Waypoint> getWaypoints() {
+        if (waypoints == null) {
+            waypoints = new TreeSet<>();
+        }
         return waypoints;
     }
 
     public void setWaypoints(SortedSet<Waypoint> waypoints) {
         this.waypoints = waypoints;
+    }
+
+    public static List<Journey> findByRouteAndSchool(String routeId, String schoolId) {
+        return new Select()
+                .from(Journey.class)
+                .where("RouteId = ?", routeId)
+                .where("SchoolId = ?", schoolId)
+                .execute();
     }
 
     public Waypoint getCurrentWaypoint() {
@@ -216,6 +224,19 @@ public class Journey extends Model implements Comparable, Serializable {
                 .where("State != ?", TrackingState.COMPLETED)
                 .execute();
         return journeys;
+    }
+
+    public JourneySnapshot toSnapshot() {
+        JourneySnapshot snapshot = new JourneySnapshot();
+        snapshot.setJourneyId(journeyId);
+        snapshot.setAppId(appId);
+        snapshot.setSource(source);
+        snapshot.setTotalDistance(totalDistance);
+        snapshot.setTotalDuration(totalDuration);
+        snapshot.setCreated(created);
+        snapshot.setCompleted(completed);
+        snapshot.setState(state);
+        return snapshot;
     }
 
     @Override
@@ -248,9 +269,6 @@ public class Journey extends Model implements Comparable, Serializable {
         return "Journey{" +
                 "journeyId='" + journeyId + '\'' +
                 ", appId='" + appId + '\'' +
-                ", schoolId='" + schoolId + '\'' +
-                ", driverId='" + driverId + '\'' +
-                ", routeId='" + routeId + '\'' +
                 ", source='" + source + '\'' +
                 ", totalDistance=" + totalDistance +
                 ", totalDuration=" + totalDuration +

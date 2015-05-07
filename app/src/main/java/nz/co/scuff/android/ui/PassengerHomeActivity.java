@@ -34,14 +34,14 @@ import java.util.Set;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
-import nz.co.scuff.android.gps.PassengerAlarmReceiver;
+import nz.co.scuff.android.service.PassengerAlarmReceiver;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.RouteSpinnerAdapter;
-import nz.co.scuff.android.util.SnapshotEvent;
-import nz.co.scuff.data.family.Child;
-import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.android.util.BusEvent;
+import nz.co.scuff.data.family.Driver;
+import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Person;
-import nz.co.scuff.data.journey.JourneySnapshot;
+import nz.co.scuff.data.journey.Bus;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.DialogHelper;
@@ -81,15 +81,15 @@ public class PassengerHomeActivity extends FragmentActivity
 
 
         ScuffApplication scuffContext = (ScuffApplication)getApplicationContext();
-        Parent driver = scuffContext.getDriver();
+        Driver driver = scuffContext.getDriver();
         LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
-        Set<Child> children = driver.getChildren();
+        Set<Passenger> children = driver.getChildren();
 /*
         ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
         getSupportFragmentManager().beginTransaction().add(R.id.mapSlideOver, childrenFragment).commit();
 */
 
-        for (Child child : children) {
+        for (Passenger child : children) {
             Button button = new Button(this);
             Drawable profilePix;
             if (child.getPicture() != null) {
@@ -147,8 +147,8 @@ public class PassengerHomeActivity extends FragmentActivity
 
         // start new listener (for current route) using FLAG_CANCEL_CURRENT we cancel other intents for old routes
         Intent alarmIntent = new Intent(this, PassengerAlarmReceiver.class);
-        alarmIntent.putExtra(Constants.PASSENGER_ROUTE_KEY, route.getName());
-        alarmIntent.putExtra(Constants.PASSENGER_SCHOOL_KEY, ((ScuffApplication) getApplicationContext()).getSchool().getName());
+        alarmIntent.putExtra(Constants.PASSENGER_ROUTE_KEY, route.getRouteId());
+        alarmIntent.putExtra(Constants.PASSENGER_SCHOOL_KEY, ((ScuffApplication) getApplicationContext()).getSchool().getSchoolId());
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, PASSENGER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         // cancel outstanding
         alarmManager.cancel(pendingAlarmIntent);
@@ -193,12 +193,12 @@ public class PassengerHomeActivity extends FragmentActivity
 
     }
 
-    private void updateMap(List<JourneySnapshot> snapshots) {
-        if (D) Log.d(TAG, "Updating map with snapshots="+ snapshots);
+    private void updateMap(List<Bus> buses) {
+        if (D) Log.d(TAG, "Updating map with buses="+ buses);
 
         this.googleMap.clear();
 
-        if (snapshots.isEmpty()) {
+        if (buses.isEmpty()) {
             // no active buses on this route
             if (this.newRouteSelected) DialogHelper.dialog(this, "Bus not found", "There are currently no active buses on this route");
             this.newRouteSelected = false;
@@ -213,9 +213,9 @@ public class PassengerHomeActivity extends FragmentActivity
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
         this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
 
-        for (JourneySnapshot snapshot : snapshots) {
-            if (D) Log.d(TAG, "Bus location = " + snapshot);
-            LatLng busLatlng = new LatLng(snapshot.getLatitude(), snapshot.getLongitude());
+        for (Bus bus : buses) {
+            if (D) Log.d(TAG, "Bus location = " + bus);
+            LatLng busLatlng = new LatLng(bus.getLatitude(), bus.getLongitude());
             this.googleMap.addMarker(new MarkerOptions()
                     .position(busLatlng)
                     .title("Bus position")
@@ -228,9 +228,9 @@ public class PassengerHomeActivity extends FragmentActivity
 
     }
 
-    public void onEventMainThread(SnapshotEvent event) {
+    public void onEventMainThread(BusEvent event) {
         if (D) Log.d(TAG, "Main thread message waypoint event="+event);
-        updateMap(event.getSnapshots());
+        updateMap(event.getBuses());
     }
 
 /*    public void onEventMainThread(LocationEvent event) {
@@ -261,7 +261,7 @@ public class PassengerHomeActivity extends FragmentActivity
         DialogHelper.toast(this, school.getName());
     }
 
-    public void onFragmentInteraction(Child child) {
+    public void onFragmentInteraction(Passenger child) {
         DialogHelper.toast(this, child.getFirstName());
     }
 

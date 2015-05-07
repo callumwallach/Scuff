@@ -2,8 +2,9 @@ package nz.co.scuff.data.school.snapshot;
 
 import com.google.gson.annotations.Expose;
 
-import nz.co.scuff.data.family.snapshot.ChildSnapshot;
-import nz.co.scuff.data.family.snapshot.ParentSnapshot;
+import nz.co.scuff.data.family.snapshot.PassengerSnapshot;
+import nz.co.scuff.data.family.snapshot.DriverSnapshot;
+import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -23,17 +24,21 @@ public class SchoolSnapshot implements Comparable {
     private double longitude;
     @Expose
     private double altitude;
+
     @Expose
     private SortedSet<RouteSnapshot> routes;
     @Expose
-    private SortedSet<ChildSnapshot> children;
+    private SortedSet<PassengerSnapshot> children;
     @Expose
-    private SortedSet<ParentSnapshot> parents;
+    private SortedSet<DriverSnapshot> parents;
+    @Expose
+    private SortedSet<JourneySnapshot> journeys;
 
     public SchoolSnapshot() {
         routes = new TreeSet<>();
         children = new TreeSet<>();
         parents = new TreeSet<>();
+        journeys = new TreeSet<>();
     }
 
     public long getSchoolId() {
@@ -84,20 +89,28 @@ public class SchoolSnapshot implements Comparable {
         this.routes = routes;
     }
 
-    public SortedSet<ChildSnapshot> getChildren() {
+    public SortedSet<PassengerSnapshot> getChildren() {
         return children;
     }
 
-    public void setChildren(SortedSet<ChildSnapshot> children) {
+    public void setChildren(SortedSet<PassengerSnapshot> children) {
         this.children = children;
     }
 
-    public SortedSet<ParentSnapshot> getParents() {
+    public SortedSet<DriverSnapshot> getParents() {
         return parents;
     }
 
-    public void setParents(SortedSet<ParentSnapshot> parents) {
+    public void setParents(SortedSet<DriverSnapshot> parents) {
         this.parents = parents;
+    }
+
+    public SortedSet<JourneySnapshot> getJourneys() {
+        return journeys;
+    }
+
+    public void setJourneys(SortedSet<JourneySnapshot> journeys) {
+        this.journeys = journeys;
     }
 
     @Override
@@ -133,6 +146,7 @@ public class SchoolSnapshot implements Comparable {
                 ", routes=" + routes +
                 ", children=" + children +
                 ", parents=" + parents +
+                ", journeys=" + journeys +
                 '}';
     }
 }

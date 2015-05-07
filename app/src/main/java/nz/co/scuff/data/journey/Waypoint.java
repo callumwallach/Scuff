@@ -5,69 +5,50 @@ import android.location.Location;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
 import com.google.gson.annotations.Expose;
 
 import org.joda.time.DateTimeUtils;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.List;
 
+import nz.co.scuff.data.journey.snapshot.WaypointSnapshot;
 import nz.co.scuff.data.util.TrackingState;
 
 /**
  * Created by Callum on 20/04/2015.
  */
-@Table(name="Waypoint")
+@Table(name="Waypoints")
 public class Waypoint extends Model implements Comparable, Serializable {
 
-    @Expose
     @Column(name="WaypointId")
     private String waypointId;
-    @Expose
     @Column(name="Latitude")
     private double latitude;
-    @Expose
     @Column(name="Longitude")
     private double longitude;
-    @Expose
     @Column(name="Speed")
     private float speed;
-    @Expose
     @Column(name="Bearing")
     private float bearing;
-    @Expose
     @Column(name="Distance")
     private float distance;
-    @Expose
     @Column(name="Duration")
     private long duration;
-    @Expose
     @Column(name="Provider")
     private String provider;
-    @Expose
     @Column(name="Accuracy")
     private float accuracy;
-    @Expose
     @Column(name="Altitude")
     private double altitude;
-    @Expose
     @Column(name="State")
     private TrackingState state;
-    @Expose
     @Column(name="Created")
     private Timestamp created;
 
     // for use with ActiveAndroid. Not serialised
     @Column(name="JourneyFK", onDelete = Column.ForeignKeyAction.CASCADE)
     private Journey journey;
-    public Journey getJourney() {
-        return journey;
-    }
-    public void setJourney(Journey journey) {
-        this.journey = journey;
-    }
 
     public Waypoint() {
     }
@@ -85,6 +66,21 @@ public class Waypoint extends Model implements Comparable, Serializable {
         this.altitude = location.getAltitude();
         this.created = new Timestamp(DateTimeUtils.currentTimeMillis());
         this.state = state;
+    }
+
+    public Waypoint(WaypointSnapshot snapshot) {
+        this.waypointId = snapshot.getWaypointId();
+        this.latitude = snapshot.getLatitude();
+        this.longitude = snapshot.getLongitude();
+        this.speed = snapshot.getSpeed();
+        this.bearing = snapshot.getBearing();
+        this.distance = snapshot.getDistance();
+        this.duration = snapshot.getDuration();
+        this.provider = snapshot.getProvider();
+        this.accuracy = snapshot.getAccuracy();
+        this.altitude = snapshot.getAltitude();
+        this.state = snapshot.getState();
+        this.created = snapshot.getCreated();
     }
 
     public String getWaypointId() {
@@ -181,6 +177,31 @@ public class Waypoint extends Model implements Comparable, Serializable {
 
     public void setCreated(Timestamp created) {
         this.created = created;
+    }
+
+    public Journey getJourney() {
+        return journey;
+    }
+
+    public void setJourney(Journey journey) {
+        this.journey = journey;
+    }
+
+    public WaypointSnapshot toSnapshot() {
+        WaypointSnapshot snapshot = new WaypointSnapshot();
+        snapshot.setWaypointId(waypointId);
+        snapshot.setLatitude(latitude);
+        snapshot.setLongitude(longitude);
+        snapshot.setSpeed(speed);
+        snapshot.setBearing(bearing);
+        snapshot.setDistance(distance);
+        snapshot.setDuration(duration);
+        snapshot.setProvider(provider);
+        snapshot.setAccuracy(accuracy);
+        snapshot.setAltitude(altitude);
+        snapshot.setState(state);
+        snapshot.setCreated(created);
+        return snapshot;
     }
 
     @Override

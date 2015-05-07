@@ -25,8 +25,7 @@ import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.SchoolSpinnerAdapter;
-import nz.co.scuff.data.family.Child;
-import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.ScuffApplication;
 
@@ -70,7 +69,7 @@ public class HomeActivity extends Activity {
         if (!initialising) {
             initialising = true;
             ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
-            Parent driver = scuffContext.getDriver();
+            Driver driver = scuffContext.getDriver();
             if (driver == null) {
                 if (D) Log.d(TAG, "loading profile");
                 new AsyncSendMessage().execute();
@@ -85,10 +84,10 @@ public class HomeActivity extends Activity {
             if (D) Log.d(TAG, "starting background load");
 
             // TODO user name from accounts
-            Parent parent = ScuffDatasource.getParentByEmail("callum@gmail.com");
+            Driver driver = ScuffDatasource.getDriverByEmail("callum@gmail.com");
             int resultCode = -1;
-            if (parent != null) {
-                ((ScuffApplication) getApplicationContext()).setDriver(parent);
+            if (driver != null) {
+                ((ScuffApplication) getApplicationContext()).setDriver(driver);
                 resultCode = 1;
             }
             return resultCode;
@@ -119,7 +118,7 @@ public class HomeActivity extends Activity {
     private void populateSchools() {
         if (D) Log.d(TAG, "populating school");
 
-        final Parent driver = ((ScuffApplication) getApplicationContext()).getDriver();
+        final Driver driver = ((ScuffApplication) getApplicationContext()).getDriver();
         final TextView nameLabel = (TextView) findViewById(R.id.name_label);
         nameLabel.setText(driver.getFirstName());
 

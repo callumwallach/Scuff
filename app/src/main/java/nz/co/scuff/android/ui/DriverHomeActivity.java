@@ -13,10 +13,7 @@ import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -32,20 +29,17 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.joda.time.DateTime;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
-import nz.co.scuff.android.gps.DriverAlarmReceiver;
-import nz.co.scuff.android.gps.DriverIntentService;
+import nz.co.scuff.android.service.DriverAlarmReceiver;
+import nz.co.scuff.android.service.DriverIntentService;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.util.LocationEvent;
 import nz.co.scuff.data.util.TrackingState;
-import nz.co.scuff.data.family.Parent;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.school.Route;
-import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
@@ -74,6 +68,7 @@ public class DriverHomeActivity extends FragmentActivity {
 
         initialiseMap();
 
+        // TODO check lifecycles and object creation etc
         ScuffApplication scuffContext = (ScuffApplication)getApplication();
         Route route = scuffContext.getDriver().getScheduledRoute();
         ((TextView) findViewById(R.id.route_label)).setText("Route: " + route.getName());
@@ -88,7 +83,7 @@ public class DriverHomeActivity extends FragmentActivity {
                 // TODO connect up GPSBootReceiver
                 // clean up incomplete journeys - close/delete them
                 j.setState(TrackingState.COMPLETED);
-                ScuffDatasource.saveJourney(j);
+                ScuffDatasource.cleanUpIncompleteJourney(j);
             }
         }
 
@@ -127,10 +122,10 @@ public class DriverHomeActivity extends FragmentActivity {
         routeSpinner.setAdapter(dataAdapter);
         routeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {}
+            public void onItemSelected(AdapterView<?> driver, View view, int position, long id) {}
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            public void onNothingSelected(AdapterView<?> driver) {}
         });
 
     }*/
@@ -215,14 +210,18 @@ public class DriverHomeActivity extends FragmentActivity {
             //Driver driver = (Driver)((Spinner) findViewById(R.id.driver_spinner)).getSelectedItem();
             //Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
-            // TODO update journeys to school, driver and route objects
-            Route route = scuffContext.getDriver().getScheduledRoute();
-            journey = new Journey(journeyId, scuffContext.getAppId(),
-                    scuffContext.getSchool().getName(), scuffContext.getDriver().getFirstName(), route.getName(),
-                    "Android", 0, 0, new Timestamp(nowMillis),
-                    null, TrackingState.COMPLETED);
-            // save to database (and assign mId)
-            ScuffDatasource.saveJourney(journey);
+            journey = new Journey();
+            journey.setJourneyId(journeyId);
+            journey.setAppId(scuffContext.getAppId());
+            journey.setSchool(scuffContext.getSchool());
+            journey.setDriver(scuffContext.getDriver());
+            journey.setRoute(scuffContext.getDriver().getScheduledRoute());
+            journey.setSource("Android");
+            journey.setTotalDistance(0);
+            journey.setTotalDuration(0);
+            journey.setCreated(new Timestamp(nowMillis));
+            journey.setCompleted(null);
+            journey.setState(TrackingState.COMPLETED);
             // cache in app state
             ((ScuffApplication) this.getApplication()).setJourney(journey);
             if (D) Log.d(TAG, "new journey id=" + journey.getId());
@@ -380,14 +379,14 @@ public class DriverHomeActivity extends FragmentActivity {
 
         EventBus.getDefault().register(this);
 
-        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+/*        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
         if (!gpsEnabled) {
             // Create a dialog here that requests the user to enable GPS, and
             // TODO use an intent with the android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS action
             // to take the user to the Settings screen to enable GPS when they click "OK"
             DialogHelper.dialog(this, "GPS is not active", "Please turn GPS on or wait for a stronger signal");
-        }
+        }*/
     }
 
     @Override

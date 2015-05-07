@@ -5,7 +5,7 @@ import android.telephony.TelephonyManager;
 
 import com.activeandroid.app.Application;
 
-import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.school.School;
 
@@ -30,14 +30,14 @@ public class ScuffApplication extends Application {
     }
 
     private School school;
-    private Parent driver;
+    private Driver driver;
     private Journey journey;
 
-    public Parent getDriver() {
+    public Driver getDriver() {
         return driver;
     }
 
-    public void setDriver(Parent d) {
+    public void setDriver(Driver d) {
         driver = d;
     }
 

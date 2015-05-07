@@ -1,4 +1,4 @@
-package nz.co.scuff.android.gps;
+package nz.co.scuff.android.service;
 
 import android.content.Context;
 import android.content.Intent;

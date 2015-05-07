@@ -83,13 +83,25 @@
 
         <meta-data
             android:name="AA_MODELS"
-            android:value="                 nz.co.scuff.data.journey.Journey, nz.co.scuff.data.journey.Waypoint, nz.co.scuff.data.journey.JourneySnapshot,                 nz.co.scuff.data.family.Parent, nz.co.scuff.data.family.Child, nz.co.scuff.data.family.ChildParent,                 nz.co.scuff.data.school.School, nz.co.scuff.data.school.Route,                 nz.co.scuff.data.school.ParentSchool, nz.co.scuff.data.school.ChildSchool, nz.co.scuff.data.school.ParentRoute" />
+            android:value="nz.co.scuff.data.journey.Bus,
+            nz.co.scuff.data.journey.Waypoint,
+            nz.co.scuff.data.journey.Journey,
+            nz.co.scuff.data.family.Driver,
+            nz.co.scuff.data.family.Passenger,
+            nz.co.scuff.data.school.Route,
+            nz.co.scuff.data.school.School,
+            nz.co.scuff.data.relationship.DriverPassenger,
+            nz.co.scuff.data.relationship.DriverRoute,
+            nz.co.scuff.data.relationship.DriverSchool,
+            nz.co.scuff.data.relationship.JourneyPassenger,
+            nz.co.scuff.data.relationship.PassengerRoute,
+            nz.co.scuff.data.relationship.PassengerSchool" />
         <meta-data
             android:name="AA_DB_NAME"
             android:value="Scuff.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="18" />
+            android:value="25" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />
@@ -106,32 +118,32 @@
         </receiver>
         -->
         <receiver
-            android:name=".gps.PassengerAlarmReceiver"
+            android:name=".service.PassengerAlarmReceiver"
             android:enabled="true"
             android:exported="false" >
         </receiver>
         <receiver
-            android:name=".gps.DriverAlarmReceiver"
+            android:name=".service.DriverAlarmReceiver"
             android:enabled="true"
             android:exported="false" >
         </receiver>
 
         <service
-            android:name=".gps.DriverIntentService"
+            android:name=".service.DriverIntentService"
             android:exported="false" >
         </service>
         <service
-            android:name=".gps.PassengerIntentService"
+            android:name=".service.PassengerIntentService"
             android:exported="false" >
         </service>
         <service
-            android:name=".gps.DriverLocationIntentService"
+            android:name=".service.DriverLocationIntentService"
             android:exported="false" >
         </service>
-        <service
-            android:name=".data.UserIntentService"
+<!--        <service
+            android:name=".data.DriverIntentService"
             android:exported="false" >
-        </service>
+        </service>-->
     </application>
 
 </manifest>

@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.journey.Journey;
+import nz.co.scuff.data.relationship.DriverSchool;
+import nz.co.scuff.data.relationship.PassengerSchool;
 import nz.co.scuff.data.school.snapshot.SchoolSnapshot;
 
 /**
@@ -32,16 +34,14 @@ public class School extends Model implements Comparable, Serializable {
     private double altitude;
 
     // one to many
+    /*@Column(name="Routes")*/
     private SortedSet<Route> routes;
+    /*@Column(name="Journeys")*/
+    private SortedSet<Journey> journeys;
 
     // many to many
-    private List<ChildSchool> childSchools;
-    private List<ParentSchool> parentSchools;
-
-/*    // one to one
-    @Expose
-    @Column(name="Schedule", onDelete = Column.ForeignKeyAction.CASCADE)
-    private Schedule schedule;*/
+    private List<PassengerSchool> passengerSchools;
+    private List<DriverSchool> driverSchools;
 
     public School() {
         super();
@@ -54,10 +54,10 @@ public class School extends Model implements Comparable, Serializable {
         this.altitude = altitude;
 
         this.routes = new TreeSet<>();
-        this.childSchools = new ArrayList<>();
-        this.parentSchools = new ArrayList<>();
+        this.journeys = new TreeSet<>();
+        this.passengerSchools = new ArrayList<>();
+        this.driverSchools = new ArrayList<>();
 
-        //this.schedule = new Schedule();
     }
 
     public School(SchoolSnapshot snapshot) {
@@ -105,69 +105,67 @@ public class School extends Model implements Comparable, Serializable {
         this.altitude = altitude;
     }
 
-    // active android relationship assist
     public SortedSet<Route> getRoutes() {
-        return new TreeSet<>(getMany(Route.class, "SchoolFK"));
+        List<Route> routes = getMany(Route.class, "SchoolFK");
+        if (routes != null) {
+            return new TreeSet<>(routes);
+        }
+        return new TreeSet<>();
     }
+
     public void setRoutes(SortedSet<Route> routes) {
         this.routes = routes;
     }
 
-    public void addRoute(Route route) {
-        if (this.routes == null) {
-            this.routes = new TreeSet<>();
+    public SortedSet<Journey> getJourneys() {
+        List<Journey> journeys = getMany(Journey.class, "SchoolFK");
+        if (journeys != null) {
+            return new TreeSet<>(journeys);
         }
-        this.routes.add(route);
+        return new TreeSet<>();
     }
 
-    public List<ChildSchool> getChildSchools() {
-        return childSchools;
+    public void setJourneys(SortedSet<Journey> journeys) {
+        this.journeys = journeys;
     }
 
-    public void setChildSchools(List<ChildSchool> childSchools) {
-        this.childSchools = childSchools;
-    }
-
-    public void addChildSchool(ChildSchool childSchool) {
-        if (this.childSchools == null) {
-            this.childSchools = new ArrayList<>();
+    public List<PassengerSchool> getPassengerSchools() {
+        if (passengerSchools == null) {
+            passengerSchools = new ArrayList<>();
         }
-        this.childSchools.add(childSchool);
+        return passengerSchools;
     }
 
-    public List<ParentSchool> getParentSchools() {
-        return parentSchools;
+    public void setPassengerSchools(List<PassengerSchool> passengerSchools) {
+        this.passengerSchools = passengerSchools;
     }
 
-    public void setParentSchools(List<ParentSchool> parentSchools) {
-        this.parentSchools = parentSchools;
-    }
-
-    public void addParentSchool(ParentSchool parentSchool) {
-        if (this.parentSchools == null) {
-            this.parentSchools = new ArrayList<>();
+    public List<DriverSchool> getDriverSchools() {
+        if (driverSchools == null) {
+            driverSchools = new ArrayList<>();
         }
-        this.parentSchools.add(parentSchool);
+        return driverSchools;
     }
 
-    // TODO
-    public List<Child> getChildrenForRoute(Route route) {
-        return new ArrayList<>();
+    public void setDriverSchools(List<DriverSchool> driverSchools) {
+        this.driverSchools = driverSchools;
     }
-
-/*    public Schedule getSchedule() {
-        return schedule;
-    }
-
-    public void setSchedule(Schedule schedule) {
-        this.schedule = schedule;
-    }*/
 
     public static School findBySchoolId(long schoolId) {
         return new Select()
                 .from(School.class)
                 .where("SchoolId = ?", schoolId)
                 .executeSingle();
+    }
+
+    public SchoolSnapshot toSnapshot() {
+        SchoolSnapshot snapshot = new SchoolSnapshot();
+        snapshot.setSchoolId(schoolId);
+        snapshot.setName(name);
+        snapshot.setLatitude(latitude);
+        snapshot.setLongitude(longitude);
+        snapshot.setAltitude(altitude);
+        return snapshot;
     }
 
     @Override
@@ -191,15 +189,13 @@ public class School extends Model implements Comparable, Serializable {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("School{");
-        sb.append("schoolId=").append(schoolId);
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", latitude=").append(latitude);
-        sb.append(", longitude=").append(longitude);
-        sb.append(", altitude=").append(altitude);
-        //sb.append(", schedule=").append(schedule);
-        sb.append('}');
-        return sb.toString();
+        return "School{" +
+                "schoolId=" + schoolId +
+                ", name='" + name + '\'' +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", altitude=" + altitude +
+                '}';
     }
 
     @Override

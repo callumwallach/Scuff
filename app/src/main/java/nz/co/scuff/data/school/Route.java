@@ -6,8 +6,6 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 import nz.co.scuff.data.school.snapshot.RouteSnapshot;
 
@@ -24,22 +22,16 @@ public class Route extends Model implements Comparable, Serializable {
     @Column(name="RouteMap")
     private String routeMap;
 
-    private List<ParentRoute> parentRoutes;
-
     // for use with ActiveAndroid. Not serialised
     @Column(name="SchoolFK", onDelete = Column.ForeignKeyAction.CASCADE)
     private School school;
 
     public Route() {}
 
-    public Route(String name) {
-        this.name = name;
-        this.routeMap = "Currently not available";
-    }
-
-    public Route(String name, String routeMap) {
+    public Route(String name, String routeMap, School school) {
         this.name = name;
         this.routeMap = routeMap;
+        this.school = school;
     }
 
     public Route(RouteSnapshot snapshot) {
@@ -75,23 +67,17 @@ public class Route extends Model implements Comparable, Serializable {
     public School getSchool() {
         return school;
     }
+
     public void setSchool(School school) {
         this.school = school;
     }
 
-    public List<ParentRoute> getParentRoutes() {
-        return parentRoutes;
-    }
-
-    public void setParentRoutes(List<ParentRoute> parentRoutes) {
-        this.parentRoutes = parentRoutes;
-    }
-
-    public void addParentRoute(ParentRoute parentRoute) {
-        if (this.parentRoutes == null) {
-            this.parentRoutes = new ArrayList<>();
-        }
-        this.parentRoutes.add(parentRoute);
+    public RouteSnapshot toSnapshot() {
+        RouteSnapshot snapshot = new RouteSnapshot();
+        snapshot.setRouteId(routeId);
+        snapshot.setName(name);
+        snapshot.setRouteMap(routeMap);
+        return snapshot;
     }
 
     public static Route findByRouteId(long routeId) {
@@ -124,12 +110,11 @@ public class Route extends Model implements Comparable, Serializable {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("Route{");
-        sb.append("routeId=").append(routeId);
-        sb.append(", name='").append(name).append('\'');
-        sb.append(", routeMap='").append(routeMap).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "Route{" +
+                "routeId=" + routeId +
+                ", name='" + name + '\'' +
+                ", routeMap='" + routeMap + '\'' +
+                '}';
     }
 
     @Override

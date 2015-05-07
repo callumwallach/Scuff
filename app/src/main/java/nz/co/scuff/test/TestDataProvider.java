@@ -1,12 +1,10 @@
 package nz.co.scuff.test;
 
-import nz.co.scuff.data.family.Child;
-import nz.co.scuff.data.family.ChildParent;
-import nz.co.scuff.data.family.Parent;
+import nz.co.scuff.data.relationship.DriverPassenger;
 import nz.co.scuff.data.family.Person;
-import nz.co.scuff.data.school.ChildSchool;
-import nz.co.scuff.data.school.ParentRoute;
-import nz.co.scuff.data.school.ParentSchool;
+import nz.co.scuff.data.relationship.PassengerSchool;
+import nz.co.scuff.data.relationship.DriverRoute;
+import nz.co.scuff.data.relationship.DriverSchool;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 
@@ -34,18 +32,18 @@ public class TestDataProvider {
 
     private static void populate() {
 
-        School school = new School("St Heliers School", -36.8582550, 174.8608230, 42.16);
-        school.setSchoolId(getNewSchoolId());
+/*        School school = new School("St Heliers School", -36.8582550, 174.8608230, 42.16);
+        school.setSchool(getNewSchoolId());
         school.save();
 
         Route route1 = new Route("Long Drive", "longdrive.png");
-        route1.setRouteId(getNewRouteId());
+        route1.setRoute(getNewRouteId());
         Route route2 = new Route("St Heliers Bay", "stheliersbayroad.png");
-        route2.setRouteId(getNewRouteId());
+        route2.setRoute(getNewRouteId());
         Route route3 = new Route("Riddell Nth", "riddellroadnorth.png");
-        route3.setRouteId(getNewRouteId());
+        route3.setRoute(getNewRouteId());
         Route route4 = new Route("Riddell Sth", "riddellroadsouth.png");
-        route4.setRouteId(getNewRouteId());
+        route4.setRoute(getNewRouteId());
 
         route1.setSchool(school);
         route2.setSchool(school);
@@ -75,17 +73,17 @@ public class TestDataProvider {
         child2.save();
         child3.save();
 
-        ChildSchool childSchool1 = new ChildSchool(child1, school);
-        ChildSchool childSchool2 = new ChildSchool(child2, school);
-        ChildSchool childSchool3 = new ChildSchool(child3, school);
+        PassengerSchool passengerSchool1 = new PassengerSchool(child1, school);
+        PassengerSchool passengerSchool2 = new PassengerSchool(child2, school);
+        PassengerSchool passengerSchool3 = new PassengerSchool(child3, school);
 
-        childSchool1.save();
-        childSchool2.save();
-        childSchool3.save();
+        passengerSchool1.save();
+        passengerSchool2.save();
+        passengerSchool3.save();
 
-        child1.addChildSchool(childSchool1);
-        child2.addChildSchool(childSchool2);
-        child3.addChildSchool(childSchool3);
+        child1.addChildSchool(passengerSchool1);
+        child2.addChildSchool(passengerSchool2);
+        child3.addChildSchool(passengerSchool3);
 
         child1.save();
         child2.save();
@@ -103,65 +101,65 @@ public class TestDataProvider {
         parent1.save();
         parent2.save();
 
-        ChildParent childParent1 = new ChildParent(child1, parent1);
-        ChildParent childParent2 = new ChildParent(child2, parent1);
-        ChildParent childParent3 = new ChildParent(child3, parent1);
-        ChildParent childParent4 = new ChildParent(child1, parent2);
-        ChildParent childParent5 = new ChildParent(child2, parent2);
-        ChildParent childParent6 = new ChildParent(child3, parent2);
+        DriverPassenger driverPassenger1 = new DriverPassenger(child1, parent1);
+        DriverPassenger driverPassenger2 = new DriverPassenger(child2, parent1);
+        DriverPassenger driverPassenger3 = new DriverPassenger(child3, parent1);
+        DriverPassenger driverPassenger4 = new DriverPassenger(child1, parent2);
+        DriverPassenger driverPassenger5 = new DriverPassenger(child2, parent2);
+        DriverPassenger driverPassenger6 = new DriverPassenger(child3, parent2);
 
-        childParent1.save();
-        childParent2.save();
-        childParent3.save();
-        childParent4.save();
-        childParent5.save();
-        childParent6.save();
+        driverPassenger1.save();
+        driverPassenger2.save();
+        driverPassenger3.save();
+        driverPassenger4.save();
+        driverPassenger5.save();
+        driverPassenger6.save();
 
-        child1.addChildParent(childParent1);
-        child1.addChildParent(childParent4);
+        child1.addChildParent(driverPassenger1);
+        child1.addChildParent(driverPassenger4);
 
-        child2.addChildParent(childParent2);
-        child2.addChildParent(childParent5);
+        child2.addChildParent(driverPassenger2);
+        child2.addChildParent(driverPassenger5);
 
-        child3.addChildParent(childParent3);
-        child3.addChildParent(childParent6);
+        child3.addChildParent(driverPassenger3);
+        child3.addChildParent(driverPassenger6);
 
-        parent1.addChildParent(childParent1);
-        parent1.addChildParent(childParent2);
-        parent1.addChildParent(childParent3);
+        parent1.addChildParent(driverPassenger1);
+        parent1.addChildParent(driverPassenger2);
+        parent1.addChildParent(driverPassenger3);
 
-        parent2.addChildParent(childParent4);
-        parent2.addChildParent(childParent5);
-        parent2.addChildParent(childParent6);
+        parent2.addChildParent(driverPassenger4);
+        parent2.addChildParent(driverPassenger5);
+        parent2.addChildParent(driverPassenger6);
 
-        ParentSchool parentSchool1 = new ParentSchool(parent1, school);
-        ParentSchool parentSchool2 = new ParentSchool(parent2, school);
+        DriverSchool driverSchool1 = new DriverSchool(parent1, school);
+        DriverSchool driverSchool2 = new DriverSchool(parent2, school);
 
-        parentSchool1.save();
-        parentSchool2.save();
+        driverSchool1.save();
+        driverSchool2.save();
 
-        parent1.addParentSchool(parentSchool1);
-        parent2.addParentSchool(parentSchool2);
+        parent1.addParentSchool(driverSchool1);
+        parent2.addParentSchool(driverSchool2);
 
-        school.addParentSchool(parentSchool1);
-        school.addParentSchool(parentSchool2);
+        school.addParentSchool(driverSchool1);
+        school.addParentSchool(driverSchool2);
 
         school.save();
 
-        ParentRoute parentRoute1 = new ParentRoute(parent1, route1);
-        ParentRoute parentRoute2 = new ParentRoute(parent2, route1);
-        ParentRoute parentRoute3 = new ParentRoute(parent2, route2);
+        DriverRoute driverRoute1 = new DriverRoute(parent1, route1);
+        DriverRoute driverRoute2 = new DriverRoute(parent2, route1);
+        DriverRoute driverRoute3 = new DriverRoute(parent2, route2);
 
-        parentRoute1.save();
-        parentRoute2.save();
-        parentRoute3.save();
+        driverRoute1.save();
+        driverRoute2.save();
+        driverRoute3.save();
 
-        parent1.addParentRoute(parentRoute1);
-        parent2.addParentRoute(parentRoute2);
-        parent2.addParentRoute(parentRoute3);
+        parent1.addParentRoute(driverRoute1);
+        parent2.addParentRoute(driverRoute2);
+        parent2.addParentRoute(driverRoute3);
 
         parent1.save();
-        parent2.save();
+        parent2.save();*/
 
     }
 

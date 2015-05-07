@@ -1,4 +1,4 @@
-package nz.co.scuff.android.gps;
+package nz.co.scuff.android.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,8 +16,8 @@ public class PassengerAlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (D) Log.d(TAG, "Passenger alarm onReceive");
 
-        String routeId = intent.getExtras().getString(Constants.PASSENGER_ROUTE_KEY);
-        String schoolId = intent.getExtras().getString(Constants.PASSENGER_SCHOOL_KEY);
+        long routeId = intent.getExtras().getLong(Constants.PASSENGER_ROUTE_KEY);
+        long schoolId = intent.getExtras().getLong(Constants.PASSENGER_SCHOOL_KEY);
 
         Intent locationIntent = new Intent(context, PassengerIntentService.class);
         locationIntent.putExtra(Constants.PASSENGER_ROUTE_KEY, routeId);
