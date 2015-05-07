@@ -58,7 +58,6 @@ public class HomeActivity extends Activity {
 
         // populate data for testing
         initialise();
-        //populateSchools();
 
     }
 
