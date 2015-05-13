@@ -25,8 +25,8 @@ public class PassengerIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (D) Log.d(TAG, "onHandleIntent");
 
-        long routeId = intent.getExtras().getLong(Constants.PASSENGER_ROUTE_KEY);
-        long schoolId = intent.getExtras().getLong(Constants.PASSENGER_SCHOOL_KEY);
+        long routeId = intent.getExtras().getLong(Constants.PASSENGER_ROUTE_ID_KEY);
+        long schoolId = intent.getExtras().getLong(Constants.PASSENGER_SCHOOL_ID_KEY);
 
         if (D) Log.d(TAG, "retrieving fresh bus snapshots from server (search by route and school)");
         List<Bus> fetchedBuses = ScuffDatasource.getActiveBuses(routeId, schoolId);

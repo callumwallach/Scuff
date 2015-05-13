@@ -15,16 +15,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-
 import java.util.ArrayList;
 import java.util.Set;
 
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.DialogHelper;
-import nz.co.scuff.android.util.SchoolSpinnerAdapter;
+import nz.co.scuff.android.util.SchoolAdapter;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.ScuffApplication;
@@ -44,10 +41,13 @@ public class HomeActivity extends Activity {
         setContentView(R.layout.activity_home);
         context = this;
 
+        /*Driver driver = (Driver)getIntent().getSerializableExtra(Constants.USER_KEY);
+        ((ScuffApplication) getApplicationContext()).setDriver(driver);*/
+
         // Create global configuration and initialize ImageLoader with this config
         // TODO caching not enabled by default
-        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
-        ImageLoader.getInstance().init(config);
+        /*ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this).build();
+        ImageLoader.getInstance().init(config);*/
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setIndeterminate(true);
@@ -55,8 +55,10 @@ public class HomeActivity extends Activity {
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
         progressDialog.setCancelable(false);
+        progressDialog.setTitle("Loading profile...");
 
         // populate data for testing
+        //populateSchools();
         initialise();
 
     }
@@ -83,7 +85,7 @@ public class HomeActivity extends Activity {
             if (D) Log.d(TAG, "starting background load");
 
             // TODO user name from accounts
-            Driver driver = ScuffDatasource.getDriverByEmail("callum@gmail.com");
+            Driver driver = ScuffDatasource.getDriver("callum@gmail.com");
             int resultCode = -1;
             if (driver != null) {
                 ((ScuffApplication) getApplicationContext()).setDriver(driver);
@@ -123,7 +125,7 @@ public class HomeActivity extends Activity {
 
         final Set<School> schools = driver.getSchools();
         Spinner schoolSpinner = (Spinner) findViewById(R.id.school_spinner);
-        ArrayAdapter<School> dataAdapter = new SchoolSpinnerAdapter(this,
+        ArrayAdapter<School> dataAdapter = new SchoolAdapter(this,
                 android.R.layout.simple_spinner_item, new ArrayList<>(schools));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         schoolSpinner.setAdapter(dataAdapter);
@@ -164,7 +166,6 @@ public class HomeActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();  // Always call the superclass method first
-        initialise();
     }
 
     public void goDriver(View v) {

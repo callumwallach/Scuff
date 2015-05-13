@@ -1,4 +1,4 @@
-package nz.co.scuff.android.ui;
+package nz.co.scuff.android.ui.old;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -13,14 +13,14 @@ import nz.co.scuff.android.R;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.android.util.ImageHelper;
 
-public class RegisterDriverActivity extends Activity {
+public class OldRegisterDriverActivity extends Activity {
 
     static final int PICK_ROUTE_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_register_driver);
+        setContentView(R.layout.old_activity_register_driver);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class RegisterDriverActivity extends Activity {
 
     public void chooseRoute(View v) {
 
-        Intent intent = new Intent(this, SelectRouteActivity.class);
+        Intent intent = new Intent(this, OldSelectRouteActivity.class);
         startActivityForResult(intent, PICK_ROUTE_REQUEST);
 
     }
@@ -60,7 +60,7 @@ public class RegisterDriverActivity extends Activity {
                 //ViewGroup.LayoutParams params = driverButton.getLayoutParams();
                 int height = driverButton.getHeight() - driverButton.getPaddingTop() - driverButton.getPaddingBottom();
                 int width = driverButton.getWidth() - driverButton.getPaddingLeft() - driverButton.getPaddingRight();
-                Route route = (Route)data.getParcelableExtra(SelectRouteActivity.CHOSEN_ROUTE);
+                Route route = (Route)data.getParcelableExtra(OldSelectRouteActivity.CHOSEN_ROUTE);
                 String fileLocation = getFilesDir() + "/" + route.getRouteMap();
                 //Bitmap bitmap = BitmapFactory.decodeFile(fileLocation);
                 Bitmap bitmap = ImageHelper.lessResolution(fileLocation, width, height);

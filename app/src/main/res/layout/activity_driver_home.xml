@@ -48,14 +48,14 @@
                 android:layout_height="0dp"
                 android:layout_weight="1">
 
-                <LinearLayout
+                <RelativeLayout
                     android:background="@drawable/background"
                     android:orientation="vertical"
                     android:id="@+id/mapSlideOver"
                     android:padding="10dp"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent">
-                </LinearLayout>
+                </RelativeLayout>
                 <!-- Bottom View End-->
 
                 <!-- Surface View Start -->

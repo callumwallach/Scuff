@@ -1,14 +1,15 @@
 package nz.co.scuff.data.family;
 
-import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 
 import java.io.Serializable;
 
+import nz.co.scuff.android.data.BaseModel;
+
 /**
  * Created by Callum on 17/03/2015.
  */
-public abstract class Person extends Model implements Comparable, Serializable {
+public abstract class Person extends BaseModel implements Comparable, Serializable {
 
     public enum Gender {
         MALE, FEMALE

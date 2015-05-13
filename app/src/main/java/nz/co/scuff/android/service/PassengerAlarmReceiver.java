@@ -16,12 +16,12 @@ public class PassengerAlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (D) Log.d(TAG, "Passenger alarm onReceive");
 
-        long routeId = intent.getExtras().getLong(Constants.PASSENGER_ROUTE_KEY);
-        long schoolId = intent.getExtras().getLong(Constants.PASSENGER_SCHOOL_KEY);
+        long routeId = intent.getExtras().getLong(Constants.PASSENGER_ROUTE_ID_KEY);
+        long schoolId = intent.getExtras().getLong(Constants.PASSENGER_SCHOOL_ID_KEY);
 
         Intent locationIntent = new Intent(context, PassengerIntentService.class);
-        locationIntent.putExtra(Constants.PASSENGER_ROUTE_KEY, routeId);
-        locationIntent.putExtra(Constants.PASSENGER_SCHOOL_KEY, schoolId);
+        locationIntent.putExtra(Constants.PASSENGER_ROUTE_ID_KEY, routeId);
+        locationIntent.putExtra(Constants.PASSENGER_SCHOOL_ID_KEY, schoolId);
         context.startService(locationIntent);
     }
 

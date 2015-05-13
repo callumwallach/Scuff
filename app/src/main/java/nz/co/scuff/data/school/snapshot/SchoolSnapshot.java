@@ -2,12 +2,8 @@ package nz.co.scuff.data.school.snapshot;
 
 import com.google.gson.annotations.Expose;
 
-import nz.co.scuff.data.family.snapshot.PassengerSnapshot;
-import nz.co.scuff.data.family.snapshot.DriverSnapshot;
-import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
-
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Callum on 4/05/2015.
@@ -26,19 +22,19 @@ public class SchoolSnapshot implements Comparable {
     private double altitude;
 
     @Expose
-    private SortedSet<RouteSnapshot> routes;
+    private Set<Long> routeIds;
     @Expose
-    private SortedSet<PassengerSnapshot> children;
+    private Set<Long> childrenIds;
     @Expose
-    private SortedSet<DriverSnapshot> parents;
+    private Set<Long> parentIds;
     @Expose
-    private SortedSet<JourneySnapshot> journeys;
+    private Set<Long> journeyIds;
 
     public SchoolSnapshot() {
-        routes = new TreeSet<>();
-        children = new TreeSet<>();
-        parents = new TreeSet<>();
-        journeys = new TreeSet<>();
+        routeIds = new HashSet<>();
+        childrenIds = new HashSet<>();
+        parentIds = new HashSet<>();
+        journeyIds = new HashSet<>();
     }
 
     public long getSchoolId() {
@@ -81,36 +77,36 @@ public class SchoolSnapshot implements Comparable {
         this.altitude = altitude;
     }
 
-    public SortedSet<RouteSnapshot> getRoutes() {
-        return routes;
+    public Set<Long> getRouteIds() {
+        return routeIds;
     }
 
-    public void setRoutes(SortedSet<RouteSnapshot> routes) {
-        this.routes = routes;
+    public void setRouteIds(Set<Long> routeIds) {
+        this.routeIds = routeIds;
     }
 
-    public SortedSet<PassengerSnapshot> getChildren() {
-        return children;
+    public Set<Long> getChildrenIds() {
+        return childrenIds;
     }
 
-    public void setChildren(SortedSet<PassengerSnapshot> children) {
-        this.children = children;
+    public void setChildrenIds(Set<Long> childrenIds) {
+        this.childrenIds = childrenIds;
     }
 
-    public SortedSet<DriverSnapshot> getParents() {
-        return parents;
+    public Set<Long> getParentIds() {
+        return parentIds;
     }
 
-    public void setParents(SortedSet<DriverSnapshot> parents) {
-        this.parents = parents;
+    public void setParentIds(Set<Long> parentIds) {
+        this.parentIds = parentIds;
     }
 
-    public SortedSet<JourneySnapshot> getJourneys() {
-        return journeys;
+    public Set<Long> getJourneyIds() {
+        return journeyIds;
     }
 
-    public void setJourneys(SortedSet<JourneySnapshot> journeys) {
-        this.journeys = journeys;
+    public void setJourneyIds(Set<Long> journeyIds) {
+        this.journeyIds = journeyIds;
     }
 
     @Override
@@ -137,16 +133,17 @@ public class SchoolSnapshot implements Comparable {
 
     @Override
     public String toString() {
-        return "SchoolSnapshot{" +
-                "schoolId=" + schoolId +
-                ", name='" + name + '\'' +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
-                ", altitude=" + altitude +
-                ", routes=" + routes +
-                ", children=" + children +
-                ", parents=" + parents +
-                ", journeys=" + journeys +
-                '}';
+        final StringBuffer sb = new StringBuffer("SchoolSnapshot{");
+        sb.append("schoolId=").append(schoolId);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", latitude=").append(latitude);
+        sb.append(", longitude=").append(longitude);
+        sb.append(", altitude=").append(altitude);
+        sb.append(", routeIds=").append(routeIds);
+        sb.append(", childrenIds=").append(childrenIds);
+        sb.append(", parentIds=").append(parentIds);
+        sb.append(", journeyIds=").append(journeyIds);
+        sb.append('}');
+        return sb.toString();
     }
 }

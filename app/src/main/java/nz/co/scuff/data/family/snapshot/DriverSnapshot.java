@@ -2,12 +2,8 @@ package nz.co.scuff.data.family.snapshot;
 
 import com.google.gson.annotations.Expose;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
-import nz.co.scuff.data.school.snapshot.RouteSnapshot;
-import nz.co.scuff.data.school.snapshot.SchoolSnapshot;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Callum on 4/05/2015.
@@ -20,19 +16,19 @@ public class DriverSnapshot extends PersonSnapshot {
     private String phone;
 
     @Expose
-    private SortedSet<SchoolSnapshot> schoolsDrivenFor;
+    private Set<Long> schoolIdsDrivenFor;
     @Expose
-    private SortedSet<PassengerSnapshot> children;
+    private Set<Long> childrenIds;
     @Expose
-    private SortedSet<RouteSnapshot> registeredRoutes;
+    private Set<Long> registeredRouteIds;
     @Expose
-    private SortedSet<JourneySnapshot> journeys;
+    private Set<Long> journeyIds;
 
     public DriverSnapshot() {
-        schoolsDrivenFor = new TreeSet<>();
-        children = new TreeSet<>();
-        registeredRoutes = new TreeSet<>();
-        journeys = new TreeSet<>();
+        schoolIdsDrivenFor = new HashSet<>();
+        childrenIds = new HashSet<>();
+        registeredRouteIds = new HashSet<>();
+        journeyIds = new HashSet<>();
     }
 
     public String getEmail() {
@@ -51,47 +47,48 @@ public class DriverSnapshot extends PersonSnapshot {
         this.phone = phone;
     }
 
-    public SortedSet<SchoolSnapshot> getSchoolsDrivenFor() {
-        return schoolsDrivenFor;
+    public Set<Long> getSchoolIdsDrivenFor() {
+        return schoolIdsDrivenFor;
     }
 
-    public void setSchoolsDrivenFor(SortedSet<SchoolSnapshot> schoolsDrivenFor) {
-        this.schoolsDrivenFor = schoolsDrivenFor;
+    public void setSchoolIdsDrivenFor(Set<Long> schoolIdsDrivenFor) {
+        this.schoolIdsDrivenFor = schoolIdsDrivenFor;
     }
 
-    public SortedSet<PassengerSnapshot> getChildren() {
-        return children;
+    public Set<Long> getChildrenIds() {
+        return childrenIds;
     }
 
-    public void setChildren(SortedSet<PassengerSnapshot> children) {
-        this.children = children;
+    public void setChildrenIds(Set<Long> childrenIds) {
+        this.childrenIds = childrenIds;
     }
 
-    public SortedSet<RouteSnapshot> getRegisteredRoutes() {
-        return registeredRoutes;
+    public Set<Long> getRegisteredRouteIds() {
+        return registeredRouteIds;
     }
 
-    public void setRegisteredRoutes(SortedSet<RouteSnapshot> registeredRoutes) {
-        this.registeredRoutes = registeredRoutes;
+    public void setRegisteredRouteIds(Set<Long> registeredRouteIds) {
+        this.registeredRouteIds = registeredRouteIds;
     }
 
-    public SortedSet<JourneySnapshot> getJourneys() {
-        return journeys;
+    public Set<Long> getJourneyIds() {
+        return journeyIds;
     }
 
-    public void setJourneys(SortedSet<JourneySnapshot> journeys) {
-        this.journeys = journeys;
+    public void setJourneyIds(Set<Long> journeyIds) {
+        this.journeyIds = journeyIds;
     }
 
     @Override
     public String toString() {
-        return "DriverSnapshot{" +
-                "email='" + email + '\'' +
-                ", phone='" + phone + '\'' +
-                ", schoolsDrivenFor=" + schoolsDrivenFor +
-                ", children=" + children +
-                ", registeredRoutes=" + registeredRoutes +
-                ", journeys=" + journeys +
-                "} " + super.toString();
+        final StringBuffer sb = new StringBuffer("DriverSnapshot{");
+        sb.append("email='").append(email).append('\'');
+        sb.append(", phone='").append(phone).append('\'');
+        sb.append(", schoolIdsDrivenFor=").append(schoolIdsDrivenFor);
+        sb.append(", childrenIds=").append(childrenIds);
+        sb.append(", registeredRouteIds=").append(registeredRouteIds);
+        sb.append(", journeyIds=").append(journeyIds);
+        sb.append('}');
+        return sb.toString();
     }
 }

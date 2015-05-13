@@ -7,7 +7,6 @@ import com.activeandroid.query.Select;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -55,11 +54,12 @@ public class Journey extends Model implements Comparable, Serializable {
     private TrackingState state;
 
     // relationships
-    /*@Column(name="Waypoints")*/
     private SortedSet<Waypoint> waypoints;
+    private SortedSet<Ticket> tickets;
 
     public Journey() {
         waypoints = new TreeSet<>();
+        tickets = new TreeSet<>();
     }
 
 /*    public Journey(String journeyId, String appId, School school, Driver driver,
@@ -89,6 +89,7 @@ public class Journey extends Model implements Comparable, Serializable {
         this.state = snapshot.getState();
 
         waypoints = new TreeSet<>();
+        tickets = new TreeSet<>();
     }
 
     public String getJourneyId() {
@@ -190,6 +191,17 @@ public class Journey extends Model implements Comparable, Serializable {
         this.waypoints = waypoints;
     }
 
+    public SortedSet<Ticket> getTickets() {
+        if (this.tickets == null) {
+            this.tickets = new TreeSet<>();
+        }
+        return tickets;
+    }
+
+    public void setTickets(SortedSet<Ticket> tickets) {
+        this.tickets = tickets;
+    }
+
     public static List<Journey> findByRouteAndSchool(String routeId, String schoolId) {
         return new Select()
                 .from(Journey.class)
@@ -236,6 +248,10 @@ public class Journey extends Model implements Comparable, Serializable {
         snapshot.setCreated(created);
         snapshot.setCompleted(completed);
         snapshot.setState(state);
+        // entities
+        snapshot.setSchoolId(school.getSchoolId());
+        snapshot.setDriverId(driver.getPersonId());
+        snapshot.setRouteId(route.getRouteId());
         return snapshot;
     }
 

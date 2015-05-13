@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.relationship.DriverSchool;
 import nz.co.scuff.data.relationship.PassengerSchool;
@@ -105,12 +106,18 @@ public class School extends Model implements Comparable, Serializable {
         this.altitude = altitude;
     }
 
+    // TODO load from db?
     public SortedSet<Route> getRoutes() {
-        List<Route> routes = getMany(Route.class, "SchoolFK");
-        if (routes != null) {
-            return new TreeSet<>(routes);
+        SortedSet<Route> returnRoutes = new TreeSet<>();
+        List<Route> foundRoutes = getMany(Route.class, "SchoolFK");
+        if (foundRoutes != null) {
+            returnRoutes.addAll(foundRoutes);
         }
-        return new TreeSet<>();
+        return returnRoutes;
+        /*if (this.routes == null) {
+            this.routes = new TreeSet<>();
+        }
+        return routes;*/
     }
 
     public void setRoutes(SortedSet<Route> routes) {
@@ -118,15 +125,25 @@ public class School extends Model implements Comparable, Serializable {
     }
 
     public SortedSet<Journey> getJourneys() {
-        List<Journey> journeys = getMany(Journey.class, "SchoolFK");
-        if (journeys != null) {
-            return new TreeSet<>(journeys);
+        //List<Journey> journeys = getMany(Journey.class, "SchoolFK");
+        if (this.journeys == null) {
+            this.journeys = new TreeSet<>();
         }
-        return new TreeSet<>();
+        return journeys;
+
     }
 
     public void setJourneys(SortedSet<Journey> journeys) {
         this.journeys = journeys;
+    }
+
+    public SortedSet<Passenger> getPassengers() {
+        List<Passenger> passengers = new Select()
+                .from(Passenger.class)
+                .innerJoin(PassengerSchool.class).on("Passengers.Id = PassengerSchools.PassengerFK")
+                .where("PassengerSchools.SchoolFK = ?", getId())
+                .execute();
+        return new TreeSet<>(passengers);
     }
 
     public List<PassengerSchool> getPassengerSchools() {
@@ -189,13 +206,18 @@ public class School extends Model implements Comparable, Serializable {
 
     @Override
     public String toString() {
-        return "School{" +
-                "schoolId=" + schoolId +
-                ", name='" + name + '\'' +
-                ", latitude=" + latitude +
-                ", longitude=" + longitude +
-                ", altitude=" + altitude +
-                '}';
+        final StringBuffer sb = new StringBuffer("School{");
+        sb.append("schoolId=").append(schoolId);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", latitude=").append(latitude);
+        sb.append(", longitude=").append(longitude);
+        sb.append(", altitude=").append(altitude);
+        sb.append(", routes=").append(routes);
+        sb.append(", journeys=").append(journeys);
+        sb.append(", passengerSchools=").append(passengerSchools);
+        sb.append(", driverSchools=").append(driverSchools);
+        sb.append('}');
+        return sb.toString();
     }
 
     @Override

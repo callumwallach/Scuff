@@ -141,13 +141,15 @@ public class Driver extends Person {
         return new TreeSet<>(schools);
     }
 
+    // TODO check this works
     public SortedSet<Passenger> getChildren() {
-        List<Passenger> passengers = new Select()
+        return new TreeSet<>(getManyThrough(Passenger.class, DriverPassenger.class, "PassengerFK", "DriverFK"));
+        /*List<Passenger> passengers = new Select()
                 .from(Passenger.class)
                 .innerJoin(DriverPassenger.class).on("Passengers.Id = DriverPassengers.PassengerFK")
                 .where("DriverPassengers.DriverFK = ?", getId())
                 .execute();
-        return new TreeSet<>(passengers);
+        return new TreeSet<>(passengers);*/
     }
 
     // TODO complete. currently just returns first route from driver

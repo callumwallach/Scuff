@@ -1,4 +1,4 @@
-package nz.co.scuff.android.ui;
+package nz.co.scuff.android.ui.old;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -26,7 +26,7 @@ import nz.co.scuff.android.R;
 import nz.co.scuff.data.school.Route;
 
 
-public class SelectRouteActivity extends ActionBarActivity implements ActionBar.TabListener {
+public class OldSelectRouteActivity extends ActionBarActivity implements ActionBar.TabListener {
 
     private static final String TAG = "SelectRouteActivity";
     private static final boolean D = false;
@@ -51,7 +51,7 @@ public class SelectRouteActivity extends ActionBarActivity implements ActionBar.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_select_route);
+        setContentView(R.layout.old_activity_select_route);
 
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -62,7 +62,7 @@ public class SelectRouteActivity extends ActionBarActivity implements ActionBar.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
+        //mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         // When swiping between different sections, select the corresponding

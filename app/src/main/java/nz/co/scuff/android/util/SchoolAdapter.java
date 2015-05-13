@@ -13,13 +13,13 @@ import nz.co.scuff.data.school.School;
 /**
  * Created by Callum on 6/05/2015.
  */
-public class SchoolSpinnerAdapter extends ArrayAdapter<School> {
+public class SchoolAdapter extends ArrayAdapter<School> {
 
     private Context context;
     private List<School> schools;
 
-    public SchoolSpinnerAdapter(Context context, int textViewResourceId,
-                            List<School> schools) {
+    public SchoolAdapter(Context context, int textViewResourceId,
+                         List<School> schools) {
         super(context, textViewResourceId, schools);
         this.context = context;
         this.schools = schools;

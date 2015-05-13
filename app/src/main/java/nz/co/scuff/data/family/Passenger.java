@@ -5,10 +5,12 @@ import com.activeandroid.query.Select;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import nz.co.scuff.data.family.snapshot.PassengerSnapshot;
+import nz.co.scuff.data.journey.Ticket;
 import nz.co.scuff.data.relationship.DriverPassenger;
-import nz.co.scuff.data.relationship.JourneyPassenger;
 import nz.co.scuff.data.relationship.PassengerRoute;
 import nz.co.scuff.data.relationship.PassengerSchool;
 
@@ -22,7 +24,8 @@ public class Passenger extends Person {
     private List<PassengerSchool> passengerSchools;
     private List<DriverPassenger> driverPassengers;
     private List<PassengerRoute> passengerRoutes;
-    private List<JourneyPassenger> journeyPassengers;
+
+    private SortedSet<Ticket> tickets;
 
     public Passenger() { }
 
@@ -35,7 +38,7 @@ public class Passenger extends Person {
         passengerSchools = new ArrayList<>();
         driverPassengers = new ArrayList<>();
         passengerRoutes = new ArrayList<>();
-        journeyPassengers = new ArrayList<>();
+        tickets = new TreeSet<>();
     }
 
     public Passenger(PassengerSnapshot snapshot) {
@@ -77,15 +80,15 @@ public class Passenger extends Person {
         this.passengerRoutes = passengerRoutes;
     }
 
-    public List<JourneyPassenger> getJourneyPassengers() {
-        if (this.journeyPassengers == null) {
-            this.journeyPassengers = new ArrayList<>();
+    public SortedSet<Ticket> getTickets() {
+        if (this.tickets == null) {
+            this.tickets = new TreeSet<>();
         }
-        return journeyPassengers;
+        return tickets;
     }
 
-    public void setJourneyPassengers(List<JourneyPassenger> journeyPassengers) {
-        this.journeyPassengers = journeyPassengers;
+    public void setTickets(SortedSet<Ticket> tickets) {
+        this.tickets = tickets;
     }
 
     public static Passenger findByPersonId(long pk) {

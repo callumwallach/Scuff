@@ -1,4 +1,4 @@
-package nz.co.scuff.android.ui;
+package nz.co.scuff.android.ui.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
@@ -17,6 +16,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import nz.co.scuff.android.R;
+import nz.co.scuff.android.util.PassengerAdapter;
 import nz.co.scuff.data.family.Passenger;
 
 /**
@@ -54,7 +54,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
 
         ChildrenFragment fragment = new ChildrenFragment();
         Bundle args = new Bundle();
-        //args.putParcelableArrayList(CHILDREN_LIST, children);
+        args.putSerializable(CHILDREN_LIST, children);
         fragment.setArguments(args);
         return fragment;
     }
@@ -71,16 +71,15 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            //children = getArguments().getParcelableArrayList(CHILDREN_LIST);
+            children = (ArrayList<Passenger>)getArguments().getSerializable(CHILDREN_LIST);
         }
-        mAdapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, children);
+        mAdapter = new PassengerAdapter(getActivity(), R.layout.list_item_layout, children);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_school, container, false);
+        View view = inflater.inflate(R.layout.fragment_children, container, false);
 
         // Set the adapter
         mListView = (AbsListView) view.findViewById(android.R.id.list);

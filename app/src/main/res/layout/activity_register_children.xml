@@ -6,7 +6,7 @@
     android:layout_height="fill_parent"
     android:background="@drawable/background"
     android:fillViewport="true"
-    tools:context=".RegisterDriverActivity">
+    tools:context=".RegisterChildrenActivity">
 
     <RelativeLayout
         android:layout_width="fill_parent"
@@ -54,12 +54,12 @@
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Done"
-                android:id="@+id/done.button"
+                android:text="Next"
+                android:id="@+id/next.button"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 android:background="@drawable/red_button"
-                android:onClick="doDone"
+                android:onClick="doNext"
                 android:layout_marginLeft="20dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginRight="20dp"
@@ -79,8 +79,8 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Register Driver"
-                android:id="@+id/register.driver.label"
+                android:text="Register Child"
+                android:id="@+id/register.child.label"
                 android:textAlignment="center"
                 android:textSize="40sp"
                 android:layout_weight="0"
@@ -90,12 +90,98 @@
                 android:layout_marginBottom="2dp"
                 android:gravity="center" />
 
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/child.fname"
+                android:layout_weight="0"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="2dp"
+                android:hint="First name" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPersonName"
+                android:ems="10"
+                android:id="@+id/child.lname"
+                android:layout_weight="0"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="2dp"
+                android:hint="Last name" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:ems="10"
+                android:id="@+id/child.age"
+                android:layout_weight="0"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="2dp"
+                android:hint="Age" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:ems="10"
+                android:id="@+id/child.classroom"
+                android:layout_weight="0"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="2dp"
+                android:hint="Classroom" />
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="0"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginBottom="2dp">
+
+                <RadioGroup
+                    android:id="@+id/driver.gender"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Male"
+                        android:id="@+id/male.radioButton"
+                        android:checked="true"
+                        android:layout_weight="1"/>
+
+                    <RadioButton
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Female"
+                        android:id="@+id/female.radioButton"
+                        android:layout_weight="1"/>
+                </RadioGroup>
+            </LinearLayout>
+
             <Spinner
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/school.spinner"
                 android:layout_weight="0"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:layout_marginBottom="2dp"/>
@@ -109,97 +195,6 @@
                 android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:layout_marginBottom="2dp"/>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginRight="10dp"
-                android:layout_marginBottom="10dp"
-                android:layout_weight="0">
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Mon"
-                    android:textSize="12sp"
-                    android:id="@+id/mon.checkBox"
-                    android:layout_gravity="center_horizontal"
-                    android:checked="true"/>
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Tues"
-                    android:textSize="12sp"
-                    android:id="@+id/tues.checkBox"
-                    android:layout_gravity="center_horizontal"
-                    android:checked="true"/>
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Wed"
-                    android:textSize="12sp"
-                    android:id="@+id/wed.checkBox"
-                    android:layout_gravity="center_horizontal"
-                    android:checked="true"/>
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Thur"
-                    android:textSize="12sp"
-                    android:id="@+id/thur.checkBox"
-                    android:layout_gravity="center_horizontal"
-                    android:checked="true"/>
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Fri"
-                    android:textSize="12sp"
-                    android:id="@+id/fri.checkBox"
-                    android:layout_gravity="center_horizontal"
-                    android:checked="true"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="0"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp">
-
-                <RadioGroup
-                    android:id="@+id/radio.frequency"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="All"
-                        android:textSize="12sp"
-                        android:id="@+id/all.radioButton"
-                        android:checked="true"/>
-
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="A few a week"
-                        android:textSize="12sp"
-                        android:id="@+id/everyother.radioButton" />
-
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Once a week"
-                        android:textSize="12sp"
-                        android:id="@+id/occasionally.radioButton" />
-                </RadioGroup>
-            </LinearLayout>
 
         </LinearLayout>
 

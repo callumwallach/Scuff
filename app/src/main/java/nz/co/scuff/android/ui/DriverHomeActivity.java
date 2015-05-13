@@ -29,14 +29,18 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.joda.time.DateTime;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Set;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.service.DriverAlarmReceiver;
 import nz.co.scuff.android.service.DriverIntentService;
+import nz.co.scuff.android.ui.fragment.ChildrenFragment;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.util.LocationEvent;
+import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.school.Route;
@@ -44,7 +48,8 @@ import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
 
-public class DriverHomeActivity extends FragmentActivity {
+public class DriverHomeActivity extends FragmentActivity
+        implements ChildrenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "DriverHomeActivity";
     private static final boolean D = true;
@@ -72,6 +77,11 @@ public class DriverHomeActivity extends FragmentActivity {
         ScuffApplication scuffContext = (ScuffApplication)getApplication();
         Route route = scuffContext.getDriver().getScheduledRoute();
         ((TextView) findViewById(R.id.route_label)).setText("Route: " + route.getName());
+
+        Set<Passenger> children = route.getSchool().getPassengers();
+
+        ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
+        getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();
 
         Journey journey = scuffContext.getJourney();
 
@@ -405,4 +415,7 @@ public class DriverHomeActivity extends FragmentActivity {
         super.onDestroy();
     }
 
+    public void onFragmentInteraction(Passenger child) {
+        DialogHelper.toast(this, child.getFirstName());
+    }
 }

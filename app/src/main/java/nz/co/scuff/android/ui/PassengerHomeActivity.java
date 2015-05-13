@@ -4,21 +4,17 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -34,13 +30,14 @@ import java.util.Set;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
+import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.service.PassengerAlarmReceiver;
+import nz.co.scuff.android.service.PassengerIntentService;
+import nz.co.scuff.android.ui.fragment.ChildrenFragment;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.RouteSpinnerAdapter;
+import nz.co.scuff.android.util.RouteAdapter;
 import nz.co.scuff.android.util.BusEvent;
-import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.family.Person;
 import nz.co.scuff.data.journey.Bus;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
@@ -49,8 +46,7 @@ import nz.co.scuff.android.util.ScuffApplication;
 
 
 public class PassengerHomeActivity extends FragmentActivity
-        implements SchoolsFragment.OnFragmentInteractionListener,
-        ChildrenFragment.OnFragmentInteractionListener {
+        implements ChildrenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "PassengerHomeActivity";
     private static final boolean D = true;
@@ -80,16 +76,11 @@ public class PassengerHomeActivity extends FragmentActivity
 
 
 
-        ScuffApplication scuffContext = (ScuffApplication)getApplicationContext();
-        Driver driver = scuffContext.getDriver();
-        LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
-        Set<Passenger> children = driver.getChildren();
-/*
-        ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
-        getSupportFragmentManager().beginTransaction().add(R.id.mapSlideOver, childrenFragment).commit();
-*/
 
+/*
+        LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
         for (Passenger child : children) {
+            ImageButton iButton;
             Button button = new Button(this);
             Drawable profilePix;
             if (child.getPicture() != null) {
@@ -112,7 +103,7 @@ public class PassengerHomeActivity extends FragmentActivity
             layoutParams.bottomMargin = 10;
             button.setLayoutParams(layoutParams);
             mapSlideOver.addView(button);
-        }
+        }*/
 
     }
 
@@ -120,7 +111,7 @@ public class PassengerHomeActivity extends FragmentActivity
 
         School school = ((ScuffApplication)getApplicationContext()).getSchool();
         Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
-        ArrayAdapter<Route> dataAdapter = new RouteSpinnerAdapter(this,
+        ArrayAdapter<Route> dataAdapter = new RouteAdapter(this,
                 android.R.layout.simple_spinner_item, new ArrayList<>(school.getRoutes()));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         routeSpinner.setAdapter(dataAdapter);
@@ -130,6 +121,13 @@ public class PassengerHomeActivity extends FragmentActivity
                 if (D) Log.d(TAG, "item " + position + " selected");
                 Route selectedRoute = (Route) parent.getItemAtPosition(position);
                 newRouteSelected = true;
+
+                ScuffApplication scuffContext = (ScuffApplication)getApplicationContext();
+                Set<Passenger> children = scuffContext.getDriver().getChildren();
+
+                ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
+                getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();
+
                 listenForBus(selectedRoute);
             }
 
@@ -143,18 +141,27 @@ public class PassengerHomeActivity extends FragmentActivity
     private void listenForBus(Route route) {
         if (D) Log.d(TAG, "Listen for bus");
 
+        //new LocationPollerTask().execute(route.getRouteId(), route.getSchool().getSchoolId());
+
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+
+        // send direct one first
+        Intent directIntent = new Intent(this, PassengerIntentService.class);
+        directIntent.putExtra(Constants.PASSENGER_ROUTE_ID_KEY, route.getRouteId());
+        directIntent.putExtra(Constants.PASSENGER_SCHOOL_ID_KEY, ((ScuffApplication) getApplicationContext()).getSchool().getSchoolId());
+        startService(directIntent);
 
         // start new listener (for current route) using FLAG_CANCEL_CURRENT we cancel other intents for old routes
         Intent alarmIntent = new Intent(this, PassengerAlarmReceiver.class);
-        alarmIntent.putExtra(Constants.PASSENGER_ROUTE_KEY, route.getRouteId());
-        alarmIntent.putExtra(Constants.PASSENGER_SCHOOL_KEY, ((ScuffApplication) getApplicationContext()).getSchool().getSchoolId());
+        alarmIntent.putExtra(Constants.PASSENGER_ROUTE_ID_KEY, route.getRouteId());
+        alarmIntent.putExtra(Constants.PASSENGER_SCHOOL_ID_KEY, ((ScuffApplication) getApplicationContext()).getSchool().getSchoolId());
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, PASSENGER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         // cancel outstanding
         alarmManager.cancel(pendingAlarmIntent);
         // then restart
-        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(),
+        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
                 Constants.LISTEN_LOCATION_INTERVAL * 1000, pendingAlarmIntent);
+        //alarmManager.setExact(AlarmManager.ELAPSED_REALTIME, DateTimeUtils.currentTimeMillis() + Constants.LISTEN_LOCATION_INTERVAL * 1000, pendingAlarmIntent);
 
     }
 
@@ -256,14 +263,31 @@ public class PassengerHomeActivity extends FragmentActivity
         super.onStop();
     }
 
-    public void onFragmentInteraction(School school) {
-        //this.school = school;
-        DialogHelper.toast(this, school.getName());
-    }
-
     public void onFragmentInteraction(Passenger child) {
         DialogHelper.toast(this, child.getFirstName());
     }
 
+    private class LocationPollerTask extends AsyncTask<Long, Void, List<Bus>> {
+
+        // route id and school id
+        @Override protected List<Bus> doInBackground(Long... ids) {
+            try {
+                Thread.sleep(Constants.LISTEN_LOCATION_INTERVAL * 1000);
+            } catch (InterruptedException e) {
+                if (D)
+                    Log.e(TAG, "Location poller interrupted");
+            }
+            if (D) Log.d(TAG, "retrieving fresh bus snapshots from server (search by route and school)");
+            return ScuffDatasource.getActiveBuses(ids[0], ids[1]);
+        }
+
+        @Override protected void onPostExecute(List<Bus> buses) {
+            EventBus.getDefault().post(new BusEvent(buses));
+
+        }
+    }
+
 }
+
+
 

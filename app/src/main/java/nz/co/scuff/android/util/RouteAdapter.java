@@ -13,13 +13,13 @@ import nz.co.scuff.data.school.Route;
 /**
  * Created by Callum on 6/05/2015.
  */
-public class RouteSpinnerAdapter extends ArrayAdapter<Route> {
+public class RouteAdapter extends ArrayAdapter<Route> {
 
     private Context context;
     private List<Route> routes;
 
-    public RouteSpinnerAdapter(Context context, int textViewResourceId,
-                                List<Route> routes) {
+    public RouteAdapter(Context context, int textViewResourceId,
+                        List<Route> routes) {
         super(context, textViewResourceId, routes);
         this.context = context;
         this.routes = routes;

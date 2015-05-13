@@ -77,6 +77,7 @@ public class Route extends Model implements Comparable, Serializable {
         snapshot.setRouteId(routeId);
         snapshot.setName(name);
         snapshot.setRouteMap(routeMap);
+        snapshot.setSchoolId(school.getSchoolId());
         return snapshot;
     }
 
@@ -91,20 +92,18 @@ public class Route extends Model implements Comparable, Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
 
         Route route = (Route) o;
 
-        if (routeId != route.routeId) return false;
-        if (name != null ? !name.equals(route.name) : route.name != null) return false;
-        return !(routeMap != null ? !routeMap.equals(route.routeMap) : route.routeMap != null);
+        return routeId == route.routeId;
 
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (routeId ^ (routeId >>> 32));
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (routeMap != null ? routeMap.hashCode() : 0);
+        int result = super.hashCode();
+        result = 31 * result + (int) (routeId ^ (routeId >>> 32));
         return result;
     }
 

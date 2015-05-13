@@ -1,4 +1,4 @@
-package nz.co.scuff.android.ui;
+package nz.co.scuff.android.ui.fragment;
 
 import android.os.Bundle;
 import android.app.Fragment;

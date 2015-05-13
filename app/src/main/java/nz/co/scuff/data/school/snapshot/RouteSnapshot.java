@@ -14,7 +14,7 @@ public class RouteSnapshot implements Comparable {
     @Expose
     private String routeMap;
     @Expose
-    private SchoolSnapshot school;
+    private long schoolId;
 
     public RouteSnapshot() {}
 
@@ -42,12 +42,12 @@ public class RouteSnapshot implements Comparable {
         this.routeMap = routeMap;
     }
 
-    public SchoolSnapshot getSchool() {
-        return school;
+    public long getSchoolId() {
+        return schoolId;
     }
 
-    public void setSchool(SchoolSnapshot school) {
-        this.school = school;
+    public void setSchoolId(long schoolId) {
+        this.schoolId = schoolId;
     }
 
     @Override
@@ -74,10 +74,12 @@ public class RouteSnapshot implements Comparable {
 
     @Override
     public String toString() {
-        return "RouteSnapshot{" +
-                "routeId=" + routeId +
-                ", name='" + name + '\'' +
-                ", routeMap='" + routeMap + '\'' +
-                '}';
+        final StringBuffer sb = new StringBuffer("RouteSnapshot{");
+        sb.append("routeId=").append(routeId);
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", routeMap='").append(routeMap).append('\'');
+        sb.append(", schoolId=").append(schoolId);
+        sb.append('}');
+        return sb.toString();
     }
 }
