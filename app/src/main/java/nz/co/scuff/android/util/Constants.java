@@ -17,6 +17,7 @@ public interface Constants {
     String SCHOOLS_KEY = "S_KEY";
     String ROUTES_KEY = "R_KEY";
     String PASSENGERS_KEY = "P_KEY";
+    String TICKETS_KEY = "T_KEY";
 
     String PASSENGER_ROUTE_ID_KEY = "PR_ID_KEY";
     String PASSENGER_SCHOOL_ID_KEY = "PS_ID_KEY";

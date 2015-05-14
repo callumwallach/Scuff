@@ -18,12 +18,11 @@ public class Ticket extends Model implements Comparable, Serializable {
 
     @Column(name="TicketId")
     private String ticketId;
-    @Column(name="Latitude")
-    private double latitude;
-    @Column(name="Longitude")
-    private long longitude;
-    @Column(name="Timestamp")
-    private Timestamp timestamp;
+    @Column(name="IssueDate")
+    private Timestamp issueDate;
+
+    @Column(name="Stamp")
+    private Stamp stamp;
 
     @Column(name="JourneyFK", onDelete = Column.ForeignKeyAction.CASCADE)
     private Journey journey;
@@ -35,9 +34,8 @@ public class Ticket extends Model implements Comparable, Serializable {
 
     public Ticket(TicketSnapshot snapshot) {
         this.ticketId = snapshot.getTicketId();
-        this.latitude = snapshot.getLatitude();
-        this.longitude = snapshot.getLongitude();
-        this.timestamp = snapshot.getTimestamp();
+        this.issueDate = snapshot.getIssueDate();
+        this.stamp = new Stamp(snapshot.getStamp());
     }
 
     public String getTicketId() {
@@ -64,36 +62,27 @@ public class Ticket extends Model implements Comparable, Serializable {
         this.passenger = passenger;
     }
 
-    public double getLatitude() {
-        return latitude;
+    public Timestamp getIssueDate() {
+        return issueDate;
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    public void setIssueDate(Timestamp issueDate) {
+        this.issueDate = issueDate;
     }
 
-    public long getLongitude() {
-        return longitude;
+    public Stamp getStamp() {
+        return stamp;
     }
 
-    public void setLongitude(long longitude) {
-        this.longitude = longitude;
-    }
-
-    public Timestamp getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+    public void setStamp(Stamp stamp) {
+        this.stamp = stamp;
     }
 
     public TicketSnapshot toSnapshot() {
         TicketSnapshot snapshot = new TicketSnapshot();
         snapshot.setTicketId(this.ticketId);
-        snapshot.setLatitude(this.latitude);
-        snapshot.setLongitude(this.longitude);
-        snapshot.setTimestamp(this.timestamp);
+        snapshot.setIssueDate(this.issueDate);
+        snapshot.setStamp(this.stamp.toSnapshot());
         snapshot.setJourneyId(this.journey.getJourneyId());
         snapshot.setPassengerId(this.passenger.getPersonId());
         return snapshot;
@@ -121,6 +110,6 @@ public class Ticket extends Model implements Comparable, Serializable {
     @Override
     public int compareTo(Object another) {
         Ticket other = (Ticket) another;
-        return this.timestamp.compareTo(other.timestamp);
+        return this.issueDate.compareTo(other.issueDate);
     }
 }

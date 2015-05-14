@@ -62,21 +62,6 @@ public class Journey extends Model implements Comparable, Serializable {
         tickets = new TreeSet<>();
     }
 
-/*    public Journey(String journeyId, String appId, School school, Driver driver,
-                   Route route, String source, float totalDistance, long totalDuration,
-                   Timestamp created, Timestamp completed, TrackingState state) {
-        this.journeyId = journeyId;
-        this.appId = appId;
-        this.school = school;
-        this.source = source;
-        this.totalDistance = totalDistance;
-        this.totalDuration = totalDuration;
-        this.created = created;
-        this.completed = completed;
-        this.state = state;
-        waypoints = new TreeSet<>();
-    }*/
-
     public Journey(JourneySnapshot snapshot) {
         this.journeyId = snapshot.getJourneyId();
         this.appId = snapshot.getAppId();

@@ -1,5 +1,6 @@
 package nz.co.scuff.server;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import nz.co.scuff.data.family.snapshot.DriverSnapshot;
@@ -12,6 +13,7 @@ import retrofit.client.Response;
 import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.POST;
+import retrofit.http.PUT;
 import retrofit.http.Path;
 import retrofit.http.Query;
 
@@ -21,10 +23,13 @@ import retrofit.http.Query;
 public interface ScuffServerInterface {
 
     @POST("/driving/journeys")
-    void postJourney(@Body JourneySnapshot journey, Callback<Response> cb);
+    void postJourney(@Body JourneySnapshot journey, Callback<TicketSnapshot> cb);
+
+    @PUT("/driving/journeys/{id}")
+    void updateJourney(@Path("id") String journeyId, @Body JourneySnapshot journey, Callback<TicketSnapshot> cb);
 
     @POST("/driving/journeys/{id}/tickets")
-    void postTicket(@Path("id") String journeyId, @Body TicketSnapshot snapshot, Callback<Response> cb);
+    void postTickets(@Path("id") String journeyId, @Body List<TicketSnapshot> snapshots, Callback<Response> cb);
 
 /*    @GET("/journeys/{id}")
     Journey getJourney(@Path("id") String journeyId);

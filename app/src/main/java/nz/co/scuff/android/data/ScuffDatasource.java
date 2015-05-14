@@ -7,6 +7,10 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Seconds;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +24,7 @@ import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.journey.Bus;
 import nz.co.scuff.data.journey.snapshot.BusSnapshot;
+import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
 import nz.co.scuff.data.relationship.DriverPassenger;
 import nz.co.scuff.data.family.snapshot.PassengerSnapshot;
 import nz.co.scuff.data.family.snapshot.DriverSnapshot;
@@ -102,15 +107,16 @@ public final class ScuffDatasource {
 
         if (D) Log.d(TAG, "posting journey snapshot="+journey);
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(journeySnapshot, new Callback<Response>() {
+        client.postJourney(journeySnapshot, new Callback<TicketSnapshot>() {
             @Override
-            public void success(Response response, Response response2) {
-                if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
+            public void success(TicketSnapshot ticket, Response response) {
+                if (D) Log.d(TAG, "Start journey SUCCESS code=" + response.getStatus());
+                if (D) Log.d(TAG, "result=" + ticket);
             }
 
             @Override
             public void failure(RetrofitError error) {
-                if (D) Log.d(TAG, "POST journey FAILED code=" + error.getLocalizedMessage());
+                if (D) Log.d(TAG, "Start journey FAILED code=" + error.getLocalizedMessage());
             }
         });
         return 1;
@@ -145,15 +151,16 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(journeySnapshot, new Callback<Response>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
             @Override
-            public void success(Response response, Response response2) {
-                if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
+            public void success(TicketSnapshot ticket, Response response) {
+                if (D) Log.d(TAG, "Pause journey SUCCESS code=" + response.getStatus());
+                if (D) Log.d(TAG, "result=" + ticket);
             }
 
             @Override
             public void failure(RetrofitError error) {
-                if (D) Log.d(TAG, "POST journey FAILED code=" + error.getLocalizedMessage());
+                if (D) Log.d(TAG, "Pause journey FAILED code=" + error.getLocalizedMessage());
             }
         });
         return 1;
@@ -186,15 +193,16 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(journeySnapshot, new Callback<Response>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
             @Override
-            public void success(Response response, Response response2) {
-                if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
+            public void success(TicketSnapshot ticket, Response response) {
+                if (D) Log.d(TAG, "Continue journey SUCCESS code=" + response.getStatus());
+                if (D) Log.d(TAG, "result=" + ticket);
             }
 
             @Override
             public void failure(RetrofitError error) {
-                if (D) Log.d(TAG, "POST journey FAILED code=" + error.getLocalizedMessage());
+                if (D) Log.d(TAG, "Continue journey FAILED code=" + error.getLocalizedMessage());
             }
         });
         return 1;
@@ -234,15 +242,16 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(journeySnapshot, new Callback<Response>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
             @Override
-            public void success(Response response, Response response2) {
-                if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
+            public void success(TicketSnapshot ticket, Response response) {
+                if (D) Log.d(TAG, "Stop journey SUCCESS code=" + response.getStatus());
+                if (D) Log.d(TAG, "result=" + ticket);
             }
 
             @Override
             public void failure(RetrofitError error) {
-                if (D) Log.d(TAG, "POST journey FAILED code=" + error.getLocalizedMessage());
+                if (D) Log.d(TAG, "Stop journey FAILED code=" + error.getLocalizedMessage());
             }
         });
         return 1;
@@ -276,15 +285,16 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(journeySnapshot, new Callback<Response>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
             @Override
-            public void success(Response response, Response response2) {
-                if (D) Log.d(TAG, "POST journey SUCCESS code=" + response.getStatus());
+            public void success(TicketSnapshot ticket, Response response) {
+                if (D) Log.d(TAG, "Record journey SUCCESS code=" + response.getStatus());
+                if (D) Log.d(TAG, "result=" + ticket);
             }
 
             @Override
             public void failure(RetrofitError error) {
-                if (D) Log.d(TAG, "POST journey FAILED code=" + error.getLocalizedMessage());
+                if (D) Log.d(TAG, "Record journey FAILED code=" + error.getLocalizedMessage());
             }
         });
         return 1;
@@ -375,6 +385,23 @@ public final class ScuffDatasource {
         return journeys;
 
     }*/
+
+    public static void postTickets(String journeyId, ArrayList<TicketSnapshot> tickets) {
+        if (D) Log.d(TAG, "postTickets packet="+tickets);
+
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
+        client.postTickets(journeyId, tickets, new Callback<Response>() {
+            @Override
+            public void success(Response response, Response response2) {
+                if (D) Log.d(TAG, "POST registration SUCCESS code=" + response.getStatus());
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                if (D) Log.d(TAG, "POST registration FAILED code=" + error.getLocalizedMessage());
+            }
+        });
+    }
 
     public static void postRegistration(DataPacket packet) {
         if (D) Log.d(TAG, "postRegistration packet="+packet);

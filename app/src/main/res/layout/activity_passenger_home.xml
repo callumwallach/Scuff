@@ -47,7 +47,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent">
                 </LinearLayout>-->
-                <RelativeLayout
+                <LinearLayout
                     android:background="@drawable/background"
                     android:orientation="vertical"
                     android:id="@+id/mapSlideOver"
@@ -65,7 +65,7 @@
                         android:layout_marginRight="10dp"
                         android:layout_marginBottom="10dp"
                         android:name="nz.co.scuff.android.ui.fragment.ChildrenFragment"/>-->
-                </RelativeLayout>
+                </LinearLayout>
 
                 <!-- Bottom View End-->
 
@@ -73,8 +73,7 @@
                 <LinearLayout
                     android:background="@drawable/background"
                     android:id="@+id/bottom_wrapper2"
-                    android:layout_width="match_parent"
-                    android:weightSum="1"
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent">
                     <!--What you want to show-->
                     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
