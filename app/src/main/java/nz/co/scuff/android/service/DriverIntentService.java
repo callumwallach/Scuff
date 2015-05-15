@@ -23,6 +23,7 @@ public class DriverIntentService extends IntentService {
 
         // can either be a command or tracking intent
         Intent locationIntent = new Intent(this, DriverLocationIntentService.class);
+        String journeyId = intent.getStringExtra(Constants.JOURNEY_KEY);
         Object commandType = intent.getExtras().getSerializable(Constants.JOURNEY_COMMAND_KEY);
         Object trackingState = intent.getExtras().getSerializable(Constants.JOURNEY_TRACKING_STATE_KEY);
         if (trackingState != null) {
@@ -30,6 +31,7 @@ public class DriverIntentService extends IntentService {
         } else if (commandType != null) {
             locationIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, (CommandType)commandType);
         }
+        locationIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         startService(locationIntent);
 
         // if started from the alarm then release its wake lock

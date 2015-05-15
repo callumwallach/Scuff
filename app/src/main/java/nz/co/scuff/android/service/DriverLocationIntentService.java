@@ -8,7 +8,7 @@ import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.LocationEvent;
+import nz.co.scuff.android.event.LocationEvent;
 
 public class DriverLocationIntentService extends BaseLocationIntentService {
 
@@ -17,6 +17,7 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
 
     private CommandType commandType;
     private boolean recording;
+    private String journeyId;
 
     public DriverLocationIntentService() { }
 
@@ -24,6 +25,7 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
     protected void onHandleIntent(Intent intent) {
         if (D) Log.d(TAG, "onHandleIntent");
 
+        this.journeyId = intent.getStringExtra(Constants.JOURNEY_KEY);
         this.commandType = (CommandType)intent.getExtras().getSerializable(Constants.JOURNEY_COMMAND_KEY);
         this.recording = intent.getExtras().getSerializable(Constants.JOURNEY_TRACKING_STATE_KEY) != null;
 
@@ -49,24 +51,24 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
         if (D) Log.d(TAG, "Save and upload location="+location);
 
         if (this.recording) {
-            ScuffDatasource.recordJourney(location);
+            ScuffDatasource.recordJourney(journeyId, location);
         } else {
             switch (this.commandType) {
                 case START:
                     // create journey + create waypoint
-                    ScuffDatasource.startJourney(location);
+                    ScuffDatasource.startJourney(journeyId, location);
                     break;
                 case PAUSE:
                     // pause journey + create waypoint
-                    ScuffDatasource.pauseJourney(location);
+                    ScuffDatasource.pauseJourney(journeyId, location);
                     break;
                 case CONTINUE:
                     // update journey + create waypoint
-                    ScuffDatasource.continueJourney(location);
+                    ScuffDatasource.continueJourney(journeyId, location);
                     break;
                 case STOP:
                     // close journey + create waypoint
-                    ScuffDatasource.stopJourney(location);
+                    ScuffDatasource.stopJourney(journeyId, location);
                     break;
                 default:
                     // do nothing

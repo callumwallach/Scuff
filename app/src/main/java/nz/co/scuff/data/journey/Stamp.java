@@ -2,6 +2,7 @@ package nz.co.scuff.data.journey;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -11,6 +12,7 @@ import nz.co.scuff.data.journey.snapshot.StampSnapshot;
 /**
  * Created by Callum on 14/05/2015.
  */
+@Table(name="Stamps")
 public class Stamp extends Model implements Serializable {
 
     @Column(name="Latitude")

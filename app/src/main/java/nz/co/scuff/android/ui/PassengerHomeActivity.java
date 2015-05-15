@@ -8,7 +8,6 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -25,15 +24,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.joda.time.DateTimeUtils;
-
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
@@ -43,18 +38,16 @@ import nz.co.scuff.android.service.TicketIntentService;
 import nz.co.scuff.android.ui.fragment.ChildrenFragment;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.RouteAdapter;
-import nz.co.scuff.android.util.BusEvent;
+import nz.co.scuff.android.event.BusEvent;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.journey.Bus;
-import nz.co.scuff.data.journey.Ticket;
-import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
 
 
-public class PassengerHomeActivity extends FragmentActivity
+public class PassengerHomeActivity extends BaseFragmentActivity
         implements ChildrenFragment.OnFragmentInteractionListener, GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = "PassengerHomeActivity";
@@ -255,24 +248,18 @@ public class PassengerHomeActivity extends FragmentActivity
     public boolean onMarkerClick(Marker marker) {
         Bus bus = this.markerMap.get(marker);
         assert(bus != null);
-        DialogHelper.toast(this, bus.getJourneyId());
+        //DialogHelper.toast(this, bus.getJourneyId());
 
         ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
         Set<Passenger> children = scuffContext.getDriver().getChildren();
-        ArrayList<TicketSnapshot> tickets = new ArrayList<>();
+        ArrayList<Long> idsOfChildrenTravelling = new ArrayList<>();
         for (Passenger child : children) {
-            TicketSnapshot ticket = new TicketSnapshot();
-            // TODO ticket id
-            ticket.setTicketId(bus.getJourneyId() + ":" + child.getPersonId());
-            ticket.setJourneyId(bus.getJourneyId());
-            ticket.setIssueDate(new Timestamp(DateTimeUtils.currentTimeMillis()));
-            ticket.setPassengerId(child.getPersonId());
-            tickets.add(ticket);
+            idsOfChildrenTravelling.add(child.getPersonId());
         }
 
         Intent ticketIntent = new Intent(this, TicketIntentService.class);
         ticketIntent.putExtra(Constants.JOURNEY_KEY, bus.getJourneyId());
-        ticketIntent.putParcelableArrayListExtra(Constants.TICKETS_KEY, tickets);
+        ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
         startService(ticketIntent);
 
         return false;

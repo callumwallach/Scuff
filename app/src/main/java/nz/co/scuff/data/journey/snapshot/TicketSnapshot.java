@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 public class TicketSnapshot implements Comparable, Parcelable {
 
     @Expose
-    private String ticketId;
+    private long ticketId;
     @Expose
     private Timestamp issueDate;
 
@@ -27,11 +27,11 @@ public class TicketSnapshot implements Comparable, Parcelable {
 
     public TicketSnapshot() {}
 
-    public String getTicketId() {
+    public long getTicketId() {
         return ticketId;
     }
 
-    public void setTicketId(String ticketId) {
+    public void setTicketId(long ticketId) {
         this.ticketId = ticketId;
     }
 
@@ -74,13 +74,13 @@ public class TicketSnapshot implements Comparable, Parcelable {
 
         TicketSnapshot that = (TicketSnapshot) o;
 
-        return !(ticketId != null ? !ticketId.equals(that.ticketId) : that.ticketId != null);
+        return ticketId == that.ticketId;
 
     }
 
     @Override
     public int hashCode() {
-        return ticketId != null ? ticketId.hashCode() : 0;
+        return (int) (ticketId ^ (ticketId >>> 32));
     }
 
     @Override
@@ -102,7 +102,7 @@ public class TicketSnapshot implements Comparable, Parcelable {
     }
 
     protected TicketSnapshot(Parcel in) {
-        ticketId = in.readString();
+        ticketId = in.readLong();
         issueDate = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
         stamp = (StampSnapshot) in.readValue(StampSnapshot.class.getClassLoader());
         journeyId = in.readString();
@@ -116,7 +116,7 @@ public class TicketSnapshot implements Comparable, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(ticketId);
+        dest.writeLong(ticketId);
         dest.writeValue(issueDate);
         dest.writeValue(stamp);
         dest.writeString(journeyId);

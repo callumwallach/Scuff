@@ -26,7 +26,7 @@ import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.ScuffApplication;
 
-public class HomeActivity extends Activity {
+public class HomeActivity extends BaseActivity {
 
     private static final String TAG = "HomeActivity";
     private static final boolean D = true;

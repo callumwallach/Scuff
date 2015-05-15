@@ -32,7 +32,7 @@ import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.RouteAdapter;
-import nz.co.scuff.android.util.SchoolEvent;
+import nz.co.scuff.android.event.SchoolEvent;
 import nz.co.scuff.android.util.SchoolAdapter;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.family.Passenger;

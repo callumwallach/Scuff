@@ -1,4 +1,4 @@
-package nz.co.scuff.android.util;
+package nz.co.scuff.android.event;
 
 import android.location.Location;
 

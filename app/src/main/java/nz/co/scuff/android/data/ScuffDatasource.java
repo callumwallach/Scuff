@@ -7,10 +7,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.joda.time.Seconds;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +19,7 @@ import nz.co.scuff.android.util.ServerInterfaceGenerator;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.journey.Bus;
+import nz.co.scuff.data.journey.Ticket;
 import nz.co.scuff.data.journey.snapshot.BusSnapshot;
 import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
 import nz.co.scuff.data.relationship.DriverPassenger;
@@ -42,6 +39,8 @@ import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.journey.Waypoint;
 import nz.co.scuff.server.ScuffServerInterface;
+import nz.co.scuff.server.error.ResourceNotFoundException;
+import nz.co.scuff.server.error.DefaultErrorHandler;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -83,9 +82,9 @@ public final class ScuffDatasource {
         journey.delete();
     }
 
-    public static int startJourney(Location location) {
+    public static int startJourney(String journeyId, Location location) {
         Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
-        if (D) Log.d(TAG, "startJourney journey="+journey+" location="+location);
+        if (D) Log.d(TAG, "startJourney journey="+journeyId+" location="+location);
 
         // save journey first
         journey.save();
@@ -97,6 +96,8 @@ public final class ScuffDatasource {
         journey.getWaypoints().add(waypoint);
         journey.save();
 
+        ((ScuffApplication) ScuffApplication.getContext()).setJourney(journey);
+
         // create snapshot for transport (full journey as created it server side)
         JourneySnapshot journeySnapshot = journey.toSnapshot();
         journeySnapshot.setSchoolId(journey.getSchool().getSchoolId());
@@ -107,11 +108,11 @@ public final class ScuffDatasource {
 
         if (D) Log.d(TAG, "posting journey snapshot="+journey);
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postJourney(journeySnapshot, new Callback<TicketSnapshot>() {
+        client.postJourney(journeySnapshot, new Callback<List<TicketSnapshot>>() {
             @Override
-            public void success(TicketSnapshot ticket, Response response) {
+            public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Start journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + ticket);
+                if (D) Log.d(TAG, "result=" + tickets);
             }
 
             @Override
@@ -122,9 +123,10 @@ public final class ScuffDatasource {
         return 1;
     }
 
-    public static int pauseJourney(Location location) {
-        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
-        if (D) Log.d(TAG, "pauseJourney journey="+journey+" location="+location);
+    public static int pauseJourney(String journeyId, Location location) {
+        //Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "pauseJourney journey="+journeyId+" location="+location);
+        Journey journey = Journey.findByJourneyId(journeyId);
 
         // update journey with new waypoint
         Waypoint lastWaypoint = journey.getCurrentWaypoint();
@@ -141,6 +143,8 @@ public final class ScuffDatasource {
         journey.setState(TrackingState.PAUSED);
         journey.save();
 
+        ((ScuffApplication) ScuffApplication.getContext()).setJourney(journey);
+
         // create journey snapshot for transport (only journeyId and changed data required)
         JourneySnapshot journeySnapshot = new JourneySnapshot();
         journeySnapshot.setJourneyId(journey.getJourneyId());
@@ -151,11 +155,11 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<List<TicketSnapshot>>() {
             @Override
-            public void success(TicketSnapshot ticket, Response response) {
+            public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Pause journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + ticket);
+                if (D) Log.d(TAG, "result=" + tickets);
             }
 
             @Override
@@ -166,9 +170,10 @@ public final class ScuffDatasource {
         return 1;
     }
 
-    public static int continueJourney(Location location) {
-        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
-        if (D) Log.d(TAG, "continueJourney journey="+journey+" location="+location);
+    public static int continueJourney(String journeyId, Location location) {
+        //Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "continueJourney journey="+journeyId+" location="+location);
+        Journey journey = Journey.findByJourneyId(journeyId);
 
         // update journey with new waypoint
         Waypoint newWaypoint = new Waypoint(journey.getJourneyId()+":"+DateTimeUtils.currentTimeMillis(),
@@ -183,6 +188,8 @@ public final class ScuffDatasource {
         journey.setState(TrackingState.RECORDING);
         journey.save();
 
+        ((ScuffApplication) ScuffApplication.getContext()).setJourney(journey);
+
         // create journey snapshot for transport (only journeyId and changed data required)
         JourneySnapshot journeySnapshot = new JourneySnapshot();
         journeySnapshot.setJourneyId(journey.getJourneyId());
@@ -193,11 +200,11 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<List<TicketSnapshot>>() {
             @Override
-            public void success(TicketSnapshot ticket, Response response) {
+            public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Continue journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + ticket);
+                if (D) Log.d(TAG, "result=" + tickets);
             }
 
             @Override
@@ -208,9 +215,10 @@ public final class ScuffDatasource {
         return 1;
     }
 
-    public static int stopJourney(Location location) {
-        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
-        if (D) Log.d(TAG, "stopJourney journey="+journey+" location="+location);
+    public static int stopJourney(String journeyId, Location location) {
+        //Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "stopJourney journey="+journeyId+" location="+location);
+        Journey journey = Journey.findByJourneyId(journeyId);
 
         // update journey with new waypoint
         Waypoint lastWaypoint = journey.getCurrentWaypoint();
@@ -242,11 +250,11 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<List<TicketSnapshot>>() {
             @Override
-            public void success(TicketSnapshot ticket, Response response) {
+            public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Stop journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + ticket);
+                if (D) Log.d(TAG, "result=" + tickets);
             }
 
             @Override
@@ -257,9 +265,11 @@ public final class ScuffDatasource {
         return 1;
     }
 
-    public static int recordJourney(Location location) {
-        Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
-        if (D) Log.d(TAG, "recordJourney journey="+journey+" location="+location);
+    public static int recordJourney(String journeyId, Location location) {
+        // TODO need to pass the journey to here rather than get from global
+        //Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
+        if (D) Log.d(TAG, "startJourney journey="+journeyId+" location="+location);
+        Journey journey = Journey.findByJourneyId(journeyId);
 
         // update journey with new waypoint
         Waypoint lastWaypoint = journey.getCurrentWaypoint();
@@ -285,11 +295,11 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypoints().add(newWaypoint.toSnapshot());
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<TicketSnapshot>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), journeySnapshot, new Callback<List<TicketSnapshot>>() {
             @Override
-            public void success(TicketSnapshot ticket, Response response) {
+            public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Record journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + ticket);
+                if (D) Log.d(TAG, "result=" + tickets);
             }
 
             @Override
@@ -386,22 +396,48 @@ public final class ScuffDatasource {
 
     }*/
 
-    public static void postTickets(String journeyId, ArrayList<TicketSnapshot> tickets) {
-        if (D) Log.d(TAG, "postTickets packet="+tickets);
+    public static List<Ticket> requestTickets(String journeyId, List<Long> passengerIds) throws ResourceNotFoundException {
+        if (D) Log.d(TAG, "requestTickets for journey="+journeyId+" and ids="+passengerIds);
+
+        // TODO ensure only one request per child per journey (done at server currently)
+        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL, new DefaultErrorHandler());
+        List<TicketSnapshot> ticketSnapshots = client.requestTickets(journeyId, passengerIds);
+        Journey journey = Journey.findByJourneyId(journeyId);
+        List<Ticket> tickets = new ArrayList<>();
+        for (TicketSnapshot ts : ticketSnapshots) {
+            Ticket ticket = new Ticket(ts);
+            ticket.save();
+            ticket.setJourney(journey);
+            ticket.setPassenger(Passenger.findByPersonId(ts.getPassengerId()));
+            ticket.save();
+            if (D) Log.d(TAG, "saving ticket="+ticket);
+            tickets.add(ticket);
+        }
+        journey.save();
+        return tickets;
+    }
+
+/*    public static void requestTickets(String journeyId, List<Long> passengerIds) {
+        if (D) Log.d(TAG, "requestTickets for journey="+journeyId+" and ids="+passengerIds);
 
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.postTickets(journeyId, tickets, new Callback<Response>() {
+        client.requestTickets(journeyId, passengerIds, new Callback<List<TicketSnapshot>>() {
             @Override
-            public void success(Response response, Response response2) {
-                if (D) Log.d(TAG, "POST registration SUCCESS code=" + response.getStatus());
+            public void success(List<TicketSnapshot> tickets, Response response) {
+                if (D) Log.d(TAG, "Request tickets SUCCESS code=" + response.getStatus());
+                if (D) {
+                    for (TicketSnapshot ticket : tickets) {
+                        Log.d(TAG, "received ticket=" + ticket);
+                    }
+                }
             }
 
             @Override
             public void failure(RetrofitError error) {
-                if (D) Log.d(TAG, "POST registration FAILED code=" + error.getLocalizedMessage());
+                if (D) Log.d(TAG, "Request tickets FAILED code=" + error.getLocalizedMessage());
             }
         });
-    }
+    }*/
 
     public static void postRegistration(DataPacket packet) {
         if (D) Log.d(TAG, "postRegistration packet="+packet);

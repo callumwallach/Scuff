@@ -9,7 +9,7 @@ import java.util.List;
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.BusEvent;
+import nz.co.scuff.android.event.BusEvent;
 import nz.co.scuff.data.journey.Bus;
 
 public class PassengerIntentService extends IntentService {

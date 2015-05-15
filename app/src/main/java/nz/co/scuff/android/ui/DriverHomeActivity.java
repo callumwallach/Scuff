@@ -39,7 +39,7 @@ import nz.co.scuff.android.service.DriverAlarmReceiver;
 import nz.co.scuff.android.service.DriverIntentService;
 import nz.co.scuff.android.ui.fragment.ChildrenFragment;
 import nz.co.scuff.android.util.CommandType;
-import nz.co.scuff.android.util.LocationEvent;
+import nz.co.scuff.android.event.LocationEvent;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
@@ -48,7 +48,7 @@ import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
 
-public class DriverHomeActivity extends FragmentActivity
+public class DriverHomeActivity extends BaseFragmentActivity
         implements ChildrenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "DriverHomeActivity";
@@ -60,10 +60,12 @@ public class DriverHomeActivity extends FragmentActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (D) Log.d(TAG, "onCreate");
 
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             // restore state
+            if (D) Log.d(TAG, "restoring state");
             Journey savedState = (Journey)savedInstanceState.getSerializable(Constants.JOURNEY_KEY);
             assert(savedState != null);
             assert(!savedState.getState().equals(TrackingState.COMPLETED));
@@ -88,9 +90,16 @@ public class DriverHomeActivity extends FragmentActivity
         // if this.journey == null check database for incomplete journey
         // TODO complete any found or delete them
         if (journey == null) {
+            if (D) Log.d(TAG, "no active journey... checking for incomplete journeys in db");
             for (Journey j : Journey.findIncomplete()) {
                 // TODO restart tracking based on how old journey is?
                 // TODO connect up GPSBootReceiver
+                // cancel outstanding alarms
+                //stopJourney(j.getJourneyId());
+                AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+                Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+                PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+                alarmManager.cancel(pendingAlarmIntent);
                 // clean up incomplete journeys - close/delete them
                 j.setState(TrackingState.COMPLETED);
                 ScuffDatasource.cleanUpIncompleteJourney(j);
@@ -113,6 +122,8 @@ public class DriverHomeActivity extends FragmentActivity
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        if (D) Log.d(TAG, "onSaveInstanceState");
+
         super.onSaveInstanceState(outState);
         // save journey state if one in progress
         Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
@@ -241,19 +252,19 @@ public class DriverHomeActivity extends FragmentActivity
             case COMPLETED:
                 // start journey -> send journey + initial waypoint
                 journey.setState(TrackingState.RECORDING);
-                startJourney();
+                startJourney(journey.getJourneyId());
                 break;
             case RECORDING:
                 // already recording so pause
                 // pause journey -> stop waypoint updates
                 journey.setState(TrackingState.PAUSED);
-                pauseJourney();
+                pauseJourney(journey.getJourneyId());
                 break;
             case PAUSED:
                 // recording and paused -> resume
                 // continue journey -> continue waypoints
                 journey.setState(TrackingState.RECORDING);
-                continueJourney();
+                continueJourney(journey.getJourneyId());
                 break;
             default:
 
@@ -262,8 +273,8 @@ public class DriverHomeActivity extends FragmentActivity
 
     }
 
-    private void startJourney() {
-        if (D) Log.d(TAG, "startJourney");
+    private void startJourney(String journeyId) {
+        if (D) Log.d(TAG, "startJourney journey="+journeyId);
 
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
 
@@ -274,18 +285,20 @@ public class DriverHomeActivity extends FragmentActivity
         // processLocation direct for journey start
         Intent driverIntent = new Intent(this, DriverIntentService.class);
         driverIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.START);
+        driverIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         startService(driverIntent);
 
         // followed by periodic updates of waypoints (uses LocationIntentService)
         Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+        alarmIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
                 recordInterval * 1000, pendingAlarmIntent);
 
     }
 
-    public void pauseJourney() {
-        if (D) Log.d(TAG, "pauseJourney");
+    public void pauseJourney(String journeyId) {
+        if (D) Log.d(TAG, "pauseJourney journey="+journeyId);
 
         // pause (cancel) local location update requests
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
@@ -296,12 +309,13 @@ public class DriverHomeActivity extends FragmentActivity
         // send pause command to server
         Intent newIntent = new Intent(this, DriverIntentService.class);
         newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.PAUSE);
+        newIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         startService(newIntent);
 
     }
 
-    public void continueJourney() {
-        if (D) Log.d(TAG, "continueJourney");
+    public void continueJourney(String journeyId) {
+        if (D) Log.d(TAG, "continueJourney journey="+journeyId);
 
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
 
@@ -312,10 +326,12 @@ public class DriverHomeActivity extends FragmentActivity
         // processLocation direct for journey continue
         Intent driverIntent = new Intent(this, DriverIntentService.class);
         driverIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.CONTINUE);
+        driverIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         startService(driverIntent);
 
         // followed by periodic updates of waypoints (uses LocationIntentService)
         Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+        alarmIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
                 recordInterval * 1000, pendingAlarmIntent);
@@ -323,7 +339,12 @@ public class DriverHomeActivity extends FragmentActivity
     }
 
     public void stopJourney(View v) {
-        Log.d(TAG, "stopJourney");
+        Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
+        stopJourney(journey.getJourneyId());
+    }
+
+    private void stopJourney(String journeyId) {
+        if (D) Log.d(TAG, "stopJourney journey="+journeyId);
 
         // check as direct from ui
         // TODO more robust
@@ -338,11 +359,12 @@ public class DriverHomeActivity extends FragmentActivity
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(pendingAlarmIntent);
 
-        ((ScuffApplication) this.getApplication()).getJourney().setState(TrackingState.COMPLETED);
+        //((ScuffApplication) this.getApplication()).getJourney().setState(TrackingState.COMPLETED);
 
         // signal stop journey to server
         Intent newIntent = new Intent(this, DriverIntentService.class);
         newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.STOP);
+        newIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         startService(newIntent);
 
         updateControls(TrackingState.COMPLETED);

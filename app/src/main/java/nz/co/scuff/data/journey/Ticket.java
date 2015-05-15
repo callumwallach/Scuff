@@ -13,11 +13,11 @@ import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
 /**
  * Created by Callum on 10/05/2015.
  */
-@Table(name="Ticket")
+@Table(name="Tickets")
 public class Ticket extends Model implements Comparable, Serializable {
 
     @Column(name="TicketId")
-    private String ticketId;
+    private long ticketId;
     @Column(name="IssueDate")
     private Timestamp issueDate;
 
@@ -35,14 +35,14 @@ public class Ticket extends Model implements Comparable, Serializable {
     public Ticket(TicketSnapshot snapshot) {
         this.ticketId = snapshot.getTicketId();
         this.issueDate = snapshot.getIssueDate();
-        this.stamp = new Stamp(snapshot.getStamp());
+        this.stamp = (snapshot.getStamp() == null ? null : new Stamp(snapshot.getStamp()));
     }
 
-    public String getTicketId() {
+    public long getTicketId() {
         return ticketId;
     }
 
-    public void setTicketId(String ticketId) {
+    public void setTicketId(long ticketId) {
         this.ticketId = ticketId;
     }
 
@@ -82,7 +82,7 @@ public class Ticket extends Model implements Comparable, Serializable {
         TicketSnapshot snapshot = new TicketSnapshot();
         snapshot.setTicketId(this.ticketId);
         snapshot.setIssueDate(this.issueDate);
-        snapshot.setStamp(this.stamp.toSnapshot());
+        snapshot.setStamp(this.stamp == null? null : this.stamp.toSnapshot());
         snapshot.setJourneyId(this.journey.getJourneyId());
         snapshot.setPassengerId(this.passenger.getPersonId());
         return snapshot;
@@ -94,16 +94,16 @@ public class Ticket extends Model implements Comparable, Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        Ticket that = (Ticket) o;
+        Ticket ticket = (Ticket) o;
 
-        return !(ticketId != null ? !ticketId.equals(that.ticketId) : that.ticketId != null);
+        return ticketId == ticket.ticketId;
 
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (ticketId != null ? ticketId.hashCode() : 0);
+        result = 31 * result + (int) (ticketId ^ (ticketId >>> 32));
         return result;
     }
 
