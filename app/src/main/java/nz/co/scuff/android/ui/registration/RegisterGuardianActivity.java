@@ -3,6 +3,7 @@ package nz.co.scuff.android.ui.registration;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -50,7 +51,7 @@ public class RegisterGuardianActivity extends Activity {
         startService(registrationIntent);*/
 
         Intent intent = new Intent(this, RegisterChildrenActivity.class);
-        intent.putExtra(Constants.USER_KEY, driver);
+        intent.putExtra(Constants.USER_KEY, (Parcelable)driver);
         startActivity(intent);
 
     }

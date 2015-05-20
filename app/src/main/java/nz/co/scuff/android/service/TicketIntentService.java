@@ -35,7 +35,7 @@ public class TicketIntentService extends IntentService {
 
         String journeyId = intent.getStringExtra(Constants.JOURNEY_KEY);
         List<Long> passengerIds = (List<Long>)intent.getSerializableExtra(Constants.PASSENGERS_KEY);
-        if (D) for (Long id : passengerIds) Log.d(TAG, "processing ticket" + id);
+        if (D) for (Long id : passengerIds) Log.d(TAG, "processing ticket " + id);
         try {
             List<Ticket> tickets = ScuffDatasource.requestTickets(journeyId, passengerIds);
             // TODO do something with them perhaps

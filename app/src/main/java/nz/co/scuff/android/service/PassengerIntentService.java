@@ -9,8 +9,8 @@ import java.util.List;
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.event.BusEvent;
-import nz.co.scuff.data.journey.Bus;
+import nz.co.scuff.android.event.JourneyEvent;
+import nz.co.scuff.data.journey.Journey;
 
 public class PassengerIntentService extends IntentService {
 
@@ -29,10 +29,10 @@ public class PassengerIntentService extends IntentService {
         long schoolId = intent.getExtras().getLong(Constants.PASSENGER_SCHOOL_ID_KEY);
 
         if (D) Log.d(TAG, "retrieving fresh bus snapshots from server (search by route and school)");
-        List<Bus> fetchedBuses = ScuffDatasource.getActiveBuses(routeId, schoolId);
+        List<Journey> fetchedJourneys = ScuffDatasource.getActiveJourneys(routeId, schoolId);
         // unlikely but may have more than one bus active for a route and school at any given time
 
-        EventBus.getDefault().post(new BusEvent(fetchedBuses));
+        EventBus.getDefault().post(new JourneyEvent(fetchedJourneys));
 
         // check locally
 /*

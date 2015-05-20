@@ -1,5 +1,8 @@
 package nz.co.scuff.data.journey;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -21,7 +24,7 @@ import nz.co.scuff.data.util.TrackingState;
  * Created by Callum on 20/04/2015.
  */
 @Table(name="Journeys")
-public class Journey extends Model implements Comparable, Serializable {
+public class Journey extends Model implements Comparable, Serializable, Parcelable {
 
     //private static final long serialVersionUID = 2L;
 
@@ -278,5 +281,56 @@ public class Journey extends Model implements Comparable, Serializable {
                 ", state=" + state +
                 '}';
     }
+
+    protected Journey(Parcel in) {
+        journeyId = in.readString();
+        appId = in.readString();
+        school = (School) in.readValue(School.class.getClassLoader());
+        route = (Route) in.readValue(Route.class.getClassLoader());
+        driver = (Driver) in.readValue(Driver.class.getClassLoader());
+        source = in.readString();
+        totalDistance = in.readFloat();
+        totalDuration = in.readLong();
+        created = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+        completed = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+        state = (TrackingState) in.readValue(TrackingState.class.getClassLoader());
+        waypoints = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+        tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(journeyId);
+        dest.writeString(appId);
+        dest.writeValue(school);
+        dest.writeValue(route);
+        dest.writeValue(driver);
+        dest.writeString(source);
+        dest.writeFloat(totalDistance);
+        dest.writeLong(totalDuration);
+        dest.writeValue(created);
+        dest.writeValue(completed);
+        dest.writeValue(state);
+        dest.writeValue(waypoints);
+        dest.writeValue(tickets);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Journey> CREATOR = new Parcelable.Creator<Journey>() {
+        @Override
+        public Journey createFromParcel(Parcel in) {
+            return new Journey(in);
+        }
+
+        @Override
+        public Journey[] newArray(int size) {
+            return new Journey[size];
+        }
+    };
 }
 

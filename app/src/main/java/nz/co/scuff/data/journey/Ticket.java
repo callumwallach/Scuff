@@ -1,5 +1,8 @@
 package nz.co.scuff.data.journey;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -14,7 +17,7 @@ import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
  * Created by Callum on 10/05/2015.
  */
 @Table(name="Tickets")
-public class Ticket extends Model implements Comparable, Serializable {
+public class Ticket extends Model implements Comparable, Serializable, Parcelable {
 
     @Column(name="TicketId")
     private long ticketId;
@@ -112,4 +115,39 @@ public class Ticket extends Model implements Comparable, Serializable {
         Ticket other = (Ticket) another;
         return this.issueDate.compareTo(other.issueDate);
     }
+
+    protected Ticket(Parcel in) {
+        ticketId = in.readLong();
+        issueDate = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+        stamp = (Stamp) in.readValue(Stamp.class.getClassLoader());
+        journey = (Journey) in.readValue(Journey.class.getClassLoader());
+        passenger = (Passenger) in.readValue(Passenger.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(ticketId);
+        dest.writeValue(issueDate);
+        dest.writeValue(stamp);
+        dest.writeValue(journey);
+        dest.writeValue(passenger);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Ticket> CREATOR = new Parcelable.Creator<Ticket>() {
+        @Override
+        public Ticket createFromParcel(Parcel in) {
+            return new Ticket(in);
+        }
+
+        @Override
+        public Ticket[] newArray(int size) {
+            return new Ticket[size];
+        }
+    };
 }

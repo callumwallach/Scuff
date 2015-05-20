@@ -1,5 +1,8 @@
 package nz.co.scuff.data.family;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 
@@ -114,5 +117,69 @@ public class Passenger extends Person {
         return "Passenger{} " + super.toString();
     }
 
+    protected Passenger(Parcel in) {
+        super(in);
+        if (in.readByte() == 0x01) {
+            passengerSchools = new ArrayList<PassengerSchool>();
+            in.readList(passengerSchools, PassengerSchool.class.getClassLoader());
+        } else {
+            passengerSchools = null;
+        }
+        if (in.readByte() == 0x01) {
+            driverPassengers = new ArrayList<DriverPassenger>();
+            in.readList(driverPassengers, DriverPassenger.class.getClassLoader());
+        } else {
+            driverPassengers = null;
+        }
+        if (in.readByte() == 0x01) {
+            passengerRoutes = new ArrayList<PassengerRoute>();
+            in.readList(passengerRoutes, PassengerRoute.class.getClassLoader());
+        } else {
+            passengerRoutes = null;
+        }
+        tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
+        if (passengerSchools == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(passengerSchools);
+        }
+        if (driverPassengers == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(driverPassengers);
+        }
+        if (passengerRoutes == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(passengerRoutes);
+        }
+        dest.writeValue(tickets);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Passenger> CREATOR = new Parcelable.Creator<Passenger>() {
+        @Override
+        public Passenger createFromParcel(Parcel in) {
+            return new Passenger(in);
+        }
+
+        @Override
+        public Passenger[] newArray(int size) {
+            return new Passenger[size];
+        }
+    };
 
 }

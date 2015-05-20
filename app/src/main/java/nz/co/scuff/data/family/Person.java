@@ -1,5 +1,8 @@
 package nz.co.scuff.data.family;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.annotation.Column;
 
 import java.io.Serializable;
@@ -9,7 +12,7 @@ import nz.co.scuff.android.data.BaseModel;
 /**
  * Created by Callum on 17/03/2015.
  */
-public abstract class Person extends BaseModel implements Comparable, Serializable {
+public abstract class Person extends BaseModel implements Comparable, Serializable, Parcelable {
 
     public enum Gender {
         MALE, FEMALE
@@ -128,4 +131,29 @@ public abstract class Person extends BaseModel implements Comparable, Serializab
         sb.append('}');
         return sb.toString();
     }
+
+    protected Person(Parcel in) {
+        personId = in.readLong();
+        firstName = in.readString();
+        middleName = in.readString();
+        lastName = in.readString();
+        gender = (Gender) in.readValue(Gender.class.getClassLoader());
+        picture = in.readString();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(personId);
+        dest.writeString(firstName);
+        dest.writeString(middleName);
+        dest.writeString(lastName);
+        dest.writeValue(gender);
+        dest.writeString(picture);
+    }
+
 }

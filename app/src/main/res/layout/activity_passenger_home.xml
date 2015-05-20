@@ -55,6 +55,20 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent">
 
+                    <GridView xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:id="@android:id/list"
+                        android:layout_width="220dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:columnWidth="100dp"
+                        android:drawSelectorOnTop="true"
+                        android:gravity="center"
+                        android:numColumns="auto_fit"
+                        android:stretchMode="columnWidth"
+                        android:verticalSpacing="5dp"
+                        android:focusable="true"
+                        android:clickable="true"/>
+
                     <!--What you want to show-->
 <!--                    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
                         android:id="@+id/mapSlideOver"

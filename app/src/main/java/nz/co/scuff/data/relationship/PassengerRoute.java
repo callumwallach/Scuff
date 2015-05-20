@@ -1,5 +1,8 @@
 package nz.co.scuff.data.relationship;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -13,7 +16,7 @@ import nz.co.scuff.data.school.Route;
  * Created by Callum on 3/05/2015.
  */
 @Table(name="PassengerRoutes")
-public class PassengerRoute extends Model implements Serializable {
+public class PassengerRoute extends Model implements Serializable, Parcelable {
 
     @Column(name = "PassengerFK", onDelete= Column.ForeignKeyAction.CASCADE)
     private Passenger passenger;
@@ -44,5 +47,34 @@ public class PassengerRoute extends Model implements Serializable {
     public void setRoute(Route route) {
         this.route = route;
     }
+
+    protected PassengerRoute(Parcel in) {
+        passenger = (Passenger) in.readValue(Passenger.class.getClassLoader());
+        route = (Route) in.readValue(Route.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(passenger);
+        dest.writeValue(route);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<PassengerRoute> CREATOR = new Parcelable.Creator<PassengerRoute>() {
+        @Override
+        public PassengerRoute createFromParcel(Parcel in) {
+            return new PassengerRoute(in);
+        }
+
+        @Override
+        public PassengerRoute[] newArray(int size) {
+            return new PassengerRoute[size];
+        }
+    };
 
 }

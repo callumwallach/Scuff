@@ -1,4 +1,4 @@
-package nz.co.scuff.android.util;
+package nz.co.scuff.android.ui.adapter;
 
 import android.content.Context;
 import android.view.View;
@@ -8,29 +8,29 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import nz.co.scuff.data.school.School;
+import nz.co.scuff.data.school.Route;
 
 /**
  * Created by Callum on 6/05/2015.
  */
-public class SchoolAdapter extends ArrayAdapter<School> {
+public class RouteAdapter extends ArrayAdapter<Route> {
 
     private Context context;
-    private List<School> schools;
+    private List<Route> routes;
 
-    public SchoolAdapter(Context context, int textViewResourceId,
-                         List<School> schools) {
-        super(context, textViewResourceId, schools);
+    public RouteAdapter(Context context, int textViewResourceId,
+                        List<Route> routes) {
+        super(context, textViewResourceId, routes);
         this.context = context;
-        this.schools = schools;
+        this.routes = routes;
     }
 
     public int getCount(){
-        return schools.size();
+        return routes.size();
     }
 
-    public School getItem(int position){
-        return this.schools.get(position);
+    public Route getItem(int position){
+        return this.routes.get(position);
     }
 
     public long getItemId(int position){
@@ -40,7 +40,7 @@ public class SchoolAdapter extends ArrayAdapter<School> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView label = new TextView(context);
-        label.setText(this.schools.get(position).getName());
+        label.setText(this.routes.get(position).getName());
         return label;
     }
 
@@ -48,7 +48,7 @@ public class SchoolAdapter extends ArrayAdapter<School> {
     public View getDropDownView(int position, View convertView,
                                 ViewGroup parent) {
         TextView label = new TextView(context);
-        label.setText(this.schools.get(position).getName());
+        label.setText(this.routes.get(position).getName());
         return label;
     }
 }

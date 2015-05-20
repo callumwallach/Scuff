@@ -1,5 +1,8 @@
 package nz.co.scuff.data.school;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -13,7 +16,7 @@ import nz.co.scuff.data.school.snapshot.RouteSnapshot;
  * Created by Callum on 17/03/2015.
  */
 @Table(name="Routes")
-public class Route extends Model implements Comparable, Serializable {
+public class Route extends Model implements Comparable, Serializable, Parcelable {
 
     @Column(name="RouteId")
     private long routeId;
@@ -121,4 +124,37 @@ public class Route extends Model implements Comparable, Serializable {
         Route other = (Route)another;
         return this.name.compareTo(other.name);
     }
+
+    protected Route(Parcel in) {
+        routeId = in.readLong();
+        name = in.readString();
+        routeMap = in.readString();
+        school = (School) in.readValue(School.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(routeId);
+        dest.writeString(name);
+        dest.writeString(routeMap);
+        dest.writeValue(school);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Route> CREATOR = new Parcelable.Creator<Route>() {
+        @Override
+        public Route createFromParcel(Parcel in) {
+            return new Route(in);
+        }
+
+        @Override
+        public Route[] newArray(int size) {
+            return new Route[size];
+        }
+    };
 }

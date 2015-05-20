@@ -1,5 +1,8 @@
 package nz.co.scuff.data.family;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
@@ -184,4 +187,72 @@ public class Driver extends Person {
                 "} " + super.toString();
     }
 
+    protected Driver(Parcel in) {
+        super(in);
+        email = in.readString();
+        phone = in.readString();
+        if (in.readByte() == 0x01) {
+            driverSchools = new ArrayList<DriverSchool>();
+            in.readList(driverSchools, DriverSchool.class.getClassLoader());
+        } else {
+            driverSchools = null;
+        }
+        if (in.readByte() == 0x01) {
+            driverPassengers = new ArrayList<DriverPassenger>();
+            in.readList(driverPassengers, DriverPassenger.class.getClassLoader());
+        } else {
+            driverPassengers = null;
+        }
+        if (in.readByte() == 0x01) {
+            driverRoutes = new ArrayList<DriverRoute>();
+            in.readList(driverRoutes, DriverRoute.class.getClassLoader());
+        } else {
+            driverRoutes = null;
+        }
+        journeys = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
+        dest.writeString(email);
+        dest.writeString(phone);
+        if (driverSchools == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(driverSchools);
+        }
+        if (driverPassengers == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(driverPassengers);
+        }
+        if (driverRoutes == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(driverRoutes);
+        }
+        dest.writeValue(journeys);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Driver> CREATOR = new Parcelable.Creator<Driver>() {
+        @Override
+        public Driver createFromParcel(Parcel in) {
+            return new Driver(in);
+        }
+
+        @Override
+        public Driver[] newArray(int size) {
+            return new Driver[size];
+        }
+    };
 }

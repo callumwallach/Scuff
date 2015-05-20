@@ -2,6 +2,7 @@ package nz.co.scuff.android.ui.fragment;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.ActionMode;
@@ -20,6 +21,7 @@ import java.util.Collection;
 
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.ui.adapter.PassengerAdapter;
+import nz.co.scuff.android.ui.adapter.PassengerGridAdapter;
 import nz.co.scuff.data.family.Passenger;
 
 /**
@@ -31,7 +33,7 @@ import nz.co.scuff.data.family.Passenger;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class ChildrenFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class ChildrenDialogFragment extends DialogFragment {
 
     private static final String TAG = "ChildrenFragment";
     private static final boolean D = true;
@@ -50,12 +52,12 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private PassengerAdapter mAdapter;
+    private PassengerGridAdapter mAdapter;
 
-    public static ChildrenFragment newInstance(ArrayList<Passenger> children) {
+    public static ChildrenDialogFragment newInstance(ArrayList<Passenger> children) {
         if (D) Log.d(TAG, "Creating new instance");
 
-        ChildrenFragment fragment = new ChildrenFragment();
+        ChildrenDialogFragment fragment = new ChildrenDialogFragment();
         Bundle args = new Bundle();
         args.putSerializable(CHILDREN_LIST, children);
         fragment.setArguments(args);
@@ -66,7 +68,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public ChildrenFragment() {
+    public ChildrenDialogFragment() {
     }
 
     @Override
@@ -76,7 +78,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
         if (getArguments() != null) {
             children = (ArrayList<Passenger>)getArguments().getSerializable(CHILDREN_LIST);
         }
-        mAdapter = new PassengerAdapter(getActivity(), R.layout.list_item_layout, children);
+        mAdapter = new PassengerGridAdapter(getActivity(), R.layout.list_item_layout, children);
     }
 
     @Override
@@ -93,7 +95,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
             public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
                 final int checkedCount = mListView.getCheckedItemCount();
                 mode.setTitle(checkedCount + " Selected");
-                Passenger passenger = (Passenger)mListView.getItemAtPosition(position);
+                Passenger passenger = (Passenger) mListView.getItemAtPosition(position);
                 if (checked) {
                     mAdapter.setSelection(passenger);
                 } else {
@@ -103,7 +105,8 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
 
             @Override
             public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                return false;
+                mode.getMenuInflater().inflate(R.menu.menu_select_children, menu);
+                return true;
             }
 
             @Override
@@ -151,15 +154,6 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        /*if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(this.children.get(position));
-        }*/
     }
 
     /**

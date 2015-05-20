@@ -31,8 +31,11 @@ public interface ScuffServerInterface {
 
     // walking
 
+    /*@GET("/walking/buses")
+    List<BusSnapshot> getActiveBuses(@Query("routeId") long routeId, @Query("schoolId") long schoolId);*/
+
     @GET("/walking/buses")
-    List<BusSnapshot> getActiveBuses(@Query("routeId") long routeId, @Query("schoolId") long schoolId);
+    DataPacket getActiveJourneys(@Query("routeId") long routeId, @Query("schoolId") long schoolId);
 
     @POST("/walking/buses/{id}/tickets")
     List<TicketSnapshot> requestTickets(@Path("id") String journeyId, @Body List<Long> passengerIds) throws ResourceNotFoundException;

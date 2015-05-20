@@ -1,16 +1,20 @@
 package nz.co.scuff.data.journey;
 
 import android.location.Location;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 import com.google.gson.annotations.Expose;
 
 import org.joda.time.DateTimeUtils;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 
 import nz.co.scuff.data.journey.snapshot.WaypointSnapshot;
 import nz.co.scuff.data.util.TrackingState;
@@ -19,7 +23,7 @@ import nz.co.scuff.data.util.TrackingState;
  * Created by Callum on 20/04/2015.
  */
 @Table(name="Waypoints")
-public class Waypoint extends Model implements Comparable, Serializable {
+public class Waypoint extends Model implements Comparable, Serializable, Parcelable {
 
     @Column(name="WaypointId")
     private String waypointId;
@@ -187,6 +191,14 @@ public class Waypoint extends Model implements Comparable, Serializable {
         this.journey = journey;
     }
 
+    public static Waypoint findByWaypointId(String waypointId) {
+        List<Waypoint> waypoints = new Select()
+                .from(Waypoint.class)
+                .where("WaypointId = ?", waypointId)
+                .execute();
+        return waypoints.iterator().hasNext() ? waypoints.iterator().next() : null;
+    }
+
     public WaypointSnapshot toSnapshot() {
         WaypointSnapshot snapshot = new WaypointSnapshot();
         snapshot.setWaypointId(waypointId);
@@ -246,4 +258,55 @@ public class Waypoint extends Model implements Comparable, Serializable {
                 ", created=" + created +
                 '}';
     }
+
+    protected Waypoint(Parcel in) {
+        waypointId = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        speed = in.readFloat();
+        bearing = in.readFloat();
+        distance = in.readFloat();
+        duration = in.readLong();
+        provider = in.readString();
+        accuracy = in.readFloat();
+        altitude = in.readDouble();
+        state = (TrackingState) in.readValue(TrackingState.class.getClassLoader());
+        created = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+        journey = (Journey) in.readValue(Journey.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(waypointId);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+        dest.writeFloat(speed);
+        dest.writeFloat(bearing);
+        dest.writeFloat(distance);
+        dest.writeLong(duration);
+        dest.writeString(provider);
+        dest.writeFloat(accuracy);
+        dest.writeDouble(altitude);
+        dest.writeValue(state);
+        dest.writeValue(created);
+        dest.writeValue(journey);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Waypoint> CREATOR = new Parcelable.Creator<Waypoint>() {
+        @Override
+        public Waypoint createFromParcel(Parcel in) {
+            return new Waypoint(in);
+        }
+
+        @Override
+        public Waypoint[] newArray(int size) {
+            return new Waypoint[size];
+        }
+    };
 }

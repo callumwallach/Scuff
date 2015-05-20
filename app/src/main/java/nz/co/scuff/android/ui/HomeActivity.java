@@ -1,6 +1,5 @@
 package nz.co.scuff.android.ui;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -21,7 +20,7 @@ import java.util.Set;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.DialogHelper;
-import nz.co.scuff.android.util.SchoolAdapter;
+import nz.co.scuff.android.ui.adapter.SchoolAdapter;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.ScuffApplication;

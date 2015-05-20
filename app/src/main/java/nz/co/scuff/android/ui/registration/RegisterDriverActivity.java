@@ -3,6 +3,7 @@ package nz.co.scuff.android.ui.registration;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,8 +18,8 @@ import java.util.Set;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.service.RegistrationIntentService;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.RouteAdapter;
-import nz.co.scuff.android.util.SchoolAdapter;
+import nz.co.scuff.android.ui.adapter.RouteAdapter;
+import nz.co.scuff.android.ui.adapter.SchoolAdapter;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.school.Route;
@@ -104,7 +105,7 @@ public class RegisterDriverActivity extends Activity {
 
         // post registration
         Intent registrationIntent = new Intent(this, RegistrationIntentService.class);
-        registrationIntent.putExtra(Constants.USER_KEY, this.driver);
+        registrationIntent.putExtra(Constants.USER_KEY, (Parcelable)this.driver);
         registrationIntent.putExtra(Constants.SCHOOLS_KEY, this.schools);
         registrationIntent.putExtra(Constants.ROUTES_KEY, this.routes);
         registrationIntent.putExtra(Constants.PASSENGERS_KEY, this.passengers);

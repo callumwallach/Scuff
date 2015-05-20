@@ -22,6 +22,7 @@ import nz.co.scuff.data.journey.Bus;
 import nz.co.scuff.data.journey.Ticket;
 import nz.co.scuff.data.journey.snapshot.BusSnapshot;
 import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
+import nz.co.scuff.data.journey.snapshot.WaypointSnapshot;
 import nz.co.scuff.data.relationship.DriverPassenger;
 import nz.co.scuff.data.family.snapshot.PassengerSnapshot;
 import nz.co.scuff.data.family.snapshot.DriverSnapshot;
@@ -123,7 +124,7 @@ public final class ScuffDatasource {
         return 1;
     }
 
-    public static int pauseJourney(String journeyId, Location location) {
+    public static int pauseJourney(final String journeyId, Location location) {
         //Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
         if (D) Log.d(TAG, "pauseJourney journey="+journeyId+" location="+location);
         Journey journey = Journey.findByJourneyId(journeyId);
@@ -159,7 +160,7 @@ public final class ScuffDatasource {
             @Override
             public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Pause journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + tickets);
+                receiveTickets(journeyId, tickets);
             }
 
             @Override
@@ -170,7 +171,7 @@ public final class ScuffDatasource {
         return 1;
     }
 
-    public static int continueJourney(String journeyId, Location location) {
+    public static int continueJourney(final String journeyId, Location location) {
         //Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
         if (D) Log.d(TAG, "continueJourney journey="+journeyId+" location="+location);
         Journey journey = Journey.findByJourneyId(journeyId);
@@ -204,7 +205,7 @@ public final class ScuffDatasource {
             @Override
             public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Continue journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + tickets);
+                receiveTickets(journeyId, tickets);
             }
 
             @Override
@@ -265,7 +266,7 @@ public final class ScuffDatasource {
         return 1;
     }
 
-    public static int recordJourney(String journeyId, Location location) {
+    public static int recordJourney(final String journeyId, Location location) {
         // TODO need to pass the journey to here rather than get from global
         //Journey journey = ((ScuffApplication) ScuffApplication.getContext()).getJourney();
         if (D) Log.d(TAG, "startJourney journey="+journeyId+" location="+location);
@@ -299,7 +300,7 @@ public final class ScuffDatasource {
             @Override
             public void success(List<TicketSnapshot> tickets, Response response) {
                 if (D) Log.d(TAG, "Record journey SUCCESS code=" + response.getStatus());
-                if (D) Log.d(TAG, "result=" + tickets);
+                receiveTickets(journeyId, tickets);
             }
 
             @Override
@@ -308,6 +309,21 @@ public final class ScuffDatasource {
             }
         });
         return 1;
+    }
+
+    private static void receiveTickets(String journeyId, List<TicketSnapshot> snapshots) {
+        if (D) Log.d(TAG, "receiveTickets=" + snapshots);
+        Journey journey = Journey.findByJourneyId(journeyId);
+        for (TicketSnapshot ts : snapshots) {
+            Ticket ticket = new Ticket(ts);
+            ticket.save();
+            Passenger passenger = Passenger.findByPersonId(ts.getPassengerId());
+            ticket.setJourney(journey);
+            ticket.setPassenger(passenger);
+            ticket.save();
+            journey.getTickets().add(ticket);
+        }
+        journey.save();
     }
 
 /*
@@ -332,12 +348,48 @@ public final class ScuffDatasource {
         return journey;
     }*/
 
-    public static List<Bus> getActiveBuses(long routeId, long schoolId) {
+    public static List<Journey> getActiveJourneys(long routeId, long schoolId) {
         if (D) Log.d(TAG, "get active buses for route=" + routeId + " school=" + schoolId);
 
         // fresh journey search
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        List<BusSnapshot> busSnapshots = client.getActiveBuses(routeId, schoolId);
+        DataPacket packet = client.getActiveJourneys(routeId, schoolId);
+        for (Long dId : packet.getDriverSnapshots().keySet()) {
+            DriverSnapshot ds = packet.getDriverSnapshots().get(dId);
+            Driver driver = Driver.findByPersonId(ds.getPersonId());
+            if (driver == null) {
+                // create
+                driver = new Driver(ds);
+                driver.save();
+            }
+        }
+        for (String wId : packet.getWaypointSnapshots().keySet()) {
+            WaypointSnapshot ws = packet.getWaypointSnapshots().get(wId);
+            Waypoint waypoint = new Waypoint(ws);
+            waypoint.save();
+        }
+        List<Journey> journeys = new ArrayList<>();
+        for (String jId : packet.getJourneySnapshots().keySet()) {
+            JourneySnapshot js = packet.getJourneySnapshots().get(jId);
+            Journey journey = Journey.findByJourneyId(js.getJourneyId());
+            if (journey == null) {
+                // create
+                journey = new Journey(js);
+                journey.save();
+            }
+            for (WaypointSnapshot ws : js.getWaypoints()) {
+                Waypoint waypoint = Waypoint.findByWaypointId(ws.getWaypointId());
+                journey.getWaypoints().add(waypoint);
+            }
+            journey.setDriver(Driver.findByPersonId(js.getDriverId()));
+            journey.setRoute(Route.findByRouteId(js.getRouteId()));
+            journey.setSchool(School.findBySchoolId(js.getSchoolId()));
+            journey.save();
+            journeys.add(journey);
+        }
+        return journeys;
+
+        /*List<BusSnapshot> busSnapshots = client.getActiveJourneys(routeId, schoolId);
 
         List<Bus> buses = new ArrayList<>();
         for (BusSnapshot bs : busSnapshots) {
@@ -357,7 +409,7 @@ public final class ScuffDatasource {
             bus.save();
             buses.add(bus);
         }
-        return buses;
+        return buses;*/
 
     }
 

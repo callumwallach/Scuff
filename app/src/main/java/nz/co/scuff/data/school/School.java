@@ -1,5 +1,8 @@
 package nz.co.scuff.data.school;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -21,7 +24,7 @@ import nz.co.scuff.data.school.snapshot.SchoolSnapshot;
  * Created by Callum on 17/03/2015.
  */
 @Table(name="Schools")
-public class School extends Model implements Comparable, Serializable {
+public class School extends Model implements Comparable, Serializable, Parcelable {
 
     @Column(name="SchoolId")
     private long schoolId;
@@ -225,4 +228,67 @@ public class School extends Model implements Comparable, Serializable {
         School other = (School)another;
         return this.name.compareTo(other.name);
     }
+
+    protected School(Parcel in) {
+        schoolId = in.readLong();
+        name = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        altitude = in.readDouble();
+        routes = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+        journeys = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+        if (in.readByte() == 0x01) {
+            passengerSchools = new ArrayList<PassengerSchool>();
+            in.readList(passengerSchools, PassengerSchool.class.getClassLoader());
+        } else {
+            passengerSchools = null;
+        }
+        if (in.readByte() == 0x01) {
+            driverSchools = new ArrayList<DriverSchool>();
+            in.readList(driverSchools, DriverSchool.class.getClassLoader());
+        } else {
+            driverSchools = null;
+        }
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(schoolId);
+        dest.writeString(name);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+        dest.writeDouble(altitude);
+        dest.writeValue(routes);
+        dest.writeValue(journeys);
+        if (passengerSchools == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(passengerSchools);
+        }
+        if (driverSchools == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeList(driverSchools);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<School> CREATOR = new Parcelable.Creator<School>() {
+        @Override
+        public School createFromParcel(Parcel in) {
+            return new School(in);
+        }
+
+        @Override
+        public School[] newArray(int size) {
+            return new School[size];
+        }
+    };
 }

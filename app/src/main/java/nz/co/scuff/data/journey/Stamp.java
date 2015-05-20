@@ -1,5 +1,8 @@
 package nz.co.scuff.data.journey;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -13,7 +16,7 @@ import nz.co.scuff.data.journey.snapshot.StampSnapshot;
  * Created by Callum on 14/05/2015.
  */
 @Table(name="Stamps")
-public class Stamp extends Model implements Serializable {
+public class Stamp extends Model implements Serializable, Parcelable {
 
     @Column(name="Latitude")
     private double latitude;
@@ -96,4 +99,36 @@ public class Stamp extends Model implements Serializable {
         sb.append('}');
         return sb.toString();
     }
+
+    protected Stamp(Parcel in) {
+        latitude = in.readDouble();
+        longitude = in.readLong();
+        stampDate = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeDouble(latitude);
+        dest.writeLong(longitude);
+        dest.writeValue(stampDate);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Stamp> CREATOR = new Parcelable.Creator<Stamp>() {
+        @Override
+        public Stamp createFromParcel(Parcel in) {
+            return new Stamp(in);
+        }
+
+        @Override
+        public Stamp[] newArray(int size) {
+            return new Stamp[size];
+        }
+    };
+
 }

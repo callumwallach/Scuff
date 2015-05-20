@@ -30,6 +30,8 @@ import org.joda.time.DateTime;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import de.greenrobot.event.EventBus;
@@ -437,7 +439,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         super.onDestroy();
     }
 
-    public void onFragmentInteraction(Passenger child) {
-        DialogHelper.toast(this, child.getFirstName());
+    public void onFragmentInteraction(Collection<Passenger> children) {
+        //DialogHelper.toast(this, child.getFirstName());
     }
 }

@@ -10,6 +10,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -31,9 +32,9 @@ import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
-import nz.co.scuff.android.util.RouteAdapter;
+import nz.co.scuff.android.ui.adapter.RouteAdapter;
 import nz.co.scuff.android.event.SchoolEvent;
-import nz.co.scuff.android.util.SchoolAdapter;
+import nz.co.scuff.android.ui.adapter.SchoolAdapter;
 import nz.co.scuff.data.family.Driver;
 import nz.co.scuff.data.family.Passenger;
 import nz.co.scuff.data.family.Person;
@@ -173,7 +174,7 @@ public class RegisterChildrenActivity extends Activity {
 
         // go to next page -> add children
         Intent intent = new Intent(this, RegisterDriverActivity.class);
-        intent.putExtra(Constants.USER_KEY, this.driver);
+        intent.putExtra(Constants.USER_KEY, (Parcelable)this.driver);
         intent.putExtra(Constants.SCHOOLS_KEY, this.schools);
         intent.putExtra(Constants.ROUTES_KEY, this.routes);
         intent.putExtra(Constants.PASSENGERS_KEY, this.passengers);

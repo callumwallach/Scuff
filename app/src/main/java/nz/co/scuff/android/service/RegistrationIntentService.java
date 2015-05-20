@@ -2,6 +2,8 @@ package nz.co.scuff.android.service;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -71,7 +73,7 @@ public class RegistrationIntentService extends IntentService {
 
         // proceed to home activity
         Intent homeIntent = new Intent(this, HomeActivity.class);
-        homeIntent.putExtra(Constants.USER_KEY, driver);
+        homeIntent.putExtra(Constants.USER_KEY, (Parcelable)driver);
         startActivity(homeIntent);
 
     }

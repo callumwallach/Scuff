@@ -1,5 +1,8 @@
 package nz.co.scuff.data.journey;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -15,7 +18,7 @@ import nz.co.scuff.data.journey.snapshot.BusSnapshot;
  * Created by Callum on 7/05/2015.
  */
 @Table(name="Buses")
-public class Bus extends Model implements Comparable, Serializable {
+public class Bus extends Model implements Comparable, Serializable, Parcelable {
 
     @Column(name="JourneyId")
     private String journeyId;
@@ -207,4 +210,52 @@ public class Bus extends Model implements Comparable, Serializable {
         sb.append('}');
         return sb.toString();
     }
+
+    protected Bus(Parcel in) {
+        journeyId = in.readString();
+        routeId = in.readLong();
+        schoolId = in.readLong();
+        driverName = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        speed = in.readFloat();
+        bearing = in.readFloat();
+        accuracy = in.readFloat();
+        altitude = in.readDouble();
+        created = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(journeyId);
+        dest.writeLong(routeId);
+        dest.writeLong(schoolId);
+        dest.writeString(driverName);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+        dest.writeFloat(speed);
+        dest.writeFloat(bearing);
+        dest.writeFloat(accuracy);
+        dest.writeDouble(altitude);
+        dest.writeValue(created);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Bus> CREATOR = new Parcelable.Creator<Bus>() {
+        @Override
+        public Bus createFromParcel(Parcel in) {
+            return new Bus(in);
+        }
+
+        @Override
+        public Bus[] newArray(int size) {
+            return new Bus[size];
+        }
+    };
 }
+

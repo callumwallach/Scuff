@@ -8,8 +8,8 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.os.SystemClock;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +36,13 @@ import nz.co.scuff.android.R;
 import nz.co.scuff.android.service.PassengerAlarmReceiver;
 import nz.co.scuff.android.service.PassengerIntentService;
 import nz.co.scuff.android.service.TicketIntentService;
+import nz.co.scuff.android.ui.fragment.ChildrenDialogFragment;
 import nz.co.scuff.android.ui.fragment.ChildrenFragment;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.util.RouteAdapter;
-import nz.co.scuff.android.event.BusEvent;
+import nz.co.scuff.android.ui.adapter.RouteAdapter;
+import nz.co.scuff.android.event.JourneyEvent;
 import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.journey.Bus;
+import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.data.school.Route;
 import nz.co.scuff.data.school.School;
 import nz.co.scuff.android.util.DialogHelper;
@@ -48,7 +50,7 @@ import nz.co.scuff.android.util.ScuffApplication;
 
 
 public class PassengerHomeActivity extends BaseFragmentActivity
-        implements ChildrenFragment.OnFragmentInteractionListener, GoogleMap.OnMarkerClickListener {
+        implements ChildrenFragment.OnFragmentInteractionListener, ChildrenDialogFragment.OnFragmentInteractionListener, GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = "PassengerHomeActivity";
     private static final boolean D = true;
@@ -61,20 +63,41 @@ public class PassengerHomeActivity extends BaseFragmentActivity
     private School school;
     private Route route;
 
-    private List<Bus> buses;
-    private Map<Marker, Bus> markerMap;
+    private Journey journeyClicked;
+    private List<Journey> journeys;
+    private Map<Marker, Journey> markerMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if (D) Log.d(TAG, "onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_passenger_home);
 
         this.school = ((ScuffApplication) getApplicationContext()).getSchool();
-        this.buses = new ArrayList<>();
+        this.journeys = new ArrayList<>();
         this.markerMap = new HashMap<>();
 
         setupMap();
         setupRoutes();
+
+        ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
+        Set<Passenger> children = scuffContext.getDriver().getChildren();
+
+        //ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
+        //getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();
+
+        /*LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
+
+        GridView gridView = (GridView)mapSlideOver.findViewById(android.R.id.list);
+        List<Passenger> passengers = new ArrayList<>(children);
+        final PassengerMultiChoiceAdapter adapter = new PassengerMultiChoiceAdapter(savedInstanceState, passengers);
+        adapter.setAdapterView(gridView);*/
+        /*adapter.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                DialogHelper.toast(getApplicationContext(), "Item click: " + adapter.getItem(position).getFirstName());
+            }
+        });*/
 
 /*
         LinearLayout mapSlideOver = (LinearLayout)findViewById(R.id.mapSlideOver);
@@ -122,6 +145,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
     }
 
     private void setupRoutes() {
+        if (D) Log.d(TAG, "setupRoutes");
 
         Spinner routeSpinner = (Spinner) findViewById(R.id.route_spinner);
         ArrayAdapter<Route> dataAdapter = new RouteAdapter(this,
@@ -135,12 +159,6 @@ public class PassengerHomeActivity extends BaseFragmentActivity
                 route = (Route) parent.getItemAtPosition(position);
                 newRouteSelected = true;
 
-                ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
-                Set<Passenger> children = scuffContext.getDriver().getChildren();
-
-                ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
-                getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();
-
                 watchForBuses();
             }
 
@@ -152,6 +170,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
     }
 
     private void markHome() {
+        if (D) Log.d(TAG, "markHome");
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -178,12 +197,12 @@ public class PassengerHomeActivity extends BaseFragmentActivity
 
     }
 
-    private void markBuses(List<Bus> buses) {
-        if (D) Log.d(TAG, "Updating map with buses=" + buses);
+    private void markBuses(List<Journey> journeys) {
+        if (D) Log.d(TAG, "Updating map with buses=" + journeys);
 
         this.googleMap.clear();
 
-        if (buses.isEmpty()) {
+        if (journeys.isEmpty()) {
             // no active buses on this route
             if (this.newRouteSelected)
                 DialogHelper.dialog(this, "Bus not found", "There are currently no active buses on this route");
@@ -199,14 +218,14 @@ public class PassengerHomeActivity extends BaseFragmentActivity
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
         this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
 
-        for (Bus bus : buses) {
-            if (D) Log.d(TAG, "Bus location = " + bus);
-            LatLng busLatlng = new LatLng(bus.getLatitude(), bus.getLongitude());
+        for (Journey journey : journeys) {
+            if (D) Log.d(TAG, "Bus location = " + journey);
+            LatLng busLatlng = new LatLng(journey.getCurrentWaypoint().getLatitude(), journey.getCurrentWaypoint().getLongitude());
             Marker busMarker = this.googleMap.addMarker(new MarkerOptions()
                     .position(busLatlng)
                     .title("Bus position")
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
-            this.markerMap.put(busMarker, bus);
+            this.markerMap.put(busMarker, journey);
             if (this.newRouteSelected) {
                 this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
                 newRouteSelected = false;
@@ -238,19 +257,37 @@ public class PassengerHomeActivity extends BaseFragmentActivity
 
     }
 
-    public void onEventMainThread(BusEvent event) {
+    public void onEventMainThread(JourneyEvent event) {
         if (D) Log.d(TAG, "Main thread message waypoint event=" + event);
-        this.buses = event.getBuses();
-        markBuses(this.buses);
+        this.journeys = event.getJourneys();
+        markBuses(this.journeys);
     }
+
+/*    public void onEventMainThread(SelectionEvent event) {
+        if (D) Log.d(TAG, "Main thread message selection event=" + event);
+
+        ArrayList<Long> idsOfChildrenTravelling = new ArrayList<>();
+        for (Object o : event.getItems()) {
+            Passenger child = (Passenger)o;
+            idsOfChildrenTravelling.add(child.getPersonId());
+        }
+
+        Intent ticketIntent = new Intent(this, TicketIntentService.class);
+        ticketIntent.putExtra(Constants.JOURNEY_KEY, this.journeyClicked.getJourneyId());
+        ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
+        startService(ticketIntent);
+
+    }*/
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        Bus bus = this.markerMap.get(marker);
-        assert(bus != null);
+        if (D) Log.d(TAG, "onMarkerClick");
+
+        this.journeyClicked = this.markerMap.get(marker);
+        assert(this.journeyClicked != null);
         //DialogHelper.toast(this, bus.getJourneyId());
 
-        ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
+        /*ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
         Set<Passenger> children = scuffContext.getDriver().getChildren();
         ArrayList<Long> idsOfChildrenTravelling = new ArrayList<>();
         for (Passenger child : children) {
@@ -260,13 +297,28 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         Intent ticketIntent = new Intent(this, TicketIntentService.class);
         ticketIntent.putExtra(Constants.JOURNEY_KEY, bus.getJourneyId());
         ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
-        startService(ticketIntent);
+        startService(ticketIntent);*/
+
+        ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
+        Set<Passenger> children = scuffContext.getDriver().getChildren();
+
+        Intent intent = new Intent(this, PassengerSelectionActivity.class);
+        intent.putExtra(Constants.JOURNEY_KEY, (Parcelable) journeyClicked);
+        intent.putParcelableArrayListExtra(Constants.PASSENGERS_KEY, new ArrayList<Parcelable>(children));
+        startActivity(intent);
+
+        /*SwipeLayout swipeLayout = (SwipeLayout)findViewById(R.id.swipe2);
+        swipeLayout.open();*/
+
+        /*ChildrenDialogFragment dialog = ChildrenDialogFragment.newInstance(new ArrayList<>(children));
+        dialog.show(getSupportFragmentManager(), "fragment");*/
 
         return false;
     }
 
     @Override
     protected void onStart() {
+        if (D) Log.d(TAG, "onStart");
         super.onStart();
         EventBus.getDefault().register(this);
 
@@ -274,13 +326,15 @@ public class PassengerHomeActivity extends BaseFragmentActivity
 
     @Override
     protected void onRestart() {
+        if (D) Log.d(TAG, "onRestart");
         super.onStart();
         watchForBuses();
     }
 
     @Override
     protected void onStop() {
-        // stop polling for buses
+        if (D) Log.d(TAG, "onStop");
+// stop polling for buses
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         Intent alarmIntent = new Intent(this, PassengerAlarmReceiver.class);
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, PASSENGER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -291,8 +345,8 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         super.onStop();
     }
 
-    public void onFragmentInteraction(Passenger child) {
-        if (D) Log.d(TAG, "Post pending passenger=" + child);
+    public void onFragmentInteraction(Collection<Passenger> children) {
+        if (D) Log.d(TAG, "Post pending passengers=" + children);
 
         // add pending ticket to buses on current route
 
@@ -302,7 +356,19 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         directIntent.putExtra(Constants.PASSENGER_SCHOOL_ID_KEY, ((ScuffApplication) getApplicationContext()).getSchool().getSchoolId());
         startService(directIntent);*/
 
-        DialogHelper.toast(this, child.getFirstName());
+        //DialogHelper.toast(this, childrengetFirstName());
+
+        ArrayList<Long> idsOfChildrenTravelling = new ArrayList<>();
+        for (Passenger child : children) {
+            idsOfChildrenTravelling.add(child.getPersonId());
+        }
+
+        Intent ticketIntent = new Intent(this, TicketIntentService.class);
+        ticketIntent.putExtra(Constants.JOURNEY_KEY, this.journeyClicked.getJourneyId());
+        ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
+        startService(ticketIntent);
+
+        this.journeyClicked = null;
     }
 
 }
