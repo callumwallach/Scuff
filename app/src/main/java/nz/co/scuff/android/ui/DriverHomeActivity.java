@@ -5,16 +5,15 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -26,12 +25,11 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import de.greenrobot.event.EventBus;
@@ -42,10 +40,11 @@ import nz.co.scuff.android.service.DriverIntentService;
 import nz.co.scuff.android.ui.fragment.ChildrenFragment;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.event.LocationEvent;
-import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.base.Coordinator;
+import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.institution.Route;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
-import nz.co.scuff.data.school.Route;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
@@ -57,6 +56,9 @@ public class DriverHomeActivity extends BaseFragmentActivity
     private static final boolean D = true;
 
     private static final int DRIVER_ALARM = 0;
+
+    private Coordinator friend;
+    private Route route;
 
     private GoogleMap googleMap;
 
@@ -77,15 +79,25 @@ public class DriverHomeActivity extends BaseFragmentActivity
 
         initialiseMap();
 
+        long friendId = getIntent().getLongExtra(Constants.COORDINATOR_ID_KEY, -1);
+        this.friend = Coordinator.findById(friendId);
+        long routeId = getIntent().getLongExtra(Constants.ROUTE_ID_KEY, -1);
+        this.route = Route.findById(routeId);
+
         // TODO check lifecycles and object creation etc
         ScuffApplication scuffContext = (ScuffApplication)getApplication();
-        Route route = scuffContext.getDriver().getScheduledRoute();
-        ((TextView) findViewById(R.id.route_label)).setText("Route: " + route.getName());
+        /*Route route = scuffContext.getCoordinator1().getScheduledRoute();
+        ((TextView) findViewById(R.id.route_label)).setText("Route: " + route.getName());*/
 
-        Set<Passenger> children = route.getSchool().getPassengers();
+        //Set<Passenger> children = route.getOwner().getFriends().getPassengers();
+        //Set<Child> children = route.getInstitution().getPassengers();
 
+/*
+        // TODO alter to getCoordinator().getFriends().getChildren();
+        Set<Child> children = scuffContext.getCoordinator().getChildren();
         ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
         getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();
+*/
 
         Journey journey = scuffContext.getJourney();
 
@@ -108,7 +120,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
             }
         }
 
-        //populateRoutes(scuffContext.getSchool(), scuffContext.getDriver());
+        //populateRoutes(scuffContext.getInstitution(), scuffContext.getCoordinator1());
 
         updateControls(journey == null ? TrackingState.COMPLETED : journey.getState());
 
@@ -131,24 +143,24 @@ public class DriverHomeActivity extends BaseFragmentActivity
         Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
         if (journey != null) {
             assert(!journey.getState().equals(TrackingState.COMPLETED));
-            outState.putSerializable(Constants.JOURNEY_KEY, journey);
+            outState.putParcelable(Constants.JOURNEY_KEY, journey);
         }
     }
 
-/*    private void populateRoutes(School school, Parent driver) {
+/*    private void populateRoutes(Institution school, Parent adult) {
 
         Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
         ArrayAdapter<Route> dataAdapter = new ArrayAdapter<>(this,
                 // TODO get routes i am driving for as per schedule
-                android.R.layout.simple_spinner_item, new ArrayList<>(driver.getRoutesForSchool(school)));
+                android.R.layout.simple_spinner_item, new ArrayList<>(adult.getRoutesForSchool(school)));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         routeSpinner.setAdapter(dataAdapter);
         routeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> driver, View view, int position, long id) {}
+            public void onItemSelected(AdapterView<?> adult, View view, int position, long id) {}
 
             @Override
-            public void onNothingSelected(AdapterView<?> driver) {}
+            public void onNothingSelected(AdapterView<?> adult) {}
         });
 
     }*/
@@ -160,6 +172,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
             googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.googleMap)).getMap();
         }
 
+        // TODO change this to custom icon
         this.googleMap.setMyLocationEnabled(true);
         this.googleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
@@ -183,16 +196,21 @@ public class DriverHomeActivity extends BaseFragmentActivity
         if (D) Log.d(TAG, "My latlng = " + myLatlng);
 
         this.googleMap.clear();
-        this.googleMap.addMarker(new MarkerOptions()
+/*        this.googleMap.addMarker(new MarkerOptions()
                 .position(myLatlng)
                 .title("Bus location")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));*/
         this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatlng, 15));
-        this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));
+        CircleOptions options = new CircleOptions()
+                .center(myLatlng)
+                .radius(myLocation.getAccuracy())
+                .strokeWidth(0.5f)
+                .strokeColor(Color.BLUE);
+        this.googleMap.addCircle(options);
 
     }
 
-    private void updateMap(Location location) {
+/*    private void updateMap(Location location) {
         if (D) Log.d(TAG, "Updating map with location="+location);
 
         LatLng busLatlng = new LatLng(location.getLatitude(), location.getLongitude());
@@ -210,7 +228,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         if (D) Log.d(TAG, "Main thread message location event="+event);
         // update new location on map
         updateMap(event.getLocation());
-    }
+    }*/
 
     public void recordJourney(View v) {
         if (D) Log.d(TAG, "recordJourney");
@@ -228,23 +246,29 @@ public class DriverHomeActivity extends BaseFragmentActivity
 
             // TODO check location to ensure they are near start of route
 
-            long nowMillis = DateTime.now().getMillis();
+            long nowMillis = DateTimeUtils.currentTimeMillis();
             String journeyId = scuffContext.getAppId() + ":" + nowMillis;
-            //Driver driver = (Driver)((Spinner) findViewById(R.id.driver_spinner)).getSelectedItem();
+            //Coordinator adult = (Coordinator)((Spinner) findViewById(R.id.driver_spinner)).getSelectedItem();
             //Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
             journey = new Journey();
             journey.setJourneyId(journeyId);
             journey.setAppId(scuffContext.getAppId());
-            journey.setSchool(scuffContext.getSchool());
-            journey.setDriver(scuffContext.getDriver());
-            journey.setRoute(scuffContext.getDriver().getScheduledRoute());
             journey.setSource("Android");
             journey.setTotalDistance(0);
             journey.setTotalDuration(0);
             journey.setCreated(new Timestamp(nowMillis));
             journey.setCompleted(null);
             journey.setState(TrackingState.COMPLETED);
+
+            journey.setOwner(this.friend);
+            journey.setAgent(scuffContext.getCoordinator());
+            journey.setGuide(scuffContext.getCoordinator());
+
+            journey.setOrigin(this.route.getOrigin());
+            journey.setDestination(this.route.getDestination());
+            journey.setRoute(this.route);
+
             // cache in app state
             ((ScuffApplication) this.getApplication()).setJourney(journey);
             if (D) Log.d(TAG, "new journey id=" + journey.getId());
@@ -411,7 +435,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         Log.d(TAG, "onStart");
         super.onStart();
 
-        EventBus.getDefault().register(this);
+        //EventBus.getDefault().register(this);
 
 /*        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -430,7 +454,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
 
     @Override
     protected void onStop() {
-        EventBus.getDefault().unregister(this);
+        //EventBus.getDefault().unregister(this);
         super.onStop();
     }
 
@@ -439,7 +463,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         super.onDestroy();
     }
 
-    public void onFragmentInteraction(Collection<Passenger> children) {
+    public void onFragmentInteraction(Collection<Child> children) {
         //DialogHelper.toast(this, child.getFirstName());
     }
 }

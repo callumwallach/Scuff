@@ -9,21 +9,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.Set;
-
+import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
+import nz.co.scuff.android.event.ErrorEvent;
 import nz.co.scuff.android.util.DialogHelper;
-import nz.co.scuff.android.ui.adapter.SchoolAdapter;
-import nz.co.scuff.data.family.Driver;
-import nz.co.scuff.data.school.School;
+import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.android.util.ScuffApplication;
+import nz.co.scuff.server.error.ResourceNotFoundException;
 
 public class HomeActivity extends BaseActivity {
 
@@ -40,8 +35,8 @@ public class HomeActivity extends BaseActivity {
         setContentView(R.layout.activity_home);
         context = this;
 
-        /*Driver driver = (Driver)getIntent().getSerializableExtra(Constants.USER_KEY);
-        ((ScuffApplication) getApplicationContext()).setDriver(driver);*/
+        /*Coordinator adult = (Coordinator)getIntent().getSerializableExtra(Constants.USER_KEY);
+        ((ScuffApplication) getApplicationContext()).setCoordinator1(adult);*/
 
         // Create global configuration and initialize ImageLoader with this config
         // TODO caching not enabled by default
@@ -68,12 +63,12 @@ public class HomeActivity extends BaseActivity {
 
         if (!initialising) {
             initialising = true;
-            ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
-            Driver driver = scuffContext.getDriver();
-            if (driver == null) {
-                if (D) Log.d(TAG, "loading profile");
-                new AsyncSendMessage().execute();
-            }
+            /*ScuffApplication scuffContext = (ScuffApplication) getApplicationContext();
+            Coordinator coordinator = scuffContext.getCoordinator();
+            if (coordinator == null) {*/
+            if (D) Log.d(TAG, "loading profile");
+            new AsyncSendMessage().execute();
+            //}
         }
     }
 
@@ -84,11 +79,15 @@ public class HomeActivity extends BaseActivity {
             if (D) Log.d(TAG, "starting background load");
 
             // TODO user name from accounts
-            Driver driver = ScuffDatasource.getDriver("callum@gmail.com");
             int resultCode = -1;
-            if (driver != null) {
-                ((ScuffApplication) getApplicationContext()).setDriver(driver);
+            try {
+                Coordinator coordinator = ScuffDatasource.getUser("callum@gmail.com");
+                ((ScuffApplication) getApplicationContext()).setCoordinator(coordinator);
                 resultCode = 1;
+            } catch (ResourceNotFoundException e) {
+                Log.e(TAG, "Error person not found", e);
+                ErrorEvent event = new ErrorEvent(e);
+                EventBus.getDefault().post(event);
             }
             return resultCode;
         }
@@ -106,50 +105,53 @@ public class HomeActivity extends BaseActivity {
 
             progressDialog.dismiss();
             initialising = false;
-
+/*
             if (resultCode == 1) {
                 populateSchools();
             } else {
-                DialogHelper.dialog(context, "Error loading profile", "Argh there was a problem loading your profile");
-            }
+                DialogHelper.dialog(context, "Error loading profile", "Please contact your system administrator");
+            }*/
         }
     }
 
-    private void populateSchools() {
+/*    private void populateSchools() {
         if (D) Log.d(TAG, "populating school");
 
-        final Driver driver = ((ScuffApplication) getApplicationContext()).getDriver();
+        final Coordinator coordinator = ((ScuffApplication) getApplicationContext()).getCoordinator();
         final TextView nameLabel = (TextView) findViewById(R.id.name_label);
-        nameLabel.setText(driver.getFirstName());
+        nameLabel.setText(coordinator.getPersonalData().getFirstName());
 
-        final Set<School> schools = driver.getSchools();
-        Spinner schoolSpinner = (Spinner) findViewById(R.id.school_spinner);
-        ArrayAdapter<School> dataAdapter = new SchoolAdapter(this,
-                android.R.layout.simple_spinner_item, new ArrayList<>(schools));
+        findViewById(R.id.adult_button).setEnabled(true);
+        findViewById(R.id.passenger_button).setEnabled(true);
+
+        *//*final Set<Institution> institutions = adult.getGuidees();
+        Spinner schoolSpinner = (Spinner) findViewById(R.id.institution_spinner);
+        ArrayAdapter<Institution> dataAdapter = new CoordinatorAdapter(this,
+                android.R.layout.simple_spinner_item, new ArrayList<>(institutions));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         schoolSpinner.setAdapter(dataAdapter);
         schoolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                School selectedSchool = (School)parent.getItemAtPosition(position);
-                ((ScuffApplication) getApplicationContext()).setSchool(selectedSchool);
+                Institution selectedInstitution = (Institution)parent.getItemAtPosition(position);
+                ((ScuffApplication) getApplicationContext()).setInstitution(selectedInstitution);
 
-/*                // TODO scheduling
-                if (!driver.isDrivingForSchoolSoon(selectedSchool)) {
-                    // disable "driver" button
+*//**//*                // TODO scheduling
+                if (!adult.isDrivingForSchoolSoon(selectedInstitution)) {
+                    // disable "adult" button
                     findViewById(R.id.driver_button).setEnabled(false);
                 } else {
                     findViewById(R.id.driver_button).setEnabled(true);
                 }
-                if (!driver.isChildrenAtThisSchool(selectedSchool)) {
+                if (!adult.isChildrenAtThisSchool(selectedInstitution)) {
                     // disable "passenger" button
                     findViewById(R.id.passenger_button).setEnabled(false);
                 } else {
                     findViewById(R.id.passenger_button).setEnabled(true);
-                }*/
+                }*//**//*
                 // TODO when scheduled -> journey activity
                 // TODO when not scheduled -> routes/schedules activity
-                findViewById(R.id.driver_button).setEnabled(true);
+                findViewById(R.id.adult_button).setEnabled(true);
                 findViewById(R.id.passenger_button).setEnabled(true);
 
             }
@@ -159,20 +161,20 @@ public class HomeActivity extends BaseActivity {
 
             }
         });
-
-    }
+*//*
+    }*/
 
     @Override
     public void onResume() {
         super.onResume();  // Always call the superclass method first
     }
 
-    public void goDriver(View v) {
-        Intent intent = new Intent(this, DriverHomeActivity.class);
+    public void startAJourney(View v) {
+        Intent intent = new Intent(this, DriverJourneyChoiceActivity.class);
         startActivity(intent);
     }
 
-    public void goPassenger(View v) {
+    public void joinAJourney(View v) {
         Intent intent = new Intent(this, PassengerHomeActivity.class);
         startActivity(intent);
     }

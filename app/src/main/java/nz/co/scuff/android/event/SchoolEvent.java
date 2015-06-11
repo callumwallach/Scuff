@@ -2,29 +2,29 @@ package nz.co.scuff.android.event;
 
 import java.util.List;
 
-import nz.co.scuff.data.school.School;
+import nz.co.scuff.data.base.Coordinator;
 
 /**
  * Created by Callum on 30/04/2015.
  */
 public class SchoolEvent {
 
-    private List<School> schools;
+    private List<Coordinator> institutions;
 
-    public SchoolEvent(List<School> schools) {
-        this.schools = schools;
+    public SchoolEvent(List<Coordinator> institutions) {
+        this.institutions = institutions;
     }
 
-    public List<School> getSchools() {
-        return schools;
+    public List<Coordinator> getInstitutions() {
+        return institutions;
     }
 
     @Override
     public String toString() {
         String toReturn = "SchoolEvent{" +
-                "schools=[";
-        for (School school : schools) {
-            toReturn += school;
+                "institutions=[";
+        for (Coordinator institution : institutions) {
+            toReturn += institution;
             toReturn += " ";
         }
         toReturn += "]}";

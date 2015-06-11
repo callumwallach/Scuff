@@ -15,36 +15,37 @@ import java.util.List;
 import java.util.Map;
 
 import nz.co.scuff.android.R;
-import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.family.Person;
+import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.family.ChildData;
+import nz.co.scuff.data.family.PersonalData;
 
 /**
  * Created by Callum on 6/05/2015.
  */
-public class PassengerGridAdapter extends ArrayAdapter<Passenger> {
+public class PassengerGridAdapter extends ArrayAdapter<Child> {
 
     private static final String TAG = "PassengerGridAdapter";
     private static final boolean D = true;
 
     private Context context;
     private int layoutResourceId;
-    private List<Passenger> passengers;
-    private Map<Long, Passenger> selectedPassengers;
+    private List<Child> children;
+    private Map<Long, Child> selectedPassengers;
 
-    public PassengerGridAdapter(Context context, int layoutResourceId, List<Passenger> passengers) {
-        super(context, layoutResourceId, passengers);
+    public PassengerGridAdapter(Context context, int layoutResourceId, List<Child> children) {
+        super(context, layoutResourceId, children);
         this.context = context;
         this.layoutResourceId = layoutResourceId;
-        this.passengers = passengers;
+        this.children = children;
         this.selectedPassengers = new HashMap<>();
     }
 
     public int getCount(){
-        return passengers.size();
+        return children.size();
     }
 
-    public Passenger getItem(int position){
-        return this.passengers.get(position);
+    public Child getItem(int position){
+        return this.children.get(position);
     }
 
     public long getItemId(int position){
@@ -67,9 +68,9 @@ public class PassengerGridAdapter extends ArrayAdapter<Passenger> {
             holder = (ViewHolder) row.getTag();
         }
 
-        Passenger child = passengers.get(position);
-        holder.imageTitle.setText(child.getFirstName());
-        Drawable profilePix = child.getGender() == Person.Gender.MALE ?
+        Child child = children.get(position);
+        holder.imageTitle.setText(child.getChildData().getFirstName());
+        Drawable profilePix = child.getChildData().getGender() == ChildData.Gender.MALE ?
                 context.getResources().getDrawable(R.drawable.male_blank_icon) :
                 context.getResources().getDrawable(R.drawable.female_blank_icon);
         holder.image.setImageDrawable(profilePix);
@@ -80,27 +81,27 @@ public class PassengerGridAdapter extends ArrayAdapter<Passenger> {
     public View getDropDownView(int position, View convertView,
                                 ViewGroup parent) {
         TextView label = new TextView(context);
-        label.setText(this.passengers.get(position).getFirstName());
+        label.setText(this.children.get(position).getChildData().getFirstName());
         return label;
     }
 
-    public List<Passenger> getPassengers() {
-        return this.passengers;
+    public List<Child> getChildren() {
+        return this.children;
     }
 
-    public void setSelection(Passenger passenger) {
-        this.selectedPassengers.put(passenger.getPersonId(), passenger);
+    public void setSelection(Child child) {
+        this.selectedPassengers.put(child.getChildId(), child);
     }
 
-    public void removeSelection(Passenger passenger) {
-        this.selectedPassengers.remove(passenger.getPersonId());
+    public void removeSelection(Child child) {
+        this.selectedPassengers.remove(child.getChildId());
     }
 
     public int getSelectedCount() {
         return selectedPassengers.keySet().size();
     }
 
-    public Map<Long, Passenger> getSelected() {
+    public Map<Long, Child> getSelected() {
         return selectedPassengers;
     }
 

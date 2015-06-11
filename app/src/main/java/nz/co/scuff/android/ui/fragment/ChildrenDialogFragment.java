@@ -3,7 +3,6 @@ package nz.co.scuff.android.ui.fragment;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -12,7 +11,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.TextView;
 
 
@@ -20,9 +18,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import nz.co.scuff.android.R;
-import nz.co.scuff.android.ui.adapter.PassengerAdapter;
 import nz.co.scuff.android.ui.adapter.PassengerGridAdapter;
-import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.family.Child;
 
 /**
  * A fragment representing a list of Items.
@@ -39,7 +36,7 @@ public class ChildrenDialogFragment extends DialogFragment {
     private static final boolean D = true;
 
     private static final String CHILDREN_LIST = "CL";
-    private ArrayList<Passenger> children;
+    private ArrayList<Child> children;
 
     private OnFragmentInteractionListener mListener;
 
@@ -54,7 +51,7 @@ public class ChildrenDialogFragment extends DialogFragment {
      */
     private PassengerGridAdapter mAdapter;
 
-    public static ChildrenDialogFragment newInstance(ArrayList<Passenger> children) {
+    public static ChildrenDialogFragment newInstance(ArrayList<Child> children) {
         if (D) Log.d(TAG, "Creating new instance");
 
         ChildrenDialogFragment fragment = new ChildrenDialogFragment();
@@ -76,7 +73,7 @@ public class ChildrenDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            children = (ArrayList<Passenger>)getArguments().getSerializable(CHILDREN_LIST);
+            children = (ArrayList<Child>)getArguments().getSerializable(CHILDREN_LIST);
         }
         mAdapter = new PassengerGridAdapter(getActivity(), R.layout.list_item_layout, children);
     }
@@ -95,11 +92,11 @@ public class ChildrenDialogFragment extends DialogFragment {
             public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
                 final int checkedCount = mListView.getCheckedItemCount();
                 mode.setTitle(checkedCount + " Selected");
-                Passenger passenger = (Passenger) mListView.getItemAtPosition(position);
+                Child child = (Child) mListView.getItemAtPosition(position);
                 if (checked) {
-                    mAdapter.setSelection(passenger);
+                    mAdapter.setSelection(child);
                 } else {
-                    mAdapter.removeSelection(passenger);
+                    mAdapter.removeSelection(child);
                 }
             }
 
@@ -180,7 +177,7 @@ public class ChildrenDialogFragment extends DialogFragment {
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(Collection<Passenger> children);
+        public void onFragmentInteraction(Collection<Child> children);
     }
 
 }

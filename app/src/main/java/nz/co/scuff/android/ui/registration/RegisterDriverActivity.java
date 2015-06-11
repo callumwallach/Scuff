@@ -19,49 +19,48 @@ import nz.co.scuff.android.R;
 import nz.co.scuff.android.service.RegistrationIntentService;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.ui.adapter.RouteAdapter;
-import nz.co.scuff.android.ui.adapter.SchoolAdapter;
-import nz.co.scuff.data.family.Driver;
-import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.school.Route;
-import nz.co.scuff.data.school.School;
+import nz.co.scuff.android.ui.adapter.CoordinatorAdapter;
+import nz.co.scuff.data.base.Coordinator;
+import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.institution.Route;
 
 public class RegisterDriverActivity extends Activity {
 
     private static final String TAG = "RegisterDriverActivity";
     private static final boolean D = true;
 
-    private Driver driver;
-    private HashMap<Long, School> schools;
+    private Coordinator coordinator;
+    private HashMap<Long, Coordinator> schools;
     private HashMap<Long, Route> routes;
-    private HashMap<Long, Passenger> passengers;
+    private HashMap<Long, Child> passengers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_driver);
 
-        this.driver = (Driver)getIntent().getSerializableExtra(Constants.USER_KEY);
-        this.schools = (HashMap<Long, School>) getIntent().getSerializableExtra(Constants.SCHOOLS_KEY);
+        this.coordinator = (Coordinator)getIntent().getSerializableExtra(Constants.USER_KEY);
+        this.schools = (HashMap<Long, Coordinator>) getIntent().getSerializableExtra(Constants.SCHOOLS_KEY);
         this.routes = (HashMap<Long, Route>) getIntent().getSerializableExtra(Constants.ROUTES_KEY);
-        this.passengers = (HashMap<Long, Passenger>) getIntent().getSerializableExtra(Constants.PASSENGERS_KEY);
+        this.passengers = (HashMap<Long, Child>) getIntent().getSerializableExtra(Constants.PASSENGERS_KEY);
 
         populateSchools(schools.values());
 
     }
 
-    private void populateSchools(Collection<School> schools) {
-        if (D) Log.d(TAG, "populating schools=" + schools);
+    private void populateSchools(Collection<Coordinator> institutions) {
+        if (D) Log.d(TAG, "populating institutions=" + institutions);
 
-        Spinner schoolSpinner = (Spinner) findViewById(R.id.school_spinner);
-        ArrayAdapter<School> dataAdapter = new SchoolAdapter(this,
-                android.R.layout.simple_spinner_item, new ArrayList<>(schools));
+        Spinner schoolSpinner = (Spinner) findViewById(R.id.institution_spinner);
+        ArrayAdapter<Coordinator> dataAdapter = new CoordinatorAdapter(this,
+                android.R.layout.simple_spinner_item, new ArrayList<>(institutions));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         schoolSpinner.setAdapter(dataAdapter);
         schoolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                School selectedSchool = (School) parent.getItemAtPosition(position);
-                populateRoutes(selectedSchool.getRoutes());
+                Coordinator selectedInstitution = (Coordinator) parent.getItemAtPosition(position);
+                populateRoutes(selectedInstitution.getRoutes());
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -105,7 +104,7 @@ public class RegisterDriverActivity extends Activity {
 
         // post registration
         Intent registrationIntent = new Intent(this, RegistrationIntentService.class);
-        registrationIntent.putExtra(Constants.USER_KEY, (Parcelable)this.driver);
+        registrationIntent.putExtra(Constants.USER_KEY, (Parcelable)this.coordinator);
         registrationIntent.putExtra(Constants.SCHOOLS_KEY, this.schools);
         registrationIntent.putExtra(Constants.ROUTES_KEY, this.routes);
         registrationIntent.putExtra(Constants.PASSENGERS_KEY, this.passengers);

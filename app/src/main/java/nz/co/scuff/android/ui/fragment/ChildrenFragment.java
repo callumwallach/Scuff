@@ -20,7 +20,7 @@ import java.util.Collection;
 
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.ui.adapter.PassengerAdapter;
-import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.family.Child;
 
 /**
  * A fragment representing a list of Items.
@@ -37,7 +37,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
     private static final boolean D = true;
 
     private static final String CHILDREN_LIST = "CL";
-    private ArrayList<Passenger> children;
+    private ArrayList<Child> children;
 
     private OnFragmentInteractionListener mListener;
 
@@ -52,7 +52,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      */
     private PassengerAdapter mAdapter;
 
-    public static ChildrenFragment newInstance(ArrayList<Passenger> children) {
+    public static ChildrenFragment newInstance(ArrayList<Child> children) {
         if (D) Log.d(TAG, "Creating new instance");
 
         ChildrenFragment fragment = new ChildrenFragment();
@@ -74,7 +74,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            children = (ArrayList<Passenger>)getArguments().getSerializable(CHILDREN_LIST);
+            children = (ArrayList<Child>)getArguments().getSerializable(CHILDREN_LIST);
         }
         mAdapter = new PassengerAdapter(getActivity(), R.layout.list_item_layout, children);
     }
@@ -93,11 +93,11 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
             public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked) {
                 final int checkedCount = mListView.getCheckedItemCount();
                 mode.setTitle(checkedCount + " Selected");
-                Passenger passenger = (Passenger)mListView.getItemAtPosition(position);
+                Child child = (Child)mListView.getItemAtPosition(position);
                 if (checked) {
-                    mAdapter.setSelection(passenger);
+                    mAdapter.setSelection(child);
                 } else {
-                    mAdapter.removeSelection(passenger);
+                    mAdapter.removeSelection(child);
                 }
             }
 
@@ -186,7 +186,7 @@ public class ChildrenFragment extends Fragment implements AbsListView.OnItemClic
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(Collection<Passenger> children);
+        public void onFragmentInteraction(Collection<Child> children);
     }
 
 }

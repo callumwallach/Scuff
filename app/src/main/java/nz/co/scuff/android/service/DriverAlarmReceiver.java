@@ -16,7 +16,7 @@ public class DriverAlarmReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (D) Log.d(TAG, "Driver alarm onReceive");
+        if (D) Log.d(TAG, "Coordinator alarm onReceive");
 
         String journeyId = intent.getStringExtra(Constants.JOURNEY_KEY);
 

@@ -16,7 +16,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import nz.co.scuff.android.R;
-import nz.co.scuff.data.school.School;
+import nz.co.scuff.data.base.Coordinator;
 
 /**
  * A fragment representing a list of Items.
@@ -30,7 +30,7 @@ import nz.co.scuff.data.school.School;
 public class SchoolsFragment extends DialogFragment implements AbsListView.OnItemClickListener {
 
     private static final String SCHOOL_LIST = "SL";
-    private ArrayList<School> schools;
+    private ArrayList<Coordinator> institutions;
 
     private OnFragmentInteractionListener mListener;
 
@@ -45,10 +45,10 @@ public class SchoolsFragment extends DialogFragment implements AbsListView.OnIte
      */
     private ListAdapter mAdapter;
 
-    public static SchoolsFragment newInstance(ArrayList<School> schools) {
+    public static SchoolsFragment newInstance(ArrayList<Coordinator> institutions) {
         SchoolsFragment fragment = new SchoolsFragment();
         Bundle args = new Bundle();
-        //args.putArr(SCHOOL_LIST, schools);
+        //args.putArr(SCHOOL_LIST, institutions);
         fragment.setArguments(args);
         return fragment;
     }
@@ -65,25 +65,25 @@ public class SchoolsFragment extends DialogFragment implements AbsListView.OnIte
         super.onCreate(savedInstanceState);
 
 /*        if (getArguments() != null) {
-            schools = getArguments().getParcelableArrayList(SCHOOL_LIST);
+            institutions = getArguments().getParcelableArrayList(SCHOOL_LIST);
         }*/
         mAdapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, schools);
+                android.R.layout.simple_list_item_1, android.R.id.text1, institutions);
     }
 
 /*    @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
-        final ArrayList<School> schools = savedInstanceState.getParcelableArrayList(SCHOOL_LIST);
-        SchoolListFragment fragment = SchoolListFragment.newInstance(schools);
+        final ArrayList<Institution> institutions = savedInstanceState.getParcelableArrayList(SCHOOL_LIST);
+        SchoolListFragment fragment = SchoolListFragment.newInstance(institutions);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         ArrayAdapter adapter = new ArrayAdapter<>(getActivity().getApplicationContext(),
-                android.R.layout.simple_list_item_1, schools);
+                android.R.layout.simple_list_item_1, institutions);
         builder.setTitle(R.string.title_dialog_school_choice)
                 .setAdapter(adapter, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        mListener.onSelection(schools.get(which));
+                        mListener.onSelection(institutions.get(which));
                     }
                 });
         return builder.create();
@@ -126,7 +126,7 @@ public class SchoolsFragment extends DialogFragment implements AbsListView.OnIte
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(this.schools.get(position));
+            mListener.onFragmentInteraction(this.institutions.get(position));
             dismiss();
         }
     }
@@ -155,7 +155,7 @@ public class SchoolsFragment extends DialogFragment implements AbsListView.OnIte
      * >Communicating with Other Fragments</a> for more information.
      */
     public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(School school);
+        public void onFragmentInteraction(Coordinator institution);
     }
 
 }

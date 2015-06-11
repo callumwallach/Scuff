@@ -14,14 +14,15 @@ public interface Constants {
     String JOURNEY_TRACKING_STATE_KEY = "JTS_KEY";
 
     String USER_KEY = "U_KEY";
-    String SCHOOLS_KEY = "S_KEY";
-    String ROUTES_KEY = "R_KEY";
-    String PASSENGERS_KEY = "P_KEY";
+    String SCHOOLS_KEY = "SS_KEY";
+    String ROUTES_KEY = "RS_KEY";
+    String ROUTE_KEY = "R_KEY";
+    String PASSENGERS_KEY = "PS_KEY";
     String BUS_KEY = "B_KEY";
-    String TICKETS_KEY = "T_KEY";
+    String TICKETS_KEY = "TS_KEY";
 
-    String PASSENGER_ROUTE_ID_KEY = "PR_ID_KEY";
-    String PASSENGER_SCHOOL_ID_KEY = "PS_ID_KEY";
+    String COORDINATOR_ID_KEY = "CID_KEY";
+    String ROUTE_ID_KEY = "RID_KEY";
 
     int RECORD_LOCATION_INTERVAL = 10;
     int LISTEN_LOCATION_INTERVAL = 10;

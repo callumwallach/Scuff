@@ -1,13 +1,5 @@
 package nz.co.scuff.test;
 
-import nz.co.scuff.data.relationship.DriverPassenger;
-import nz.co.scuff.data.family.Person;
-import nz.co.scuff.data.relationship.PassengerSchool;
-import nz.co.scuff.data.relationship.DriverRoute;
-import nz.co.scuff.data.relationship.DriverSchool;
-import nz.co.scuff.data.school.Route;
-import nz.co.scuff.data.school.School;
-
 /**
  * Created by Callum on 18/03/2015.
  */
@@ -32,8 +24,8 @@ public class TestDataProvider {
 
     private static void populate() {
 
-/*        School school = new School("St Heliers School", -36.8582550, 174.8608230, 42.16);
-        school.setSchool(getNewSchoolId());
+/*        Institution school = new Institution("St Heliers Institution", -36.8582550, 174.8608230, 42.16);
+        school.setInstitution(getNewSchoolId());
         school.save();
 
         Route route1 = new Route("Long Drive", "longdrive.png");
@@ -45,10 +37,10 @@ public class TestDataProvider {
         Route route4 = new Route("Riddell Sth", "riddellroadsouth.png");
         route4.setRoute(getNewRouteId());
 
-        route1.setSchool(school);
-        route2.setSchool(school);
-        route3.setSchool(school);
-        route4.setSchool(school);
+        route1.setInstitution(school);
+        route2.setInstitution(school);
+        route3.setInstitution(school);
+        route4.setInstitution(school);
 
         route1.save();
         route2.save();
@@ -132,8 +124,8 @@ public class TestDataProvider {
         parent2.addChildParent(driverPassenger5);
         parent2.addChildParent(driverPassenger6);
 
-        DriverSchool driverSchool1 = new DriverSchool(parent1, school);
-        DriverSchool driverSchool2 = new DriverSchool(parent2, school);
+        FriendRelationship driverSchool1 = new FriendRelationship(parent1, school);
+        FriendRelationship driverSchool2 = new FriendRelationship(parent2, school);
 
         driverSchool1.save();
         driverSchool2.save();
@@ -146,9 +138,9 @@ public class TestDataProvider {
 
         school.save();
 
-        DriverRoute driverRoute1 = new DriverRoute(parent1, route1);
-        DriverRoute driverRoute2 = new DriverRoute(parent2, route1);
-        DriverRoute driverRoute3 = new DriverRoute(parent2, route2);
+        PlaceRelationship driverRoute1 = new PlaceRelationship(parent1, route1);
+        PlaceRelationship driverRoute2 = new PlaceRelationship(parent2, route1);
+        PlaceRelationship driverRoute3 = new PlaceRelationship(parent2, route2);
 
         driverRoute1.save();
         driverRoute2.save();

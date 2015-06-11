@@ -154,7 +154,7 @@
                 android:layout_marginBottom="2dp">
 
                 <RadioGroup
-                    android:id="@+id/driver.gender"
+                    android:id="@+id/coordinator1.gender"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
@@ -179,7 +179,7 @@
             <Spinner
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/school.spinner"
+                android:id="@+id/institution.spinner"
                 android:layout_weight="0"
                 android:layout_marginTop="10dp"
                 android:layout_marginLeft="20dp"

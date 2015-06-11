@@ -16,9 +16,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 
@@ -29,20 +27,13 @@ import java.util.Set;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
-import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.ui.adapter.RouteAdapter;
 import nz.co.scuff.android.event.SchoolEvent;
-import nz.co.scuff.android.ui.adapter.SchoolAdapter;
-import nz.co.scuff.data.family.Driver;
-import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.family.Person;
-import nz.co.scuff.data.relationship.DriverPassenger;
-import nz.co.scuff.data.relationship.PassengerRoute;
-import nz.co.scuff.data.relationship.PassengerSchool;
-import nz.co.scuff.data.school.Route;
-import nz.co.scuff.data.school.School;
+import nz.co.scuff.data.base.Coordinator;
+import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.institution.Route;
 
 public class RegisterChildrenActivity extends Activity {
 
@@ -53,17 +44,17 @@ public class RegisterChildrenActivity extends Activity {
     private ProgressDialog progressDialog;
     private boolean loading = false;
 
-    private Driver driver;
-    private HashMap<Long, School> schools;
+    private Coordinator coordinator;
+    private HashMap<Long, Coordinator> schools;
     private HashMap<Long, Route> routes;
-    private HashMap<Long, Passenger> passengers;
+    private HashMap<Long, Child> passengers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_children);
 
-        this.driver = (Driver) getIntent().getSerializableExtra(Constants.USER_KEY);
+        this.coordinator = (Coordinator) getIntent().getSerializableExtra(Constants.USER_KEY);
         this.schools = new HashMap<>();
         this.routes = new HashMap<>();
         this.passengers = new HashMap<>();
@@ -106,9 +97,17 @@ public class RegisterChildrenActivity extends Activity {
                 longitude = myLocation.getLongitude();
             }
 
-            List<School> fetchedSchools = ScuffDatasource.getSchools(latitude, longitude);
-            EventBus.getDefault().post(new SchoolEvent(fetchedSchools));
-            return fetchedSchools.size();
+            /*List<Institution> fetchedInstitutions = null;
+            try {
+                fetchedInstitutions = ScuffDatasource.getInstitutions(latitude, longitude);
+                EventBus.getDefault().post(new SchoolEvent(fetchedInstitutions));
+            } catch (ResourceNotFoundException e) {
+                Log.e(TAG, "Error schools not found");
+            }*/
+
+            //List<Institution> fetchedInstitutions = ScuffDatasource.getSchools(latitude, longitude);
+            //return fetchedInstitutions.size();
+            return 0;
         }
 
         @Override
@@ -130,26 +129,26 @@ public class RegisterChildrenActivity extends Activity {
 
     public void onEventMainThread(SchoolEvent event) {
         if (D) Log.d(TAG, "Main thread school event="+event);
-        populateSchools(event.getSchools());
+        //populateSchools(event.getInstitutions());
     }
 
-    private void populateSchools(List<School> schools) {
-        if (D) Log.d(TAG, "populating schools="+schools);
+    private void populateSchools(List<Coordinator> institutions) {
+        if (D) Log.d(TAG, "populating institutions="+ institutions);
 
-        Spinner schoolSpinner = (Spinner) findViewById(R.id.school_spinner);
-        ArrayAdapter<School> dataAdapter = new SchoolAdapter(this,
-                android.R.layout.simple_spinner_item, new ArrayList<>(schools));
+        /*Spinner schoolSpinner = (Spinner) findViewById(R.id.institution_spinner);
+        ArrayAdapter<Coordinator> dataAdapter = new CoordinatorAdapter(this,
+                android.R.layout.simple_spinner_item, new ArrayList<>(institutions));
         dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         schoolSpinner.setAdapter(dataAdapter);
         schoolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                School selectedSchool = (School) parent.getItemAtPosition(position);
-                populateRoutes(selectedSchool.getRoutes());
+                Coordinator selectedInstitution = (Coordinator) parent.getItemAtPosition(position);
+                populateRoutes(selectedInstitution.getRoutes());
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
-        });
+        });*/
     }
 
     private void populateRoutes(Set<Route> routes) {
@@ -174,7 +173,7 @@ public class RegisterChildrenActivity extends Activity {
 
         // go to next page -> add children
         Intent intent = new Intent(this, RegisterDriverActivity.class);
-        intent.putExtra(Constants.USER_KEY, (Parcelable)this.driver);
+        intent.putExtra(Constants.USER_KEY, (Parcelable)this.coordinator);
         intent.putExtra(Constants.SCHOOLS_KEY, this.schools);
         intent.putExtra(Constants.ROUTES_KEY, this.routes);
         intent.putExtra(Constants.PASSENGERS_KEY, this.passengers);
@@ -184,47 +183,47 @@ public class RegisterChildrenActivity extends Activity {
 
     public void doAdd(View v) {
 
-        Passenger passenger = new Passenger();
+        Child child = new Child();
         String fname = ((EditText)findViewById(R.id.child_fname)).getText().toString();
         String lname = ((EditText)findViewById(R.id.child_lname)).getText().toString();
         String classroom = ((EditText)findViewById(R.id.child_classroom)).getText().toString();
         int age = Integer.parseInt(((EditText) findViewById(R.id.child_age)).getText().toString());
         boolean male = ((RadioButton)findViewById(R.id.male_radioButton)).isChecked();
 
-        passenger.setFirstName(fname);
-        passenger.setLastName(lname);
-        /*passenger.setClassroom(classroom);*/
-        /*passenger.setAge(age);*/
-        passenger.setGender(male ? Person.Gender.MALE : Person.Gender.FEMALE);
+/*        child.setFirstName(fname);
+        child.setLastName(lname);
+        *//*passenger.setClassroom(classroom);*//*
+        *//*passenger.setAge(age);*//*
+        child.setGender(male ? Person.Gender.MALE : Person.Gender.FEMALE);
 
-        School school = (School)((Spinner) findViewById(R.id.school_spinner)).getSelectedItem();
+        Institution institution = (Institution)((Spinner) findViewById(R.id.school_spinner)).getSelectedItem();
         Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
-        PassengerSchool passengerSchool = new PassengerSchool(passenger, school);
-        PassengerRoute passengerRoute = new PassengerRoute(passenger, route);
-        passenger.getPassengerSchools().add(passengerSchool);
-        passenger.getPassengerRoutes().add(passengerRoute);
+        PassengerSchool passengerSchool = new PassengerSchool(child, institution);
+        PassengerRoute passengerRoute = new PassengerRoute(child, route);
+        child.getPassengerSchools().add(passengerSchool);
+        child.getPassengerRoutes().add(passengerRoute);
 
-        DriverPassenger driverPassenger = new DriverPassenger(this.driver, passenger);
-        this.driver.getDriverPassengers().add(driverPassenger);
+        ParentalRelationship parentalRelationship = new ParentalRelationship(this.adult, child);
+        this.adult.getChildren().add(parentalRelationship);
 
         LinearLayout header = ((LinearLayout) findViewById(R.id.header));
         header.setOrientation(LinearLayout.HORIZONTAL);
         Button childButton = new Button(this);
-        childButton.setText(passenger.getFirstName());
+        childButton.setText(child.getFirstName());
 
         header.addView(childButton);
 
-        this.schools.put(school.getSchoolId(), school);
+        this.schools.put(institution.getInstitutionId(), institution);
         this.routes.put(route.getRouteId(), route);
-        this.passengers.put(passenger.getPersonId(), passenger);
+        this.passengers.put(child.getPersonId(), child);
 
         // clear fields
         ((EditText) findViewById(R.id.child_fname)).setText("");
         ((EditText) findViewById(R.id.child_lname)).setText("");
         ((EditText) findViewById(R.id.child_classroom)).setText("");
         ((EditText) findViewById(R.id.child_age)).setText("");
-        ((RadioButton) findViewById(R.id.male_radioButton)).setChecked(true);
+        ((RadioButton) findViewById(R.id.male_radioButton)).setChecked(true);*/
     }
 
     @Override

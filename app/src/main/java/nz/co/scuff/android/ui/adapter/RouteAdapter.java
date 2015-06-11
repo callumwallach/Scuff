@@ -8,7 +8,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import nz.co.scuff.data.school.Route;
+import nz.co.scuff.data.institution.Route;
 
 /**
  * Created by Callum on 6/05/2015.

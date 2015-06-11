@@ -2,7 +2,6 @@ package nz.co.scuff.server;
 
 import java.util.List;
 
-import nz.co.scuff.data.journey.snapshot.BusSnapshot;
 import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
 import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
 import nz.co.scuff.data.util.DataPacket;
@@ -24,29 +23,37 @@ public interface ScuffServerInterface {
     // driving
 
     @POST("/driving/journeys")
-    void postJourney(@Body JourneySnapshot journey, Callback<List<TicketSnapshot>> cb);
+    void postJourney(@Body DataPacket packet, Callback<DataPacket> cb);
 
     @PUT("/driving/journeys/{id}")
-    void updateJourney(@Path("id") String journeyId, @Body JourneySnapshot journey, Callback<List<TicketSnapshot>> cb);
+    void updateJourney(@Path("id") String journeyId, @Body DataPacket packet, Callback<DataPacket> cb);
 
     // walking
+    @GET("/walking/buses")
+    DataPacket getActiveJourneys(@Query("coordinatorId") long coordinatorId);
 
     /*@GET("/walking/buses")
     List<BusSnapshot> getActiveBuses(@Query("routeId") long routeId, @Query("schoolId") long schoolId);*/
 
+/*
     @GET("/walking/buses")
     DataPacket getActiveJourneys(@Query("routeId") long routeId, @Query("schoolId") long schoolId);
+*/
 
     @POST("/walking/buses/{id}/tickets")
-    List<TicketSnapshot> requestTickets(@Path("id") String journeyId, @Body List<Long> passengerIds) throws ResourceNotFoundException;
+    DataPacket requestTickets(@Path("id") String journeyId, @Body List<Long> childIds) throws ResourceNotFoundException;
+    /*@POST("/walking/buses/{id}/tickets")
+    List<TicketSnapshot> requestTickets(@Path("id") String journeyId, @Body List<Long> passengerIds) throws ResourceNotFoundException;*/
 
     //accounts
 
     @GET("/account/drivers/{email}")
-    DataPacket getDriver(@Path("email") String email);
+    DataPacket getDriver(@Path("email") String email, @Query("lastChecked") long lastChecked) throws ResourceNotFoundException;
 
+/*
     @GET("/account/schools")
     DataPacket getSchools(@Query("latitude") double latitude, @Query("longitude") double longitude, @Query("radius") int radius);
+*/
 
     // registration
 

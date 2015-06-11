@@ -23,7 +23,7 @@ import android.widget.ImageView;
 import android.widget.ScrollView;
 
 import nz.co.scuff.android.R;
-import nz.co.scuff.data.school.Route;
+import nz.co.scuff.data.institution.Route;
 
 
 public class OldSelectRouteActivity extends ActionBarActivity implements ActionBar.TabListener {
@@ -101,7 +101,7 @@ public class OldSelectRouteActivity extends ActionBarActivity implements ActionB
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
-        // as you specify a driver activity in AndroidManifest.xml.
+        // as you specify a adult activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -128,7 +128,7 @@ public class OldSelectRouteActivity extends ActionBarActivity implements ActionB
 /*        Intent intent = new Intent();
         Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
         Route selectedRoute = null;
-        for (School school : family.getSchools()) {
+        for (Institution school : family.getInstitutions()) {
             for (Route route : school.getRoutes()) {
                 if (route.getFirstName().equals(tab.getText()))
                     selectedRoute = route;
@@ -156,7 +156,7 @@ public class OldSelectRouteActivity extends ActionBarActivity implements ActionB
 /*
             Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
             ArrayList<Route> routes = new ArrayList<Route>();
-            for (School school : family.getSchools()) {
+            for (Institution school : family.getInstitutions()) {
                 routes.addAll(school.getRoutes());
             }
             this.routes = routes;

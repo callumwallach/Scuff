@@ -79,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
                 android:ems="10"
-                android:id="@+id/driver.fname"
+                android:id="@+id/coordinator1.fname"
                 android:layout_weight="0"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="20dp"
@@ -92,7 +92,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPersonName"
                 android:ems="10"
-                android:id="@+id/driver.lname"
+                android:id="@+id/coordinator1.lname"
                 android:layout_weight="0"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="2dp"
@@ -105,7 +105,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
                 android:ems="10"
-                android:id="@+id/driver.email"
+                android:id="@+id/coordinator1.email"
                 android:layout_weight="0"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="2dp"
@@ -118,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="phone"
                 android:ems="10"
-                android:id="@+id/driver.phone"
+                android:id="@+id/coordinator1.phone"
                 android:layout_weight="0"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="2dp"
@@ -131,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPostalAddress"
                 android:ems="10"
-                android:id="@+id/driver.address"
+                android:id="@+id/coordinator1.address"
                 android:layout_weight="0"
                 android:layout_marginLeft="10dp"
                 android:layout_marginTop="2dp"
@@ -151,7 +151,7 @@
                 android:layout_marginBottom="2dp">
 
                 <RadioGroup
-                    android:id="@+id/driver.gender"
+                    android:id="@+id/coordinator1.gender"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">

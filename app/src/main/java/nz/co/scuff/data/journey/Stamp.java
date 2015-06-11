@@ -6,8 +6,8 @@ import android.os.Parcelable;
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 
 import nz.co.scuff.data.journey.snapshot.StampSnapshot;
@@ -16,21 +16,32 @@ import nz.co.scuff.data.journey.snapshot.StampSnapshot;
  * Created by Callum on 14/05/2015.
  */
 @Table(name="Stamps")
-public class Stamp extends Model implements Serializable, Parcelable {
+public class Stamp extends Model implements Parcelable {
 
+    @Column(name="StampId")
+    private long stampId;
     @Column(name="Latitude")
     private double latitude;
     @Column(name="Longitude")
-    private long longitude;
+    private double longitude;
     @Column(name="StampDate")
     private Timestamp stampDate;
 
     public Stamp() {}
 
     public Stamp(StampSnapshot snapshot) {
+        this.stampId = snapshot.getStampId();
         this.latitude = snapshot.getLatitude();
         this.longitude = snapshot.getLongitude();
         this.stampDate = snapshot.getStampDate();
+    }
+
+    public long getStampId() {
+        return stampId;
+    }
+
+    public void setStampId(long stampId) {
+        this.stampId = stampId;
     }
 
     public double getLatitude() {
@@ -41,7 +52,7 @@ public class Stamp extends Model implements Serializable, Parcelable {
         this.latitude = latitude;
     }
 
-    public long getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
@@ -57,8 +68,16 @@ public class Stamp extends Model implements Serializable, Parcelable {
         this.stampDate = stampDate;
     }
 
+    public static Stamp findById(long stampId) {
+        return new Select()
+                .from(Stamp.class)
+                .where("StampId = ?", stampId)
+                .executeSingle();
+    }
+
     public StampSnapshot toSnapshot() {
         StampSnapshot snapshot = new StampSnapshot();
+        snapshot.setStampId(this.stampId);
         snapshot.setLatitude(this.latitude);
         snapshot.setLongitude(this.longitude);
         snapshot.setStampDate(this.stampDate);
@@ -73,36 +92,31 @@ public class Stamp extends Model implements Serializable, Parcelable {
 
         Stamp stamp = (Stamp) o;
 
-        if (Double.compare(stamp.latitude, latitude) != 0) return false;
-        if (longitude != stamp.longitude) return false;
-        return !(stampDate != null ? !stampDate.equals(stamp.stampDate) : stamp.stampDate != null);
+        return stampId == stamp.stampId;
 
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        long temp;
-        temp = Double.doubleToLongBits(latitude);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (int) (longitude ^ (longitude >>> 32));
-        result = 31 * result + (stampDate != null ? stampDate.hashCode() : 0);
+        result = 31 * result + (int) (stampId ^ (stampId >>> 32));
         return result;
     }
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("Stamp{");
-        sb.append("latitude=").append(latitude);
-        sb.append(", longitude=").append(longitude);
-        sb.append(", stampDate=").append(stampDate);
-        sb.append('}');
-        return sb.toString();
+        return "Stamp{" +
+                "stampId=" + stampId +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", stampDate=" + stampDate +
+                "} " + super.toString();
     }
 
     protected Stamp(Parcel in) {
+        stampId = in.readLong();
         latitude = in.readDouble();
-        longitude = in.readLong();
+        longitude = in.readDouble();
         stampDate = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
     }
 
@@ -113,8 +127,9 @@ public class Stamp extends Model implements Serializable, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(stampId);
         dest.writeDouble(latitude);
-        dest.writeLong(longitude);
+        dest.writeDouble(longitude);
         dest.writeValue(stampDate);
     }
 

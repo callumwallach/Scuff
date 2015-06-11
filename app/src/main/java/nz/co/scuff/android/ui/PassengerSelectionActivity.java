@@ -20,7 +20,7 @@ import nz.co.scuff.android.event.SelectionEvent;
 import nz.co.scuff.android.service.TicketIntentService;
 import nz.co.scuff.android.ui.adapter.PassengerMultiChoiceAdapter;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.journey.Journey;
 
 public class PassengerSelectionActivity extends Activity
@@ -30,7 +30,7 @@ public class PassengerSelectionActivity extends Activity
     private static final boolean D = true;
 
     private PassengerMultiChoiceAdapter adapter;
-    private ArrayList<Passenger> items;
+    private ArrayList<Child> items;
     private Journey journey;
 
     @Override
@@ -64,8 +64,8 @@ public class PassengerSelectionActivity extends Activity
 
         ArrayList<Long> idsOfChildrenTravelling = new ArrayList<>();
         for (Object o : event.getItems()) {
-            Passenger child = (Passenger)o;
-            idsOfChildrenTravelling.add(child.getPersonId());
+            Child child = (Child)o;
+            idsOfChildrenTravelling.add(child.getChildId());
         }
 
         Intent ticketIntent = new Intent(this, TicketIntentService.class);

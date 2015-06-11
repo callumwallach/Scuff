@@ -2,6 +2,7 @@ package nz.co.scuff.data.journey.snapshot;
 
 import com.google.gson.annotations.Expose;
 
+import nz.co.scuff.data.base.snapshot.Snapshot;
 import nz.co.scuff.data.util.TrackingState;
 
 import java.io.Serializable;
@@ -10,7 +11,7 @@ import java.sql.Timestamp;
 /**
  * Created by Callum on 20/04/2015.
  */
-public class WaypointSnapshot implements Comparable, Serializable {
+public class WaypointSnapshot implements Snapshot, Comparable {
 
     @Expose
     private String waypointId;

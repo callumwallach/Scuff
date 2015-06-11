@@ -129,13 +129,13 @@
             android:value="AIzaSyCe0FMB85HYFERr1oz53-oqAOUI7y4EGMg" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="nz.co.scuff.data.journey.Stamp,             nz.co.scuff.data.journey.Ticket,             nz.co.scuff.data.journey.Bus,             nz.co.scuff.data.journey.Waypoint,             nz.co.scuff.data.journey.Journey,             nz.co.scuff.data.family.Driver,             nz.co.scuff.data.family.Passenger,             nz.co.scuff.data.school.Route,             nz.co.scuff.data.school.School,             nz.co.scuff.data.relationship.DriverPassenger,             nz.co.scuff.data.relationship.DriverRoute,             nz.co.scuff.data.relationship.DriverSchool,             nz.co.scuff.data.relationship.JourneyPassenger,             nz.co.scuff.data.relationship.PassengerRoute,             nz.co.scuff.data.relationship.PassengerSchool" />
+            android:value="nz.co.scuff.data.journey.Stamp,             nz.co.scuff.data.journey.Ticket,             nz.co.scuff.data.journey.Waypoint,             nz.co.scuff.data.journey.Journey,             nz.co.scuff.data.base.Coordinator,             nz.co.scuff.data.family.Child,             nz.co.scuff.data.family.ChildData,             nz.co.scuff.data.family.PersonalData,             nz.co.scuff.data.place.Place,             nz.co.scuff.data.institution.Route,             nz.co.scuff.data.institution.InstitutionData,             nz.co.scuff.data.relationship.ParentalRelationship,             nz.co.scuff.data.relationship.GuidingRelationship,             nz.co.scuff.data.relationship.FriendRelationship,             nz.co.scuff.data.relationship.JourneyRelationship,             nz.co.scuff.data.relationship.PlaceRelationship" />
         <meta-data
             android:name="AA_DB_NAME"
             android:value="Scuff.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="30" />
+            android:value="42" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />
@@ -190,6 +190,30 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="nz.co.scuff.android.ui.HomeActivity" />
+        </activity>
+        <activity
+            android:name=".ui.SelectFriendActivity"
+            android:label="@string/title_activity_select_friend" >
+        </activity>
+        <activity
+            android:name=".ui.DriverJourneyChoiceActivity"
+            android:label="@string/title_activity_driver_journey_choice"
+            android:parentActivityName=".ui.HomeActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nz.co.scuff.android.ui.HomeActivity" />
+        </activity>
+        <activity
+            android:name=".ui.GuidedJourneyActivity"
+            android:label="@string/title_activity_guided_journey"
+            android:parentActivityName=".ui.DriverJourneyChoiceActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nz.co.scuff.android.ui.DriverJourneyChoiceActivity" />
+        </activity>
+        <activity
+            android:name=".ui.SelectRouteActivity"
+            android:label="@string/title_activity_select_route" >
         </activity>
     </application>
 

@@ -3,21 +3,22 @@ package nz.co.scuff.data.journey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
+import com.activeandroid.query.Select;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 
-import nz.co.scuff.data.family.Passenger;
+import nz.co.scuff.data.base.ModifiableEntity;
+import nz.co.scuff.data.base.Snapshotable;
+import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
 
 /**
  * Created by Callum on 10/05/2015.
  */
 @Table(name="Tickets")
-public class Ticket extends Model implements Comparable, Serializable, Parcelable {
+public class Ticket extends ModifiableEntity implements Snapshotable, Comparable {
 
     @Column(name="TicketId")
     private long ticketId;
@@ -30,15 +31,15 @@ public class Ticket extends Model implements Comparable, Serializable, Parcelabl
     @Column(name="JourneyFK", onDelete = Column.ForeignKeyAction.CASCADE)
     private Journey journey;
 
-    @Column(name="PassengerFK", onDelete = Column.ForeignKeyAction.CASCADE)
-    private Passenger passenger;
+    @Column(name="ChildFK", onDelete = Column.ForeignKeyAction.CASCADE)
+    private Child child;
 
     public Ticket() {}
 
     public Ticket(TicketSnapshot snapshot) {
+        super();
         this.ticketId = snapshot.getTicketId();
         this.issueDate = snapshot.getIssueDate();
-        this.stamp = (snapshot.getStamp() == null ? null : new Stamp(snapshot.getStamp()));
     }
 
     public long getTicketId() {
@@ -57,12 +58,12 @@ public class Ticket extends Model implements Comparable, Serializable, Parcelabl
         this.journey = journey;
     }
 
-    public Passenger getPassenger() {
-        return passenger;
+    public Child getChild() {
+        return child;
     }
 
-    public void setPassenger(Passenger passenger) {
-        this.passenger = passenger;
+    public void setChild(Child child) {
+        this.child = child;
     }
 
     public Timestamp getIssueDate() {
@@ -81,13 +82,27 @@ public class Ticket extends Model implements Comparable, Serializable, Parcelabl
         this.stamp = stamp;
     }
 
+    public static Ticket findById(long ticketId) {
+        return new Select()
+                .from(Ticket.class)
+                .where("TicketId = ?", ticketId)
+                .executeSingle();
+    }
+
+    public void refresh(TicketSnapshot snapshot) {
+        this.ticketId = snapshot.getTicketId();
+        this.issueDate = snapshot.getIssueDate();
+        this.active = snapshot.isActive();
+        this.lastModified = snapshot.getLastModified();
+    }
+
     public TicketSnapshot toSnapshot() {
         TicketSnapshot snapshot = new TicketSnapshot();
         snapshot.setTicketId(this.ticketId);
         snapshot.setIssueDate(this.issueDate);
-        snapshot.setStamp(this.stamp == null? null : this.stamp.toSnapshot());
+        snapshot.setStampId(this.stamp.getStampId());
         snapshot.setJourneyId(this.journey.getJourneyId());
-        snapshot.setPassengerId(this.passenger.getPersonId());
+        snapshot.setChildId(this.child.getChildId());
         return snapshot;
     }
 
@@ -111,17 +126,29 @@ public class Ticket extends Model implements Comparable, Serializable, Parcelabl
     }
 
     @Override
+    public String toString() {
+        return "Ticket{" +
+                "ticketId='" + ticketId + '\'' +
+                ", issueDate=" + issueDate +
+                ", stamp=" + (stamp == null ? stamp : stamp.getStampId()) +
+                ", journey=" + (journey == null ? journey : journey.getJourneyId()) +
+                ", child=" + (child == null ? child : child.getChildId()) +
+                '}';
+    }
+
+    @Override
     public int compareTo(Object another) {
         Ticket other = (Ticket) another;
         return this.issueDate.compareTo(other.issueDate);
     }
 
     protected Ticket(Parcel in) {
+        super(in);
         ticketId = in.readLong();
         issueDate = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
         stamp = (Stamp) in.readValue(Stamp.class.getClassLoader());
         journey = (Journey) in.readValue(Journey.class.getClassLoader());
-        passenger = (Passenger) in.readValue(Passenger.class.getClassLoader());
+        child = (Child) in.readValue(Child.class.getClassLoader());
     }
 
     @Override
@@ -131,11 +158,12 @@ public class Ticket extends Model implements Comparable, Serializable, Parcelabl
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
         dest.writeLong(ticketId);
         dest.writeValue(issueDate);
         dest.writeValue(stamp);
         dest.writeValue(journey);
-        dest.writeValue(passenger);
+        dest.writeValue(child);
     }
 
     @SuppressWarnings("unused")

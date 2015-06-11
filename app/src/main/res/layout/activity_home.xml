@@ -70,34 +70,27 @@
                 android:layout_weight=".25"
                 android:gravity="center" />
 
-            <Spinner
-                android:id="@+id/school.spinner"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="20dp"
-                android:prompt="@string/school_prompt" />
-
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="20dp"
-                android:text="@string/driver.button"
-                android:id="@+id/driver.button"
+                android:text="@string/startAJourney.button"
+                android:id="@+id/adult.button"
                 android:background="@drawable/red_button"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:onClick="goDriver" />
+                android:onClick="startAJourney" />
 
             <Button
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="20dp"
-                android:text="@string/passenger.button"
+                android:text="@string/joinAJourney.button"
                 android:id="@+id/passenger.button"
                 android:background="@drawable/green_button"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:onClick="goPassenger"/>
+                android:onClick="joinAJourney"/>
 
             <TextView
                 android:layout_width="wrap_content"

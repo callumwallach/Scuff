@@ -1,6 +1,5 @@
 package nz.co.scuff.android.ui.adapter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.manuelpeinado.multichoiceadapter.MultiChoiceBaseAdapter;
 
@@ -25,8 +23,9 @@ import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.event.SelectionEvent;
 import nz.co.scuff.android.util.ScuffApplication;
-import nz.co.scuff.data.family.Passenger;
-import nz.co.scuff.data.family.Person;
+import nz.co.scuff.data.family.Child;
+import nz.co.scuff.data.family.ChildData;
+import nz.co.scuff.data.family.PersonalData;
 
 /**
  * Created by Callum on 18/05/2015.
@@ -36,11 +35,11 @@ public class PassengerMultiChoiceAdapter extends MultiChoiceBaseAdapter {
     private static final String TAG = PassengerMultiChoiceAdapter.class.getSimpleName();
     private static final boolean D = true;
 
-    private List<Passenger> passengers;
+    private List<Child> children;
 
-    public PassengerMultiChoiceAdapter(Bundle savedInstanceState, List<Passenger> passengers) {
+    public PassengerMultiChoiceAdapter(Bundle savedInstanceState, List<Child> children) {
         super(savedInstanceState);
-        this.passengers = passengers;
+        this.children = children;
     }
 
     @Override
@@ -55,12 +54,12 @@ public class PassengerMultiChoiceAdapter extends MultiChoiceBaseAdapter {
         if (D) Log.d(TAG, "onActionItemClicked mode="+mode+" menuitem="+item);
         if (item.getItemId() == R.id.select) {
             List<Long> positions = new ArrayList<>(getCheckedItems());
-            List<Passenger> selectedPassengers = new ArrayList<>(positions.size());
+            List<Child> selectedChildren = new ArrayList<>(positions.size());
             for (long position : positions) {
-                selectedPassengers.add(passengers.get((int) position));
+                selectedChildren.add(children.get((int) position));
                 //DialogHelper.toast(getContext(), passengers.get((int)position).getFirstName());
             }
-            EventBus.getDefault().post(new SelectionEvent(selectedPassengers));
+            EventBus.getDefault().post(new SelectionEvent(selectedChildren));
             finishActionMode();
             return true;
         }
@@ -74,12 +73,12 @@ public class PassengerMultiChoiceAdapter extends MultiChoiceBaseAdapter {
 
     @Override
     public int getCount() {
-        return passengers.size();
+        return children.size();
     }
 
     @Override
-    public Passenger getItem(int position) {
-        return passengers.get(position);
+    public Child getItem(int position) {
+        return children.get(position);
     }
 
     @Override
@@ -96,16 +95,16 @@ public class PassengerMultiChoiceAdapter extends MultiChoiceBaseAdapter {
             convertView = inflater.inflate(layout, parent, false);
         }
         ImageView imageView = (ImageView) convertView;
-        Passenger passenger = getItem(position);
+        Child child = getItem(position);
         Context ctx = ScuffApplication.getContext();
         Drawable profilePix;
-        if (passenger.getPicture() != null) {
+        if (child.getChildData().getPicture() != null) {
             // load from disk
-            String fileLocation = ctx.getFilesDir() + "/" + passenger.getPicture();
+            String fileLocation = ctx.getFilesDir() + "/" + child.getChildData().getPicture();
             profilePix = Drawable.createFromPath(fileLocation);
         } else {
             // default images based on gender
-            profilePix = passenger.getGender() == Person.Gender.MALE ?
+            profilePix = child.getChildData().getGender() == ChildData.Gender.MALE ?
                     ctx.getResources().getDrawable(R.drawable.male_blank_icon) : ctx.getResources().getDrawable(R.drawable.female_blank_icon);
         }
         imageView.setImageDrawable(profilePix);

@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.Button;
 
 import nz.co.scuff.android.R;
-import nz.co.scuff.data.school.Route;
+import nz.co.scuff.data.institution.Route;
 import nz.co.scuff.android.util.ImageHelper;
 
 public class OldRegisterDriverActivity extends Activity {
@@ -37,16 +37,16 @@ public class OldRegisterDriverActivity extends Activity {
 
     public void addDriver(View v) {
 
-/*        Driver driver = new Driver();
+/*        Coordinator adult = new Coordinator();
         String name = ((EditText)findViewById(R.id.driver_name)).getText().toString();
         String email = ((EditText)findViewById(R.id.driver_email)).getText().toString();
         String phone = ((EditText)findViewById(R.id.driver_phone)).getText().toString();
-        driver.setFirstName(name);
-        driver.setEmail(email);
-        driver.setPhone(phone);
+        adult.setFirstName(name);
+        adult.setEmail(email);
+        adult.setPhone(phone);
 
         Family family = ((ScuffContextProvider)getApplicationContext()).getFamily();
-        family.addParent(driver);
+        family.addParent(adult);
         TestDataProvider.storeFamily(family);
         finish();*/
 

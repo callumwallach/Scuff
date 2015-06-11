@@ -2,17 +2,17 @@ package nz.co.scuff.data.journey.snapshot;
 
 import com.google.gson.annotations.Expose;
 
+import nz.co.scuff.data.base.snapshot.ModifiableSnapshot;
 import nz.co.scuff.data.util.TrackingState;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Callum on 20/04/2015.
  */
-public class JourneySnapshot implements Comparable, Serializable {
+public class JourneySnapshot extends ModifiableSnapshot {
 
     @Expose
     private String journeyId;
@@ -32,20 +32,29 @@ public class JourneySnapshot implements Comparable, Serializable {
     private TrackingState state;
 
     @Expose
-    private long schoolId;
+    private long ownerId;
     @Expose
-    private long driverId;
+    private long agentId;
+    @Expose
+    private long guideId;
+
+    @Expose
+    private long originId;
+    @Expose
+    private long destinationId;
+
     @Expose
     private long routeId;
 
     @Expose
-    private SortedSet<WaypointSnapshot> waypoints;
+    private Set<String> waypointIds;
     @Expose
-    private SortedSet<TicketSnapshot> tickets;
+    private Set<Long> ticketIds;
 
     public JourneySnapshot() {
-        waypoints = new TreeSet<>();
-        tickets = new TreeSet<>();
+        super();
+        waypointIds = new HashSet<>();
+        ticketIds = new HashSet<>();
     }
 
     public String getJourneyId() {
@@ -112,20 +121,44 @@ public class JourneySnapshot implements Comparable, Serializable {
         this.state = state;
     }
 
-    public long getSchoolId() {
-        return schoolId;
+    public long getOwnerId() {
+        return ownerId;
     }
 
-    public void setSchoolId(long schoolId) {
-        this.schoolId = schoolId;
+    public void setOwnerId(long ownerId) {
+        this.ownerId = ownerId;
     }
 
-    public long getDriverId() {
-        return driverId;
+    public long getAgentId() {
+        return agentId;
     }
 
-    public void setDriverId(long driverId) {
-        this.driverId = driverId;
+    public void setAgentId(long agentId) {
+        this.agentId = agentId;
+    }
+
+    public long getGuideId() {
+        return guideId;
+    }
+
+    public void setGuideId(long guideId) {
+        this.guideId = guideId;
+    }
+
+    public long getOriginId() {
+        return originId;
+    }
+
+    public void setOriginId(long originId) {
+        this.originId = originId;
+    }
+
+    public long getDestinationId() {
+        return destinationId;
+    }
+
+    public void setDestinationId(long destinationId) {
+        this.destinationId = destinationId;
     }
 
     public long getRouteId() {
@@ -136,26 +169,20 @@ public class JourneySnapshot implements Comparable, Serializable {
         this.routeId = routeId;
     }
 
-    public SortedSet<WaypointSnapshot> getWaypoints() {
-        return waypoints;
+    public Set<String> getWaypointIds() {
+        return waypointIds;
     }
 
-    public void setWaypoints(SortedSet<WaypointSnapshot> waypoints) {
-        this.waypoints = waypoints;
+    public void setWaypointIds(Set<String> waypointIds) {
+        this.waypointIds = waypointIds;
     }
 
-    public SortedSet<TicketSnapshot> getTickets() {
-        return tickets;
+    public Set<Long> getTicketIds() {
+        return ticketIds;
     }
 
-    public void setTickets(SortedSet<TicketSnapshot> tickets) {
-        this.tickets = tickets;
-    }
-
-    @Override
-    public int compareTo(Object another) {
-        JourneySnapshot other = (JourneySnapshot)another;
-        return this.created.compareTo(other.created);
+    public void setTicketIds(Set<Long> ticketIds) {
+        this.ticketIds = ticketIds;
     }
 
     @Override
@@ -188,13 +215,15 @@ public class JourneySnapshot implements Comparable, Serializable {
                 ", created=" + created +
                 ", completed=" + completed +
                 ", state=" + state +
-                ", schoolId=" + schoolId +
-                ", driverId=" + driverId +
+                ", ownerId=" + ownerId +
+                ", agentId=" + agentId +
+                ", guideId=" + guideId +
+                ", originId=" + originId +
+                ", destinationId=" + destinationId +
                 ", routeId=" + routeId +
-                ", waypoints=" + waypoints +
-                ", tickets=" + tickets +
+                ", waypointIds=" + waypointIds +
+                ", ticketIds=" + ticketIds +
                 '}';
     }
-
 }
 

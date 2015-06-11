@@ -5,9 +5,8 @@ import android.telephony.TelephonyManager;
 
 import com.activeandroid.app.Application;
 
-import nz.co.scuff.data.family.Driver;
+import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.journey.Journey;
-import nz.co.scuff.data.school.School;
 
 /**
  * Created by Callum on 18/03/2015.
@@ -29,24 +28,24 @@ public class ScuffApplication extends Application {
         return context;
     }
 
-    private School school;
-    private Driver driver;
+    private Coordinator institution;
+    private Coordinator coordinator;
     private Journey journey;
 
-    public Driver getDriver() {
-        return driver;
+    public Coordinator getCoordinator() {
+        return coordinator;
     }
 
-    public void setDriver(Driver d) {
-        driver = d;
+    public void setCoordinator(Coordinator d) {
+        coordinator = d;
     }
 
-    public School getSchool() {
-        return school;
+    public Coordinator getInstitution() {
+        return institution;
     }
 
-    public void setSchool(School s) {
-        school = s;
+    public void setInstitution(Coordinator s) {
+        institution = s;
     }
 
     public Journey getJourney() {

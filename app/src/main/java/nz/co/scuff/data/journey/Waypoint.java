@@ -23,7 +23,7 @@ import nz.co.scuff.data.util.TrackingState;
  * Created by Callum on 20/04/2015.
  */
 @Table(name="Waypoints")
-public class Waypoint extends Model implements Comparable, Serializable, Parcelable {
+public class Waypoint extends Model implements Comparable, Parcelable {
 
     @Column(name="WaypointId")
     private String waypointId;
@@ -191,12 +191,11 @@ public class Waypoint extends Model implements Comparable, Serializable, Parcela
         this.journey = journey;
     }
 
-    public static Waypoint findByWaypointId(String waypointId) {
-        List<Waypoint> waypoints = new Select()
+    public static Waypoint findById(String waypointId) {
+        return new Select()
                 .from(Waypoint.class)
                 .where("WaypointId = ?", waypointId)
-                .execute();
-        return waypoints.iterator().hasNext() ? waypoints.iterator().next() : null;
+                .executeSingle();
     }
 
     public WaypointSnapshot toSnapshot() {
@@ -230,7 +229,7 @@ public class Waypoint extends Model implements Comparable, Serializable, Parcela
 
         Waypoint waypoint = (Waypoint) o;
 
-        return !(waypointId != null ? !waypointId.equals(waypoint.waypointId) : waypoint.waypointId != null);
+        return waypointId.equals(waypoint.waypointId);
 
     }
 

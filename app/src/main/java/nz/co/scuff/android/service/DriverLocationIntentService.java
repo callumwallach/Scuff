@@ -41,7 +41,7 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
             if (location.getAccuracy() < Constants.MIN_LOCATION_ACCURACY) {
                 stopLocationUpdates();
                 // post location to event bus
-                EventBus.getDefault().post(new LocationEvent(location));
+                //EventBus.getDefault().post(new LocationEvent(location));
                 saveAndUploadLocation(location);
             }
         }

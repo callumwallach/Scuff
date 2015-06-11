@@ -3,43 +3,33 @@ package nz.co.scuff.data.journey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import nz.co.scuff.data.family.Driver;
+import nz.co.scuff.data.base.Coordinator;
+import nz.co.scuff.data.base.ModifiableEntity;
+import nz.co.scuff.data.base.Snapshotable;
 import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
-import nz.co.scuff.data.school.Route;
-import nz.co.scuff.data.school.School;
+import nz.co.scuff.data.institution.Route;
+import nz.co.scuff.data.place.Place;
 import nz.co.scuff.data.util.TrackingState;
 
 /**
  * Created by Callum on 20/04/2015.
  */
 @Table(name="Journeys")
-public class Journey extends Model implements Comparable, Serializable, Parcelable {
-
-    //private static final long serialVersionUID = 2L;
+public class Journey extends ModifiableEntity implements Snapshotable, Comparable {
 
     @Column(name="JourneyId")
     private String journeyId;
     @Column(name="AppId")
     private String appId;
-
-    @Column(name="SchoolFK", onDelete = Column.ForeignKeyAction.CASCADE)
-    private School school;
-    @Column(name="RouteFK")
-    private Route route;
-    @Column(name="DriverFK")
-    private Driver driver;
-
     @Column(name="Source")
     private String source;
 
@@ -56,11 +46,27 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
     @Column(name="State")
     private TrackingState state;
 
+    @Column(name="RouteFK")
+    private Route route;
+
+    @Column(name="OwnerFK")
+    private Coordinator owner;
+    @Column(name="AgentFK")
+    private Coordinator agent;
+    @Column(name="GuideFK")
+    private Coordinator guide;
+
+    @Column(name="Origin")
+    private Place origin;
+    @Column(name="Destination")
+    private Place destination;
+
     // relationships
     private SortedSet<Waypoint> waypoints;
     private SortedSet<Ticket> tickets;
 
     public Journey() {
+        super();
         waypoints = new TreeSet<>();
         tickets = new TreeSet<>();
     }
@@ -69,12 +75,14 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
         this.journeyId = snapshot.getJourneyId();
         this.appId = snapshot.getAppId();
         this.source = snapshot.getSource();
-        // school, route and driver set manually
         this.totalDistance = snapshot.getTotalDistance();
         this.totalDuration = snapshot.getTotalDuration();
         this.created = snapshot.getCreated();
         this.completed = snapshot.getCompleted();
         this.state = snapshot.getState();
+
+        this.active = snapshot.isActive();
+        this.lastModified = snapshot.getLastModified();
 
         waypoints = new TreeSet<>();
         tickets = new TreeSet<>();
@@ -84,8 +92,8 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
         return journeyId;
     }
 
-    public void setJourneyId(String id) {
-        this.journeyId = id;
+    public void setJourneyId(String journeyId) {
+        this.journeyId = journeyId;
     }
 
     public String getAppId() {
@@ -94,30 +102,6 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
 
     public void setAppId(String appId) {
         this.appId = appId;
-    }
-
-    public School getSchool() {
-        return school;
-    }
-
-    public void setSchool(School school) {
-        this.school = school;
-    }
-
-    public Route getRoute() {
-        return route;
-    }
-
-    public void setRoute(Route route) {
-        this.route = route;
-    }
-
-    public Driver getDriver() {
-        return driver;
-    }
-
-    public void setDriver(Driver driver) {
-        this.driver = driver;
     }
 
     public String getSource() {
@@ -168,6 +152,54 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
         this.state = state;
     }
 
+    public Coordinator getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Coordinator owner) {
+        this.owner = owner;
+    }
+
+    public Coordinator getAgent() {
+        return agent;
+    }
+
+    public void setAgent(Coordinator agent) {
+        this.agent = agent;
+    }
+
+    public Coordinator getGuide() {
+        return guide;
+    }
+
+    public void setGuide(Coordinator guide) {
+        this.guide = guide;
+    }
+
+    public Place getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Place origin) {
+        this.origin = origin;
+    }
+
+    public Place getDestination() {
+        return destination;
+    }
+
+    public void setDestination(Place destination) {
+        this.destination = destination;
+    }
+
+    public Route getRoute() {
+        return route;
+    }
+
+    public void setRoute(Route route) {
+        this.route = route;
+    }
+
     public SortedSet<Waypoint> getWaypoints() {
         if (waypoints == null) {
             waypoints = new TreeSet<>();
@@ -180,8 +212,8 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
     }
 
     public SortedSet<Ticket> getTickets() {
-        if (this.tickets == null) {
-            this.tickets = new TreeSet<>();
+        if (tickets == null) {
+            tickets = new TreeSet<>();
         }
         return tickets;
     }
@@ -190,40 +222,39 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
         this.tickets = tickets;
     }
 
-    public static List<Journey> findByRouteAndSchool(String routeId, String schoolId) {
+    public Waypoint getCurrentWaypoint() {
+        return new Select()
+                .from(Waypoint.class)
+                .where("JourneyFK = ?", getId())
+                .orderBy("Created DESC")
+                .executeSingle();
+    }
+
+    public static Journey findById(String journeyId) {
         return new Select()
                 .from(Journey.class)
-                .where("RouteId = ?", routeId)
-                .where("SchoolId = ?", schoolId)
-                .execute();
-    }
-
-    public Waypoint getCurrentWaypoint() {
-        if (waypoints.isEmpty()) {
-            List<Waypoint> foundWaypoints = new Select()
-                    .from(Waypoint.class)
-                    .where("JourneyFK = ?", getId())
-                    .orderBy("Created DESC")
-                    .execute();
-            waypoints.addAll(foundWaypoints);
-        }
-        return waypoints.first();
-    }
-
-    public static Journey findByJourneyId(String journeyId) {
-        List<Journey> journeys = new Select()
-                .from(Journey.class)
                 .where("JourneyId = ?", journeyId)
-                .execute();
-        return journeys.iterator().hasNext() ? journeys.iterator().next() : null;
+                .executeSingle();
     }
 
     public static List<Journey> findIncomplete() {
-        List<Journey> journeys = new Select()
+        return new Select()
                 .from(Journey.class)
                 .where("State != ?", TrackingState.COMPLETED)
                 .execute();
-        return journeys;
+    }
+
+    public void refresh(JourneySnapshot snapshot) {
+        this.journeyId = snapshot.getJourneyId();
+        this.appId = snapshot.getAppId();
+        this.source = snapshot.getSource();
+        this.totalDistance = snapshot.getTotalDistance();
+        this.totalDuration = snapshot.getTotalDuration();
+        this.created = snapshot.getCreated();
+        this.completed = snapshot.getCompleted();
+        this.state = snapshot.getState();
+        this.active = snapshot.isActive();
+        this.lastModified = snapshot.getLastModified();
     }
 
     public JourneySnapshot toSnapshot() {
@@ -237,9 +268,15 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
         snapshot.setCompleted(completed);
         snapshot.setState(state);
         // entities
-        snapshot.setSchoolId(school.getSchoolId());
-        snapshot.setDriverId(driver.getPersonId());
+        snapshot.setOwnerId(owner.getCoordinatorId());
+        snapshot.setAgentId(agent.getCoordinatorId());
+        snapshot.setGuideId(guide.getCoordinatorId());
+        snapshot.setOriginId(origin.getPlaceId());
+        snapshot.setDestinationId(destination.getPlaceId());
         snapshot.setRouteId(route.getRouteId());
+        //
+        snapshot.setActive(active);
+        snapshot.setLastModified(lastModified);
         return snapshot;
     }
 
@@ -270,7 +307,7 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
 
     @Override
     public String toString() {
-        return "Journey{" +
+        String s = "Journey{" +
                 "journeyId='" + journeyId + '\'' +
                 ", appId='" + appId + '\'' +
                 ", source='" + source + '\'' +
@@ -279,21 +316,42 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
                 ", created=" + created +
                 ", completed=" + completed +
                 ", state=" + state +
-                '}';
+                ", route=" + (route == null ? route : route.getRouteId()) +
+                ", owner=" + (owner == null ? owner : owner.getCoordinatorId()) +
+                ", agent=" + (agent == null ? agent : agent.getCoordinatorId()) +
+                ", guide=" + (guide == null ? guide : guide.getCoordinatorId()) +
+                ", origin=" + (origin == null ? origin : origin.getPlaceId()) +
+                ", destination=" + (destination == null ? destination : destination.getPlaceId()) +
+                ", waypoints=" + waypoints;
+        s += ", tickets=";
+        if ((tickets == null) || tickets.isEmpty()) {
+            s += "[empty]";
+        } else {
+            for (Ticket o : tickets) {
+                s += " ";
+                s += o.getTicketId();
+            }
+        }
+        s += "} " + super.toString();
+        return s;
     }
 
     protected Journey(Parcel in) {
+        super(in);
         journeyId = in.readString();
         appId = in.readString();
-        school = (School) in.readValue(School.class.getClassLoader());
-        route = (Route) in.readValue(Route.class.getClassLoader());
-        driver = (Driver) in.readValue(Driver.class.getClassLoader());
         source = in.readString();
         totalDistance = in.readFloat();
         totalDuration = in.readLong();
         created = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
         completed = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
         state = (TrackingState) in.readValue(TrackingState.class.getClassLoader());
+        route = (Route) in.readValue(Route.class.getClassLoader());
+        owner = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
+        agent = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
+        guide = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
+        origin = (Place) in.readValue(Place.class.getClassLoader());
+        destination = (Place) in.readValue(Place.class.getClassLoader());
         waypoints = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
         tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
     }
@@ -305,17 +363,21 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        super.writeToParcel(dest, flags);
         dest.writeString(journeyId);
         dest.writeString(appId);
-        dest.writeValue(school);
-        dest.writeValue(route);
-        dest.writeValue(driver);
         dest.writeString(source);
         dest.writeFloat(totalDistance);
         dest.writeLong(totalDuration);
         dest.writeValue(created);
         dest.writeValue(completed);
         dest.writeValue(state);
+        dest.writeValue(route);
+        dest.writeValue(owner);
+        dest.writeValue(agent);
+        dest.writeValue(guide);
+        dest.writeValue(origin);
+        dest.writeValue(destination);
         dest.writeValue(waypoints);
         dest.writeValue(tickets);
     }
@@ -332,5 +394,6 @@ public class Journey extends Model implements Comparable, Serializable, Parcelab
             return new Journey[size];
         }
     };
+
 }
 
