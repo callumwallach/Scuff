@@ -13,32 +13,32 @@ import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ScuffApplication;
 import nz.co.scuff.data.base.Coordinator;
 
-public class GuidedJourneyActivity extends ActionBarActivity {
+public class SoloJourneyActivity extends ActionBarActivity {
 
-    private static final String TAG = "GuidedJourney";
+    private static final String TAG = "SoloJourney";
     private static final boolean D = true;
 
-    private static final int SELECT_GUIDEE = 0;
+    private static final int SELECT_FRIEND = 0;
     private static final int SELECT_ROUTE = 1;
 
-    private long guideeId;
+    private long agentId;
     private long routeId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_guided_journey);
+        setContentView(R.layout.activity_solo_journey);
 
         Coordinator coordinator = ((ScuffApplication)getApplication()).getCoordinator();
-        Intent guideeIntent = new Intent(this, SelectGuideeActivity.class);
-        guideeIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinator.getCoordinatorId());
-        startActivityForResult(guideeIntent, SELECT_GUIDEE);
+        Intent routeIntent = new Intent(this, SelectRouteActivity.class);
+        routeIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinator.getCoordinatorId());
+        startActivityForResult(routeIntent, SELECT_ROUTE);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_guided_journey, menu);
+        getMenuInflater().inflate(R.menu.menu_solo_journey, menu);
         return true;
     }
 
@@ -57,23 +57,24 @@ public class GuidedJourneyActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void selectRoute(Intent data) {
-        this.guideeId = data.getLongExtra(Constants.COORDINATOR_ID_KEY, -1);
-        if (D) Log.d(TAG, "selected guidee="+this.guideeId);
-        Intent routeIntent = new Intent(this, SelectRouteActivity.class);
-        routeIntent.putExtra(Constants.COORDINATOR_ID_KEY, this.guideeId);
-        startActivityForResult(routeIntent, SELECT_ROUTE);
+    private void startJourney(Intent data) {
+        this.agentId = data.getLongExtra(Constants.COORDINATOR_ID_KEY, -1);
+        if (D) Log.d(TAG, "selected friend="+this.agentId);
+        Coordinator coordinator = ((ScuffApplication)getApplication()).getCoordinator();
+        Intent journeyIntent = new Intent(this, DriverHomeActivity.class);
+        journeyIntent.putExtra(Constants.OWNER_ID_KEY, coordinator.getCoordinatorId());
+        journeyIntent.putExtra(Constants.AGENT_ID_KEY, this.agentId);
+        journeyIntent.putExtra(Constants.ROUTE_ID_KEY, this.routeId);
+        startActivity(journeyIntent);
     }
 
-    private void startJourney(Intent data) {
+    private void selectAgent(Intent data) {
         this.routeId = data.getLongExtra(Constants.ROUTE_ID_KEY, -1);
         if (D) Log.d(TAG, "selected route="+this.routeId);
         Coordinator coordinator = ((ScuffApplication)getApplication()).getCoordinator();
-        Intent journeyIntent = new Intent(this, DriverHomeActivity.class);
-        journeyIntent.putExtra(Constants.OWNER_ID_KEY, this.guideeId);
-        journeyIntent.putExtra(Constants.AGENT_ID_KEY, coordinator.getCoordinatorId());
-        journeyIntent.putExtra(Constants.ROUTE_ID_KEY, this.routeId);
-        startActivity(journeyIntent);
+        Intent agentIntent = new Intent(this, SelectFriendActivity.class);
+        agentIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinator.getCoordinatorId());
+        startActivityForResult(agentIntent, SELECT_FRIEND);
     }
 
     @Override
@@ -81,12 +82,12 @@ public class GuidedJourneyActivity extends ActionBarActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch(requestCode) {
-            case (SELECT_GUIDEE) : {
-                if (resultCode == Activity.RESULT_OK) selectRoute(data);
+            case (SELECT_FRIEND) : {
+                if (resultCode == Activity.RESULT_OK) startJourney(data);
                 break;
             }
             case (SELECT_ROUTE) : {
-                if (resultCode == Activity.RESULT_OK) startJourney(data);
+                if (resultCode == Activity.RESULT_OK) selectAgent(data);
                 break;
             }
         }

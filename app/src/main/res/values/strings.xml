@@ -56,5 +56,9 @@
     <string name="title_activity_select_friend">Friend Selection</string>
     <string name="title_activity_driver_journey_choice">Choose journey type</string>
     <string name="title_activity_guided_journey">Start a guided journey</string>
+    <string name="title_activity_solo_journey">Solo Journey</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_select_guidee">Select friend</string>
 
 </resources>

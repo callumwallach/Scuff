@@ -135,7 +135,7 @@
             android:value="Scuff.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="42" />
+            android:value="43" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />
@@ -214,6 +214,18 @@
         <activity
             android:name=".ui.SelectRouteActivity"
             android:label="@string/title_activity_select_route" >
+        </activity>
+        <activity
+            android:name=".ui.SoloJourneyActivity"
+            android:label="@string/title_activity_solo_journey"
+            android:parentActivityName=".ui.DriverJourneyChoiceActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="nz.co.scuff.android.ui.DriverJourneyChoiceActivity" />
+        </activity>
+        <activity
+            android:name=".ui.SelectGuideeActivity"
+            android:label="@string/title_activity_select_guidee" >
         </activity>
     </application>
 

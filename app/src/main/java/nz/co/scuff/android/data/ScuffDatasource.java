@@ -801,7 +801,14 @@ public final class ScuffDatasource {
         // WAYPOINTS
         Set<String> incomingWaypointIds = incomingData.getWaypointIds();
         if (!incomingWaypointIds.contains(nz.co.scuff.data.util.Constants.STRING_COLLECTION_NOT_RETRIEVED)) {
-            // cannot remove waypoints from journey
+            Iterator itr = existingData.getWaypoints().iterator();
+            while (itr.hasNext()) {
+                Waypoint waypoint = (Waypoint) itr.next();
+                if (!incomingWaypointIds.contains(waypoint.getWaypointId())) {
+                    itr.remove();
+                    waypoint.delete();
+                }
+            }
             for (String id : incomingWaypointIds) {
                 Waypoint cached = getWaypoint(id, caches);
                 if (!existingData.getWaypoints().contains(cached)) {
@@ -1018,7 +1025,7 @@ public final class ScuffDatasource {
 
     private static void doCoordinatorRelationships(Coordinator existingData, CoordinatorSnapshot incomingData,
                                                    Map<String, Map> caches) {
-        if (D) Log.d(TAG, "adult relationships existing=" + existingData +" snapshot="+incomingData);
+        if (D) Log.d(TAG, "coordinator relationships existing=" + existingData +" snapshot="+incomingData);
 
         // ROUTES
         Set<Long> incomingRouteIds = incomingData.getRouteIds();
@@ -1086,12 +1093,36 @@ public final class ScuffDatasource {
                 if (!existingData.getFriendRelationships().contains(relationship)) {
                     relationship.save();
                     existingData.getFriendRelationships().add(relationship);
+                    cached.getFriendRelationships().add(relationship);
+                    cached.save();
+                }
+            }
+        }
+        // CURRENT JOURNEYS
+        Set<String> incomingJourneyIds = incomingData.getCurrentJourneyIds();
+        if (!incomingJourneyIds.contains(nz.co.scuff.data.util.Constants.STRING_COLLECTION_NOT_RETRIEVED)) {
+
+            Iterator itr = existingData.getCurrentJourneyRelationships().iterator();
+            while (itr.hasNext()) {
+                JourneyRelationship relationship = (JourneyRelationship) itr.next();
+                Journey cached = getJourney(relationship.getJourney().getJourneyId(), caches);
+                if (!incomingJourneyIds.contains(cached.getJourneyId())) {
+                    itr.remove();
+                    relationship.delete();
+                }
+            }
+            for (String id : incomingJourneyIds) {
+                Journey cached = getJourney(id, caches);
+                JourneyRelationship relationship = new JourneyRelationship(existingData, cached);
+                if (!existingData.getCurrentJourneyRelationships().contains(relationship)) {
+                    relationship.save();
+                    existingData.getCurrentJourneyRelationships().add(relationship);
                     //cached.save();
                 }
             }
         }
         // PAST JOURNEYS
-        Set<String> incomingJourneyIds = incomingData.getPastJourneyIds();
+        incomingJourneyIds = incomingData.getPastJourneyIds();
         if (!incomingJourneyIds.contains(nz.co.scuff.data.util.Constants.STRING_COLLECTION_NOT_RETRIEVED)) {
 
             for (String id : incomingJourneyIds) {
@@ -1104,29 +1135,16 @@ public final class ScuffDatasource {
                 }
             }
         }
-        // PAST JOURNEYS
-        incomingJourneyIds = incomingData.getCurrentJourneyIds();
-        if (!incomingJourneyIds.contains(nz.co.scuff.data.util.Constants.STRING_COLLECTION_NOT_RETRIEVED)) {
-
-            for (String id : incomingJourneyIds) {
-                Journey cached = getJourney(id, caches);
-                JourneyRelationship relationship = new JourneyRelationship(existingData, cached);
-                if (!existingData.getCurrentJourneyRelationships().contains(relationship)) {
-                    relationship.save();
-                    existingData.getCurrentJourneyRelationships().add(relationship);
-                    //cached.save();
-                }
-            }
-        }
 
     }
 
-    public static List<Journey> getActiveJourneys(long coordinatorId) {
-        if (D) Log.d(TAG, "get active journeys for adult=" + coordinatorId);
+    // TODO smarter service. initially get all active, then refresh those retrieved (i.e. + new - old)
+    public static List<Journey> getActiveJourneys(long adultId, ArrayList<String> watchedJourneyIds) {
+        if (D) Log.d(TAG, "get active journeys for adult="+adultId+" watchedJourneyIds="+watchedJourneyIds);
 
         // fresh journey search
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        DataPacket packet = client.getActiveJourneys(coordinatorId);
+        DataPacket packet = client.getActiveJourneys(adultId, watchedJourneyIds);
         Map<String, Map> organised = syncData(packet);
         Map<String, Journey> journeys = organised.get(JO);
         return new ArrayList<>(journeys.values());
@@ -1238,37 +1256,13 @@ public final class ScuffDatasource {
         });
     }
 
-    /*public static List<Institution> getSchools(double latitude, double longitude) {
-        if (D) Log.d(TAG, "getInstitutions lat="+latitude+" long="+longitude);
-
-        ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        DataPacket packet = client.getSchools(latitude, longitude, Constants.DEFAULT_RADIUS);
-        Map<Long, InstitutionSnapshot> schoolMap = packet.getSchoolSnapshots();
-        Map<Long, RouteSnapshot> routeMap = packet.getRouteSnapshots();
-
-        List<Institution> institutions = new ArrayList<>();
-        for (Long sk : schoolMap.keySet()) {
-            InstitutionSnapshot ss = schoolMap.get(sk);
-            Institution institution = new Institution();
-            institution.refresh(ss);
-            for (Long rId : ss.getRouteIds()) {
-                RouteSnapshot rs = routeMap.get(rId);
-                Route route = new Route();
-                route.refresh(rs);
-                institution.getRoutes().add(route);
-            }
-            institutions.add(institution);
-        }
-        return institutions;
-    }*/
-
     public static Coordinator getUser(String email) throws ResourceNotFoundException {
         if (D) Log.d(TAG, "getUser by email=" + email);
 
         // check locally first
         Coordinator currentCoordinator = Coordinator.findByEmail(email);
         // if found, request changes from server. if not found retrieve user
-        long lastModified = currentCoordinator == null ? 0L : currentCoordinator.getLastModified().getTime();
+        long lastModified = currentCoordinator == null ? 0L : currentCoordinator.getLastLogin().getTime();
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
         DataPacket packet = client.getDriver(email, lastModified);
         if (D) Log.d(TAG, "received data packet=" + packet);

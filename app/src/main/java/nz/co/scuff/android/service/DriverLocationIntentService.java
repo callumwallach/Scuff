@@ -4,11 +4,9 @@ import android.content.Intent;
 import android.location.Location;
 import android.util.Log;
 
-import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.util.Constants;
-import nz.co.scuff.android.event.LocationEvent;
 
 public class DriverLocationIntentService extends BaseLocationIntentService {
 

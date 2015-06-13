@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import de.greenrobot.event.EventBus;
@@ -26,9 +27,10 @@ public class PassengerIntentService extends IntentService {
         if (D) Log.d(TAG, "onHandleIntent");
 
         long coordinatorId = intent.getExtras().getLong(Constants.COORDINATOR_ID_KEY);
+        ArrayList<String> watchedJourneyIds = intent.getExtras().getStringArrayList(Constants.WATCHED_JOURNEYS_ID_KEY);
 
         if (D) Log.d(TAG, "retrieving fresh bus snapshots from server");
-        List<Journey> fetchedJourneys = ScuffDatasource.getActiveJourneys(coordinatorId);
+        List<Journey> fetchedJourneys = ScuffDatasource.getActiveJourneys(coordinatorId, watchedJourneyIds);
         // unlikely but may have more than one bus active for a route and school at any given time
 
         EventBus.getDefault().post(new JourneyEvent(fetchedJourneys));

@@ -201,10 +201,7 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     }
 
     public SortedSet<Waypoint> getWaypoints() {
-        if (waypoints == null) {
-            waypoints = new TreeSet<>();
-        }
-        return waypoints;
+        return new TreeSet<>(getMany(Waypoint.class, "JourneyFK"));
     }
 
     public void setWaypoints(SortedSet<Waypoint> waypoints) {
@@ -212,10 +209,7 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     }
 
     public SortedSet<Ticket> getTickets() {
-        if (tickets == null) {
-            tickets = new TreeSet<>();
-        }
-        return tickets;
+        return new TreeSet<>(getMany(Ticket.class, "JourneyFK"));
     }
 
     public void setTickets(SortedSet<Ticket> tickets) {

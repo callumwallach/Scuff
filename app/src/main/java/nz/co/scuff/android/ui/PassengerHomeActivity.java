@@ -60,6 +60,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
     private Journey selectedJourney;
     //private List<Journey> journeys;
     private Map<Marker, Journey> markerMap;
+    private ArrayList<String> watchedJourneyIds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,9 +72,10 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         //this.institution = ((ScuffApplication) getApplicationContext()).getInstitution();
         //this.journeys = new ArrayList<>();
         this.markerMap = new HashMap<>();
+        this.watchedJourneyIds = new ArrayList<>();
 
         setupMap();
-        watchForBuses();
+        checkForBuses();
 
         //setupRoutes();
 
@@ -214,6 +216,9 @@ public class PassengerHomeActivity extends BaseFragmentActivity
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
         this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
 
+        this.markerMap.clear();
+        this.watchedJourneyIds.clear();
+
         for (Journey journey : journeys) {
             Waypoint waypoint = journey.getCurrentWaypoint();
             if (D) Log.d(TAG, "Bus location: journey=" + journey.getJourneyId()+" waypoint="+waypoint);
@@ -223,39 +228,45 @@ public class PassengerHomeActivity extends BaseFragmentActivity
                     .title("Bus position")
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
             this.markerMap.put(busMarker, journey);
+            this.watchedJourneyIds.add(journey.getJourneyId());
             //if (this.newRouteSelected) {
             //this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
                 //newRouteSelected = false;
             //}
         }
+        watchForBuses();
     }
 
-    private void watchForBuses() {
-        if (D) Log.d(TAG, "Watching for buses" /*route=" + this.route*/);
+    private void checkForBuses() {
+        if (D) Log.d(TAG, "Checking for initial buses");
 
-        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         long coordinatorId = ((ScuffApplication) getApplicationContext()).getCoordinator().getCoordinatorId();
 
         // send direct one first
         Intent directIntent = new Intent(this, PassengerIntentService.class);
         directIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinatorId);
         startService(directIntent);
+    }
+
+    private void watchForBuses() {
+        if (D) Log.d(TAG, "Watching for buses");
+
+        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        long coordinatorId = ((ScuffApplication) getApplicationContext()).getCoordinator().getCoordinatorId();
 
         // start new listener (for current route) using FLAG_CANCEL_CURRENT we cancel other intents for old routes
         Intent alarmIntent = new Intent(this, PassengerAlarmReceiver.class);
         alarmIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinatorId);
+        alarmIntent.putStringArrayListExtra(Constants.WATCHED_JOURNEYS_ID_KEY, this.watchedJourneyIds);
+
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, PASSENGER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         // cancel outstanding
         alarmManager.cancel(pendingAlarmIntent);
-        // then restart
-        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(),
-                Constants.LISTEN_LOCATION_INTERVAL * 1000, pendingAlarmIntent);
-
+        alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + Constants.LISTEN_LOCATION_INTERVAL * 1000, pendingAlarmIntent);
     }
 
     public void onEventMainThread(JourneyEvent event) {
         if (D) Log.d(TAG, "Main thread message waypoint event=" + event);
-        this.markerMap.clear();
         markBuses(event.getJourneys());
     }
 

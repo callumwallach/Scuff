@@ -23,6 +23,7 @@ import nz.co.scuff.data.relationship.ParentalRelationship;
 import nz.co.scuff.data.relationship.PlaceRelationship;
 import nz.co.scuff.data.util.TrackingState;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -50,6 +51,9 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
 
     @Column(name="CoordinatorId")
     protected long coordinatorId;
+
+    @Column(name="LastLogin")
+    private Timestamp lastLogin;
 
     // one to many
     private SortedSet<Route> routes;
@@ -114,6 +118,14 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
 
     public void setCoordinatorId(long coordinatorId) {
         this.coordinatorId = coordinatorId;
+    }
+
+    public Timestamp getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(Timestamp lastLogin) {
+        this.lastLogin = lastLogin;
     }
 
     public SortedSet<Route> getRoutes() {
@@ -338,6 +350,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     public void refresh(CoordinatorSnapshot snapshot) {
         this.type = (snapshot instanceof AdultSnapshot) ? CoordinatorType.ADULT : CoordinatorType.INSTITUTION;
         this.coordinatorId = snapshot.getCoordinatorId();
+        this.lastLogin = snapshot.getLastLogin();
         this.active = snapshot.isActive();
         this.lastModified = snapshot.getLastModified();
     }
@@ -354,6 +367,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
             toReturn = snapshot;
         }
         toReturn.setCoordinatorId(coordinatorId);
+        toReturn.setLastLogin(lastLogin);
         toReturn.setActive(active);
         toReturn.setLastModified(lastModified);
         return toReturn;
@@ -403,6 +417,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     public String toString() {
         return "Coordinator{" +
                 "coordinatorId=" + coordinatorId +
+                ", lastLogin=" + lastLogin +
                 ", routes=" + routes +
                 ", places=" + places +
                 ", friends=" + friends +
@@ -430,6 +445,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     protected Coordinator(Parcel in) {
         super(in);
         coordinatorId = in.readLong();
+        lastLogin = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
         routes = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
         if (in.readByte() == 0x01) {
             places = new ArrayList<PlaceRelationship>();
@@ -487,6 +503,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     public void writeToParcel(Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
         dest.writeLong(coordinatorId);
+        dest.writeValue(lastLogin);
         dest.writeValue(routes);
         if (places == null) {
             dest.writeByte((byte) (0x00));

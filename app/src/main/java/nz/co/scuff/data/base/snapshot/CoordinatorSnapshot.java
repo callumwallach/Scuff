@@ -2,6 +2,7 @@ package nz.co.scuff.data.base.snapshot;
 
 import com.google.gson.annotations.Expose;
 
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -12,6 +13,8 @@ public abstract class CoordinatorSnapshot extends ModifiableSnapshot {
 
     @Expose
     private long coordinatorId;
+    @Expose
+    private Timestamp lastLogin;
 
     @Expose
     private Set<Long> placeIds;
@@ -39,6 +42,14 @@ public abstract class CoordinatorSnapshot extends ModifiableSnapshot {
 
     public void setCoordinatorId(long coordinatorId) {
         this.coordinatorId = coordinatorId;
+    }
+
+    public Timestamp getLastLogin() {
+        return lastLogin;
+    }
+
+    public void setLastLogin(Timestamp lastLogin) {
+        this.lastLogin = lastLogin;
     }
 
     public Set<Long> getPlaceIds() {
@@ -101,6 +112,7 @@ public abstract class CoordinatorSnapshot extends ModifiableSnapshot {
     public String toString() {
         return "CoordinatorSnapshot{" +
                 "coordinatorId=" + coordinatorId +
+                ", lastLogin=" + lastLogin +
                 ", placeIds=" + placeIds +
                 ", routeIds=" + routeIds +
                 ", friendIds=" + friendIds +

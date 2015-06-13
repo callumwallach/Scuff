@@ -22,6 +22,9 @@ public interface Constants {
     String TICKETS_KEY = "TS_KEY";
 
     String COORDINATOR_ID_KEY = "CID_KEY";
+    String WATCHED_JOURNEYS_ID_KEY = "JID_KEY";
+    String OWNER_ID_KEY = "OID_KEY";
+    String AGENT_ID_KEY = "AID_KEY";
     String ROUTE_ID_KEY = "RID_KEY";
 
     int RECORD_LOCATION_INTERVAL = 10;

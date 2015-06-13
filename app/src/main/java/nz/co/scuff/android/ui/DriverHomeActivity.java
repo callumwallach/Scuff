@@ -20,26 +20,20 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.joda.time.DateTimeUtils;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 
-import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.service.DriverAlarmReceiver;
 import nz.co.scuff.android.service.DriverIntentService;
 import nz.co.scuff.android.ui.fragment.ChildrenFragment;
 import nz.co.scuff.android.util.CommandType;
-import nz.co.scuff.android.event.LocationEvent;
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.institution.Route;
@@ -57,7 +51,8 @@ public class DriverHomeActivity extends BaseFragmentActivity
 
     private static final int DRIVER_ALARM = 0;
 
-    private Coordinator friend;
+    private Coordinator owner;
+    private Coordinator agent;
     private Route route;
 
     private GoogleMap googleMap;
@@ -79,8 +74,10 @@ public class DriverHomeActivity extends BaseFragmentActivity
 
         initialiseMap();
 
-        long friendId = getIntent().getLongExtra(Constants.COORDINATOR_ID_KEY, -1);
-        this.friend = Coordinator.findById(friendId);
+        long ownerId = getIntent().getLongExtra(Constants.OWNER_ID_KEY, -1);
+        this.owner = Coordinator.findById(ownerId);
+        long agentId = getIntent().getLongExtra(Constants.AGENT_ID_KEY, -1);
+        this.agent = Coordinator.findById(agentId);
         long routeId = getIntent().getLongExtra(Constants.ROUTE_ID_KEY, -1);
         this.route = Route.findById(routeId);
 
@@ -261,8 +258,8 @@ public class DriverHomeActivity extends BaseFragmentActivity
             journey.setCompleted(null);
             journey.setState(TrackingState.COMPLETED);
 
-            journey.setOwner(this.friend);
-            journey.setAgent(scuffContext.getCoordinator());
+            journey.setOwner(this.owner);
+            journey.setAgent(this.agent);
             journey.setGuide(scuffContext.getCoordinator());
 
             journey.setOrigin(this.route.getOrigin());
@@ -318,7 +315,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
         alarmIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
+        alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + (recordInterval * 1000),
                 recordInterval * 1000, pendingAlarmIntent);
 
     }
@@ -359,7 +356,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
         alarmIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + (recordInterval * 1000),
+        alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + (recordInterval * 1000),
                 recordInterval * 1000, pendingAlarmIntent);
 
     }

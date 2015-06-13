@@ -14,6 +14,7 @@ import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Path;
 import retrofit.http.Query;
+import retrofit.http.QueryMap;
 
 /**
  * Created by Callum on 26/04/2015.
@@ -30,7 +31,7 @@ public interface ScuffServerInterface {
 
     // walking
     @GET("/walking/buses")
-    DataPacket getActiveJourneys(@Query("coordinatorId") long coordinatorId);
+    DataPacket getActiveJourneys(@Query("adultId") long adultId, @Query("watchedIds[]") List<String> watchedIds);
 
     /*@GET("/walking/buses")
     List<BusSnapshot> getActiveBuses(@Query("routeId") long routeId, @Query("schoolId") long schoolId);*/

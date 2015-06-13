@@ -40,6 +40,8 @@ public class DriverJourneyChoiceActivity extends ActionBarActivity {
     }
 
     public void soloJourney(View v) {
+        Intent intent = new Intent(this, SoloJourneyActivity.class);
+        startActivity(intent);
     }
 
     public void guidedJourney(View v) {
