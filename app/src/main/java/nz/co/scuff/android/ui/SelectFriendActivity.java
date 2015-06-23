@@ -3,6 +3,7 @@ package nz.co.scuff.android.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,11 +17,13 @@ import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.data.base.Coordinator;
 
-public class SelectFriendActivity extends BaseFragmentActivity
+public class SelectFriendActivity extends ActionBarActivity
         implements CoordinatorFragment.OnFragmentInteractionListener{
 
     private static final String TAG = "SelectFriend";
     private static final boolean D = true;
+
+    private String parentActivityClassName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,12 +34,45 @@ public class SelectFriendActivity extends BaseFragmentActivity
         Coordinator coordinator = Coordinator.findById(coordinatorId);
         Set<Coordinator> friends = coordinator.getFriends();
 
+        parentActivityClassName = getIntent().getStringExtra(Constants.PARENT_ACTIVITY_CLASS_NAME);
+
         if (D) Log.d(TAG, "found coordinator="+coordinator.getCoordinatorId()+" friends="+friends);
 
         CoordinatorFragment fragment = CoordinatorFragment.newInstance(new ArrayList<>(friends));
         getSupportFragmentManager().beginTransaction().add(R.id.linearLayout, fragment).commit();
     }
 
+    @Override
+    public Intent getSupportParentActivityIntent() {
+        Intent intent = getParentActivityIntentImpl();
+        if (intent == null) {
+            intent = super.getSupportParentActivityIntent();
+        }
+        return intent;
+    }
+
+    @Override
+    public Intent getParentActivityIntent() {
+        Intent intent = getParentActivityIntentImpl();
+        if (intent == null) {
+            intent = super.getParentActivityIntent();
+        }
+        return intent;
+    }
+
+    private Intent getParentActivityIntentImpl() {
+        Intent intent = null;
+        if (parentActivityClassName != null) {
+            try {
+                Class parentActivityClass = Class.forName(parentActivityClassName);
+                intent = new Intent(this, parentActivityClass);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            } catch (ClassNotFoundException e) {
+                Log.e(TAG, "Parent activity class="+parentActivityClassName+" not found");
+            }
+        }
+        return intent;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

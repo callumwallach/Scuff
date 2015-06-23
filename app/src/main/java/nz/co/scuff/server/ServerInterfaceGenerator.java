@@ -1,10 +1,12 @@
-package nz.co.scuff.android.util;
+package nz.co.scuff.server;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.okhttp.OkHttpClient;
 
 
+import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.server.error.DefaultErrorHandler;
 import retrofit.ErrorHandler;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -21,20 +23,7 @@ public class ServerInterfaceGenerator {
 
     public static <S> S createService(Class<S> serviceClass, String baseUrl) {
 
-        Gson gson = new GsonBuilder()
-                .setDateFormat(Constants.JSON_DATE_FORMAT)
-                .excludeFieldsWithoutExposeAnnotation()
-                .create();
-
-        RestAdapter.Builder builder = new RestAdapter.Builder()
-                .setLogLevel(RestAdapter.LogLevel.FULL) // testing
-                .setEndpoint(baseUrl)
-                .setConverter(new GsonConverter(gson))
-                .setClient(new OkClient(new OkHttpClient()));
-
-        RestAdapter adapter = builder.build();
-
-        return adapter.create(serviceClass);
+        return createService(serviceClass, baseUrl, new DefaultErrorHandler());
     }
 
     public static <S> S createService(Class<S> serviceClass, String baseUrl, ErrorHandler errorHandler) {

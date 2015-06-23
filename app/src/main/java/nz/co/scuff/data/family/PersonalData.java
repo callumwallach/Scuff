@@ -125,13 +125,15 @@ public class PersonalData extends Model implements Comparable, Parcelable {
         this.phone = phone;
     }
 
-/*    public Coordinator getAdult() {
-        return adult;
+    public void refresh(PersonalData data) {
+        this.firstName = data.getFirstName();
+        this.middleName = data.getMiddleName();
+        this.lastName = data.getLastName();
+        this.gender = data.getGender();
+        this.picture = data.getPicture();
+        this.email = data.getEmail();
+        this.phone = data.getPhone();
     }
-
-    public void setAdult(Coordinator coordinator) {
-        this.adult = coordinator;
-    }*/
 
     @Override
     public boolean equals(Object o) {
@@ -165,6 +167,7 @@ public class PersonalData extends Model implements Comparable, Parcelable {
         PersonalData that = (PersonalData)another;
         if (that.lastName == null) return 1;
         if (this.lastName == null) return -1;
+        if (this.equals(that)) return 0;
         int lastNameCompared = this.lastName.compareTo(that.lastName);
         if (lastNameCompared != 0) return lastNameCompared;
         return this.firstName.compareTo(that.firstName);

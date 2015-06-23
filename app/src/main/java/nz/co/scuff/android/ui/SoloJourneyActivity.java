@@ -31,6 +31,7 @@ public class SoloJourneyActivity extends ActionBarActivity {
 
         Coordinator coordinator = ((ScuffApplication)getApplication()).getCoordinator();
         Intent routeIntent = new Intent(this, SelectRouteActivity.class);
+        routeIntent.putExtra(Constants.PARENT_ACTIVITY_CLASS_NAME, DriverJourneyChoiceActivity.class.getName());
         routeIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinator.getCoordinatorId());
         startActivityForResult(routeIntent, SELECT_ROUTE);
     }
@@ -73,6 +74,7 @@ public class SoloJourneyActivity extends ActionBarActivity {
         if (D) Log.d(TAG, "selected route="+this.routeId);
         Coordinator coordinator = ((ScuffApplication)getApplication()).getCoordinator();
         Intent agentIntent = new Intent(this, SelectFriendActivity.class);
+        agentIntent.putExtra(Constants.PARENT_ACTIVITY_CLASS_NAME, DriverJourneyChoiceActivity.class.getName());
         agentIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinator.getCoordinatorId());
         startActivityForResult(agentIntent, SELECT_FRIEND);
     }

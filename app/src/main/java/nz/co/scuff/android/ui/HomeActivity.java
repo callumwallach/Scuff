@@ -9,16 +9,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.TextView;
 
-import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
-import nz.co.scuff.android.event.ErrorEvent;
-import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.android.util.ScuffApplication;
-import nz.co.scuff.server.error.ResourceNotFoundException;
+import nz.co.scuff.server.error.ResourceException;
 
 public class HomeActivity extends BaseActivity {
 
@@ -84,10 +80,16 @@ public class HomeActivity extends BaseActivity {
                 Coordinator coordinator = ScuffDatasource.getUser("callum@gmail.com");
                 ((ScuffApplication) getApplicationContext()).setCoordinator(coordinator);
                 resultCode = 1;
-            } catch (ResourceNotFoundException e) {
-                Log.e(TAG, "Error person not found", e);
-                ErrorEvent event = new ErrorEvent(e);
-                EventBus.getDefault().post(event);
+            } catch (ResourceException re) {
+                Log.e(TAG, "Error person not found", re);
+                progressDialog.dismiss();
+/*                ErrorEvent event = new ErrorEvent(re);
+                EventBus.getDefault().post(event);*/
+            } catch (Throwable t) {
+                Log.e(TAG, "Error:", t);
+                progressDialog.dismiss();
+/*                ErrorEvent event = new ErrorEvent(new NetworkException("Connection Error", t));
+                EventBus.getDefault().post(event);*/
             }
             return resultCode;
         }

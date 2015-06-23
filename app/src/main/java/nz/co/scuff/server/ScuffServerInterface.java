@@ -2,10 +2,8 @@ package nz.co.scuff.server;
 
 import java.util.List;
 
-import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
-import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
 import nz.co.scuff.data.util.DataPacket;
-import nz.co.scuff.server.error.ResourceNotFoundException;
+import nz.co.scuff.server.error.ResourceException;
 import retrofit.Callback;
 import retrofit.client.Response;
 import retrofit.http.Body;
@@ -14,7 +12,6 @@ import retrofit.http.POST;
 import retrofit.http.PUT;
 import retrofit.http.Path;
 import retrofit.http.Query;
-import retrofit.http.QueryMap;
 
 /**
  * Created by Callum on 26/04/2015.
@@ -22,16 +19,15 @@ import retrofit.http.QueryMap;
 public interface ScuffServerInterface {
 
     // driving
-
     @POST("/driving/journeys")
-    void postJourney(@Body DataPacket packet, Callback<DataPacket> cb);
+    void startJourney(@Body DataPacket packet, Callback<DataPacket> cb);
 
     @PUT("/driving/journeys/{id}")
-    void updateJourney(@Path("id") String journeyId, @Body DataPacket packet, Callback<DataPacket> cb);
+    void updateJourney(@Path("id") long journeyId, @Body DataPacket packet, Callback<DataPacket> cb);
 
     // walking
-    @GET("/walking/buses")
-    DataPacket getActiveJourneys(@Query("adultId") long adultId, @Query("watchedIds[]") List<String> watchedIds);
+    @GET("/walking/journeys")
+    DataPacket getJourneys(@Query("adultId") long adultId, @Query("watchedIds[]") List<Long> watchedIds, @Query("active") boolean active);
 
     /*@GET("/walking/buses")
     List<BusSnapshot> getActiveBuses(@Query("routeId") long routeId, @Query("schoolId") long schoolId);*/
@@ -41,15 +37,15 @@ public interface ScuffServerInterface {
     DataPacket getActiveJourneys(@Query("routeId") long routeId, @Query("schoolId") long schoolId);
 */
 
-    @POST("/walking/buses/{id}/tickets")
-    DataPacket requestTickets(@Path("id") String journeyId, @Body List<Long> childIds) throws ResourceNotFoundException;
+    @POST("/walking/journeys/{id}/tickets")
+    DataPacket issueTickets(@Path("id") long journeyId, @Body List<Long> childIds) throws ResourceException;
+
     /*@POST("/walking/buses/{id}/tickets")
-    List<TicketSnapshot> requestTickets(@Path("id") String journeyId, @Body List<Long> passengerIds) throws ResourceNotFoundException;*/
+    List<TicketSnapshot> issueTickets(@Path("id") String journeyId, @Body List<Long> passengerIds) throws ResourceException;*/
 
-    //accounts
-
+    // accounts
     @GET("/account/drivers/{email}")
-    DataPacket getDriver(@Path("email") String email, @Query("lastChecked") long lastChecked) throws ResourceNotFoundException;
+    DataPacket getDriver(@Path("email") String email, @Query("lastChecked") long lastChecked) throws ResourceException;
 
 /*
     @GET("/account/schools")

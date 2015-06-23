@@ -18,6 +18,7 @@ import nz.co.scuff.data.base.Snapshotable;
 import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
 import nz.co.scuff.data.institution.Route;
 import nz.co.scuff.data.place.Place;
+import nz.co.scuff.data.util.Constants;
 import nz.co.scuff.data.util.TrackingState;
 
 /**
@@ -27,7 +28,7 @@ import nz.co.scuff.data.util.TrackingState;
 public class Journey extends ModifiableEntity implements Snapshotable, Comparable {
 
     @Column(name="JourneyId")
-    private String journeyId;
+    private long journeyId;
     @Column(name="AppId")
     private String appId;
     @Column(name="Source")
@@ -67,8 +68,9 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
 
     public Journey() {
         super();
-        waypoints = new TreeSet<>();
-        tickets = new TreeSet<>();
+        this.journeyId = Constants.JOURNEY_PRE_CREATED_KEY;
+        /*this.waypoints = new TreeSet<>();
+        this.tickets = new TreeSet<>();*/
     }
 
     public Journey(JourneySnapshot snapshot) {
@@ -84,15 +86,15 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
         this.active = snapshot.isActive();
         this.lastModified = snapshot.getLastModified();
 
-        waypoints = new TreeSet<>();
-        tickets = new TreeSet<>();
+        /*waypoints = new TreeSet<>();
+        tickets = new TreeSet<>();*/
     }
 
-    public String getJourneyId() {
+    public long getJourneyId() {
         return journeyId;
     }
 
-    public void setJourneyId(String journeyId) {
+    public void setJourneyId(long journeyId) {
         this.journeyId = journeyId;
     }
 
@@ -201,7 +203,10 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     }
 
     public SortedSet<Waypoint> getWaypoints() {
-        return new TreeSet<>(getMany(Waypoint.class, "JourneyFK"));
+        if (this.waypoints == null) {
+            this.waypoints = new TreeSet<>(getMany(Waypoint.class, "JourneyFK"));
+        }
+        return this.waypoints;
     }
 
     public void setWaypoints(SortedSet<Waypoint> waypoints) {
@@ -209,7 +214,10 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     }
 
     public SortedSet<Ticket> getTickets() {
-        return new TreeSet<>(getMany(Ticket.class, "JourneyFK"));
+        if (this.tickets == null) {
+            this.tickets = new TreeSet<>(getMany(Ticket.class, "JourneyFK"));
+        }
+        return this.tickets;
     }
 
     public void setTickets(SortedSet<Ticket> tickets) {
@@ -224,7 +232,7 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
                 .executeSingle();
     }
 
-    public static Journey findById(String journeyId) {
+    public static Journey findById(long journeyId) {
         return new Select()
                 .from(Journey.class)
                 .where("JourneyId = ?", journeyId)
@@ -277,6 +285,7 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     @Override
     public int compareTo(Object another) {
         Journey other = (Journey)another;
+        if (this.equals(other)) return 0;
         return this.created.compareTo(other.created);
     }
 
@@ -284,18 +293,16 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         Journey journey = (Journey) o;
 
-        return !(journeyId != null ? !journeyId.equals(journey.journeyId) : journey.journeyId != null);
+        return journeyId == journey.journeyId;
 
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (journeyId != null ? journeyId.hashCode() : 0);
+        int result = 31 * (int) (journeyId ^ (journeyId >>> 32));
         return result;
     }
 
@@ -332,7 +339,7 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
 
     protected Journey(Parcel in) {
         super(in);
-        journeyId = in.readString();
+        journeyId = in.readLong();
         appId = in.readString();
         source = in.readString();
         totalDistance = in.readFloat();
@@ -346,8 +353,8 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
         guide = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
         origin = (Place) in.readValue(Place.class.getClassLoader());
         destination = (Place) in.readValue(Place.class.getClassLoader());
-        waypoints = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
-        tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+/*        waypoints = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+        tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());*/
     }
 
     @Override
@@ -358,7 +365,7 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
-        dest.writeString(journeyId);
+        dest.writeLong(journeyId);
         dest.writeString(appId);
         dest.writeString(source);
         dest.writeFloat(totalDistance);
@@ -372,8 +379,8 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
         dest.writeValue(guide);
         dest.writeValue(origin);
         dest.writeValue(destination);
-        dest.writeValue(waypoints);
-        dest.writeValue(tickets);
+/*        dest.writeValue(waypoints);
+        dest.writeValue(tickets);*/
     }
 
     @SuppressWarnings("unused")

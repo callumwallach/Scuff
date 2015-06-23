@@ -1,7 +1,6 @@
 package nz.co.scuff.data.relationship;
 
 import android.os.Parcel;
-import android.os.Parcelable;
 
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
@@ -14,7 +13,7 @@ import nz.co.scuff.data.place.Place;
  * Created by Callum on 3/05/2015.
  */
 @Table(name="PlaceRelationships")
-public class PlaceRelationship extends Model implements Parcelable {
+public class PlaceRelationship extends Model {
 
     @Column(name = "CoordinatorFK", onDelete= Column.ForeignKeyAction.CASCADE)
     private Coordinator coordinator;
@@ -54,7 +53,6 @@ public class PlaceRelationship extends Model implements Parcelable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         PlaceRelationship that = (PlaceRelationship) o;
 
@@ -65,8 +63,7 @@ public class PlaceRelationship extends Model implements Parcelable {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + coordinator.hashCode();
+        int result = 31 * coordinator.hashCode();
         result = 31 * result + place.hashCode();
         return result;
     }
@@ -78,7 +75,7 @@ public class PlaceRelationship extends Model implements Parcelable {
                 ", place=" + place.getPlaceId() +
                 "} " + super.toString();
     }
-
+/*
     @Override
     public int describeContents() {
         return 0;
@@ -101,5 +98,5 @@ public class PlaceRelationship extends Model implements Parcelable {
         public PlaceRelationship[] newArray(int size) {
             return new PlaceRelationship[size];
         }
-    };
+    };*/
 }

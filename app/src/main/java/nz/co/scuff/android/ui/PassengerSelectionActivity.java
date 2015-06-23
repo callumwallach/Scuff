@@ -39,7 +39,7 @@ public class PassengerSelectionActivity extends Activity
         setContentView(R.layout.activity_passenger_selection);
         //getActionBar().setDisplayHomeAsUpEnabled(true);
         items = getIntent().getParcelableArrayListExtra(Constants.PASSENGERS_KEY);
-        journey = getIntent().getParcelableExtra(Constants.JOURNEY_KEY);
+        journey = getIntent().getParcelableExtra(Constants.JOURNEY_ID_KEY);
         rebuildList(savedInstanceState);
     }
 
@@ -69,7 +69,7 @@ public class PassengerSelectionActivity extends Activity
         }
 
         Intent ticketIntent = new Intent(this, TicketIntentService.class);
-        ticketIntent.putExtra(Constants.JOURNEY_KEY, this.journey.getJourneyId());
+        ticketIntent.putExtra(Constants.JOURNEY_ID_KEY, this.journey.getJourneyId());
         ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
         startService(ticketIntent);
 

@@ -110,7 +110,6 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         Ticket ticket = (Ticket) o;
 
@@ -120,8 +119,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (int) (ticketId ^ (ticketId >>> 32));
+        int result = 31 * (int) (ticketId ^ (ticketId >>> 32));
         return result;
     }
 
@@ -130,7 +128,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
         return "Ticket{" +
                 "ticketId='" + ticketId + '\'' +
                 ", issueDate=" + issueDate +
-                ", stamp=" + (stamp == null ? stamp : stamp.getStampId()) +
+                ", stamp=" + stamp +
                 ", journey=" + (journey == null ? journey : journey.getJourneyId()) +
                 ", child=" + (child == null ? child : child.getChildId()) +
                 '}';
@@ -139,6 +137,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
     @Override
     public int compareTo(Object another) {
         Ticket other = (Ticket) another;
+        if (this.equals(other)) return 0;
         return this.issueDate.compareTo(other.issueDate);
     }
 

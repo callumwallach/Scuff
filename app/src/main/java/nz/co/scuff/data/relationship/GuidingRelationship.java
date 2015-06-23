@@ -1,13 +1,8 @@
 package nz.co.scuff.data.relationship;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
-
-import java.io.Serializable;
 
 import nz.co.scuff.data.base.Coordinator;
 
@@ -15,7 +10,7 @@ import nz.co.scuff.data.base.Coordinator;
  * Created by Callum on 3/05/2015.
  */
 @Table(name="GuidingRelationships")
-public class GuidingRelationship extends Model implements Serializable, Parcelable {
+public class GuidingRelationship extends Model {
 
     @Column(name = "AdultFK", onDelete= Column.ForeignKeyAction.CASCADE)
     public Coordinator adult;
@@ -47,16 +42,10 @@ public class GuidingRelationship extends Model implements Serializable, Parcelab
         this.institution = institution;
     }
 
-    protected GuidingRelationship(Parcel in) {
-        adult = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
-        institution = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         GuidingRelationship that = (GuidingRelationship) o;
 
@@ -67,8 +56,7 @@ public class GuidingRelationship extends Model implements Serializable, Parcelab
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + adult.hashCode();
+        int result = 31 * adult.hashCode();
         result = 31 * result + institution.hashCode();
         return result;
     }
@@ -79,6 +67,12 @@ public class GuidingRelationship extends Model implements Serializable, Parcelab
                 "adult=" + adult.getCoordinatorId() +
                 ", institution=" + institution.getCoordinatorId() +
                 "} " + super.toString();
+    }
+
+/*
+    protected GuidingRelationship(Parcel in) {
+        adult = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
+        institution = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
     }
 
     @Override
@@ -103,5 +97,5 @@ public class GuidingRelationship extends Model implements Serializable, Parcelab
         public GuidingRelationship[] newArray(int size) {
             return new GuidingRelationship[size];
         }
-    };
+    };*/
 }

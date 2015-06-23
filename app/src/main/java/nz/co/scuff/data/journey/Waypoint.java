@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import nz.co.scuff.data.journey.snapshot.WaypointSnapshot;
+import nz.co.scuff.data.util.Constants;
 import nz.co.scuff.data.util.TrackingState;
 
 /**
@@ -26,7 +27,7 @@ import nz.co.scuff.data.util.TrackingState;
 public class Waypoint extends Model implements Comparable, Parcelable {
 
     @Column(name="WaypointId")
-    private String waypointId;
+    private long waypointId;
     @Column(name="Latitude")
     private double latitude;
     @Column(name="Longitude")
@@ -57,8 +58,8 @@ public class Waypoint extends Model implements Comparable, Parcelable {
     public Waypoint() {
     }
 
-    public Waypoint(String waypointId, float distance, long duration, TrackingState state, Location location) {
-        this.waypointId = waypointId;
+    public Waypoint(float distance, long duration, TrackingState state, Location location) {
+        this.waypointId = Constants.WAYPOINT_PRE_CREATED_KEY;
         this.latitude = location.getLatitude();
         this.longitude = location.getLongitude();
         this.speed = location.getSpeed();
@@ -87,11 +88,11 @@ public class Waypoint extends Model implements Comparable, Parcelable {
         this.created = snapshot.getCreated();
     }
 
-    public String getWaypointId() {
+    public long getWaypointId() {
         return waypointId;
     }
 
-    public void setWaypointId(String id) {
+    public void setWaypointId(long id) {
         this.waypointId = id;
     }
 
@@ -191,7 +192,7 @@ public class Waypoint extends Model implements Comparable, Parcelable {
         this.journey = journey;
     }
 
-    public static Waypoint findById(String waypointId) {
+    public static Waypoint findById(long waypointId) {
         return new Select()
                 .from(Waypoint.class)
                 .where("WaypointId = ?", waypointId)
@@ -218,6 +219,7 @@ public class Waypoint extends Model implements Comparable, Parcelable {
     @Override
     public int compareTo(Object another) {
         Waypoint other = (Waypoint)another;
+        if (this.equals(other)) return 0;
         return this.created.compareTo(other.created);
     }
 
@@ -225,18 +227,16 @@ public class Waypoint extends Model implements Comparable, Parcelable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         Waypoint waypoint = (Waypoint) o;
 
-        return waypointId.equals(waypoint.waypointId);
+        return waypointId == waypoint.waypointId;
 
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (waypointId != null ? waypointId.hashCode() : 0);
+        int result = 31 * (int) (waypointId ^ (waypointId >>> 32));
         return result;
     }
 
@@ -259,7 +259,7 @@ public class Waypoint extends Model implements Comparable, Parcelable {
     }
 
     protected Waypoint(Parcel in) {
-        waypointId = in.readString();
+        waypointId = in.readLong();
         latitude = in.readDouble();
         longitude = in.readDouble();
         speed = in.readFloat();
@@ -281,7 +281,7 @@ public class Waypoint extends Model implements Comparable, Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(waypointId);
+        dest.writeLong(waypointId);
         dest.writeDouble(latitude);
         dest.writeDouble(longitude);
         dest.writeFloat(speed);

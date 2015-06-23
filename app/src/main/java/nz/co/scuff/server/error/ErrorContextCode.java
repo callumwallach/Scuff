@@ -5,6 +5,6 @@ package nz.co.scuff.server.error;
  */
 public enum ErrorContextCode {
 
-    JOURNEY_NOT_FOUND, PERSON_NOT_FOUND, SCHOOL_NOT_FOUND, ROUTE_NOT_FOUND;
+    JOURNEY_NOT_FOUND, PERSON_NOT_FOUND, SCHOOL_NOT_FOUND, ROUTE_NOT_FOUND, NETWORK_ERROR;
 
 }

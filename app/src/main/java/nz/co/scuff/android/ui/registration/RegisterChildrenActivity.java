@@ -101,7 +101,7 @@ public class RegisterChildrenActivity extends Activity {
             try {
                 fetchedInstitutions = ScuffDatasource.getInstitutions(latitude, longitude);
                 EventBus.getDefault().post(new SchoolEvent(fetchedInstitutions));
-            } catch (ResourceNotFoundException e) {
+            } catch (ResourceException e) {
                 Log.e(TAG, "Error schools not found");
             }*/
 

@@ -5,12 +5,15 @@ import android.content.Intent;
 import android.os.Handler;
 import android.util.Log;
 
+import java.util.Collection;
 import java.util.List;
 
+import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.data.ScuffDatasource;
+import nz.co.scuff.android.event.TicketEvent;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.data.journey.Ticket;
-import nz.co.scuff.server.error.ResourceNotFoundException;
+import nz.co.scuff.server.error.ResourceException;
 
 public class TicketIntentService extends IntentService {
 
@@ -33,13 +36,15 @@ public class TicketIntentService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         if (D) Log.d(TAG, "onHandleIntent");
 
-        String journeyId = intent.getStringExtra(Constants.JOURNEY_KEY);
+        long journeyId = intent.getLongExtra(Constants.JOURNEY_ID_KEY, -1);
         List<Long> passengerIds = (List<Long>)intent.getSerializableExtra(Constants.PASSENGERS_KEY);
         if (D) for (Long id : passengerIds) Log.d(TAG, "processing ticket " + id);
         try {
-            List<Ticket> tickets = ScuffDatasource.requestTickets(journeyId, passengerIds);
+            Collection<Ticket> tickets = ScuffDatasource.requestTickets(journeyId, passengerIds);
+            // post received tickets to ui
+            EventBus.getDefault().post(new TicketEvent(tickets));
             // TODO do something with them perhaps
-        } catch (ResourceNotFoundException e) {
+        } catch (ResourceException e) {
             // journey was completed before tickets issued. notify ui
             Log.e(TAG, "Selected journey was not found", e);
         }

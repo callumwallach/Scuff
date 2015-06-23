@@ -10,7 +10,6 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -27,9 +26,14 @@ import org.joda.time.DateTimeUtils;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
+import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
+import nz.co.scuff.android.event.RecordEvent;
+import nz.co.scuff.android.event.TicketEvent;
 import nz.co.scuff.android.service.DriverAlarmReceiver;
 import nz.co.scuff.android.service.DriverIntentService;
 import nz.co.scuff.android.ui.fragment.ChildrenFragment;
@@ -37,13 +41,14 @@ import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.institution.Route;
+import nz.co.scuff.data.journey.Ticket;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
 
-public class DriverHomeActivity extends BaseFragmentActivity
+public class DriverHomeActivity extends BaseActionBarActivity
         implements ChildrenFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "DriverHomeActivity";
@@ -55,34 +60,39 @@ public class DriverHomeActivity extends BaseFragmentActivity
     private Coordinator agent;
     private Route route;
 
+    private Set<Ticket> receivedTickets = new HashSet<>();
+
     private GoogleMap googleMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (D) Log.d(TAG, "onCreate");
 
+        ScuffApplication scuffApplication = (ScuffApplication)getApplication();
+        Journey journey = null;
+
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             // restore state
             if (D) Log.d(TAG, "restoring state");
-            Journey savedState = (Journey)savedInstanceState.getSerializable(Constants.JOURNEY_KEY);
-            assert(savedState != null);
-            assert(!savedState.getState().equals(TrackingState.COMPLETED));
-            ((ScuffApplication) this.getApplication()).setJourney(savedState);
+            long journeyId = savedInstanceState.getLong(Constants.JOURNEY_ID_KEY);
+            journey = Journey.findById(journeyId);
+            this.owner = journey.getOwner();
+            this.agent = journey.getAgent();
+            this.route = journey.getRoute();
+            // TODO get tickets from DB
+            scuffApplication.setJourney(journey);
+        } else {
+            Bundle extras = getIntent().getExtras();
+            this.owner = Coordinator.findById(extras.getLong(Constants.OWNER_ID_KEY));
+            this.agent = Coordinator.findById(extras.getLong(Constants.AGENT_ID_KEY));
+            this.route = Route.findById(extras.getLong(Constants.ROUTE_ID_KEY));
         }
         setContentView(R.layout.activity_driver_home);
 
         initialiseMap();
 
-        long ownerId = getIntent().getLongExtra(Constants.OWNER_ID_KEY, -1);
-        this.owner = Coordinator.findById(ownerId);
-        long agentId = getIntent().getLongExtra(Constants.AGENT_ID_KEY, -1);
-        this.agent = Coordinator.findById(agentId);
-        long routeId = getIntent().getLongExtra(Constants.ROUTE_ID_KEY, -1);
-        this.route = Route.findById(routeId);
-
         // TODO check lifecycles and object creation etc
-        ScuffApplication scuffContext = (ScuffApplication)getApplication();
         /*Route route = scuffContext.getCoordinator1().getScheduledRoute();
         ((TextView) findViewById(R.id.route_label)).setText("Route: " + route.getName());*/
 
@@ -95,8 +105,6 @@ public class DriverHomeActivity extends BaseFragmentActivity
         ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
         getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();
 */
-
-        Journey journey = scuffContext.getJourney();
 
         // if this.journey == null check database for incomplete journey
         // TODO complete any found or delete them
@@ -116,8 +124,6 @@ public class DriverHomeActivity extends BaseFragmentActivity
                 ScuffDatasource.cleanUpIncompleteJourney(j);
             }
         }
-
-        //populateRoutes(scuffContext.getInstitution(), scuffContext.getCoordinator1());
 
         updateControls(journey == null ? TrackingState.COMPLETED : journey.getState());
 
@@ -139,30 +145,14 @@ public class DriverHomeActivity extends BaseFragmentActivity
         // save journey state if one in progress
         Journey journey = ((ScuffApplication) this.getApplication()).getJourney();
         if (journey != null) {
-            assert(!journey.getState().equals(TrackingState.COMPLETED));
-            outState.putParcelable(Constants.JOURNEY_KEY, journey);
+            outState.putLong(Constants.JOURNEY_ID_KEY, journey.getJourneyId());
         }
     }
 
-/*    private void populateRoutes(Institution school, Parent adult) {
-
-        Spinner routeSpinner = (Spinner)findViewById(R.id.route_spinner);
-        ArrayAdapter<Route> dataAdapter = new ArrayAdapter<>(this,
-                // TODO get routes i am driving for as per schedule
-                android.R.layout.simple_spinner_item, new ArrayList<>(adult.getRoutesForSchool(school)));
-        dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        routeSpinner.setAdapter(dataAdapter);
-        routeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adult, View view, int position, long id) {}
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adult) {}
-        });
-
-    }*/
-
     private void initialiseMap() {
+
+        checkIfGooglePlayEnabled();
+
         if (D) Log.d(TAG, "Initialise map");
 
         if (googleMap == null) {
@@ -231,8 +221,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         if (D) Log.d(TAG, "recordJourney");
 
         if (!checkIfGooglePlayEnabled()) {
-            DialogHelper.errorToast(this, "Google Maps is not available, please try again in a " +
-                    "few moments or check your connection if the problem persists");
+            DialogHelper.errorToast(this, "Google Maps is not available, please check your connection settings");
             return;
         }
 
@@ -244,12 +233,12 @@ public class DriverHomeActivity extends BaseFragmentActivity
             // TODO check location to ensure they are near start of route
 
             long nowMillis = DateTimeUtils.currentTimeMillis();
-            String journeyId = scuffContext.getAppId() + ":" + nowMillis;
+            //String journeyId = scuffContext.getAppId() + ":" + nowMillis;
             //Coordinator adult = (Coordinator)((Spinner) findViewById(R.id.driver_spinner)).getSelectedItem();
             //Route route = (Route)((Spinner) findViewById(R.id.route_spinner)).getSelectedItem();
 
             journey = new Journey();
-            journey.setJourneyId(journeyId);
+            //journey.setJourneyId(journeyId);
             journey.setAppId(scuffContext.getAppId());
             journey.setSource("Android");
             journey.setTotalDistance(0);
@@ -296,68 +285,39 @@ public class DriverHomeActivity extends BaseFragmentActivity
 
     }
 
-    private void startJourney(String journeyId) {
+    private void startJourney(long journeyId) {
         if (D) Log.d(TAG, "startJourney journey="+journeyId);
-
-        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-
-        SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
-                Constants.RECORD_LOCATION_INTERVAL);
 
         // processLocation direct for journey start
         Intent driverIntent = new Intent(this, DriverIntentService.class);
         driverIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.START);
-        driverIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
+        driverIntent.putExtra(Constants.JOURNEY_ID_KEY, journeyId);
         startService(driverIntent);
-
-        // followed by periodic updates of waypoints (uses LocationIntentService)
-        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
-        alarmIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
-        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + (recordInterval * 1000),
-                recordInterval * 1000, pendingAlarmIntent);
 
     }
 
-    public void pauseJourney(String journeyId) {
+    public void pauseJourney(long journeyId) {
         if (D) Log.d(TAG, "pauseJourney journey="+journeyId);
 
         // pause (cancel) local location update requests
-        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
-        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.cancel(pendingAlarmIntent);
+        stopIntervalRecording(journeyId);
 
         // send pause command to server
         Intent newIntent = new Intent(this, DriverIntentService.class);
         newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.PAUSE);
-        newIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
+        newIntent.putExtra(Constants.JOURNEY_ID_KEY, journeyId);
         startService(newIntent);
 
     }
 
-    public void continueJourney(String journeyId) {
+    public void continueJourney(long journeyId) {
         if (D) Log.d(TAG, "continueJourney journey="+journeyId);
-
-        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
-
-        SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
-        int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
-                Constants.RECORD_LOCATION_INTERVAL);
 
         // processLocation direct for journey continue
         Intent driverIntent = new Intent(this, DriverIntentService.class);
         driverIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.CONTINUE);
-        driverIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
+        driverIntent.putExtra(Constants.JOURNEY_ID_KEY, journeyId);
         startService(driverIntent);
-
-        // followed by periodic updates of waypoints (uses LocationIntentService)
-        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
-        alarmIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
-        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-        alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + (recordInterval * 1000),
-                recordInterval * 1000, pendingAlarmIntent);
 
     }
 
@@ -366,32 +326,69 @@ public class DriverHomeActivity extends BaseFragmentActivity
         stopJourney(journey.getJourneyId());
     }
 
-    private void stopJourney(String journeyId) {
+    private void stopJourney(long journeyId) {
         if (D) Log.d(TAG, "stopJourney journey="+journeyId);
 
         // check as direct from ui
-        // TODO more robust
         if (!checkIfGooglePlayEnabled()) {
-            DialogHelper.errorToast(this, "Google Maps is not available, please try again in a few moments");
+            DialogHelper.errorToast(this, "Google Maps is not available, please check your connection settings");
             return;
         }
 
-        // cancel local location update requests
+        stopIntervalRecording(journeyId);
+
+        // signal stop journey to server
+        Intent newIntent = new Intent(this, DriverIntentService.class);
+        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.STOP);
+        newIntent.putExtra(Constants.JOURNEY_ID_KEY, journeyId);
+        startService(newIntent);
+
+        updateControls(TrackingState.COMPLETED);
+
+    }
+
+    private void startIntervalRecording(long journeyId) {
+
+        AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
+
+        SharedPreferences sps = getSharedPreferences(Constants.PREFERENCES, Context.MODE_PRIVATE);
+        int recordInterval = sps.getInt(Constants.PREFERENCES_RECORD_LOCATION_INTERVAL_KEY,
+                Constants.RECORD_LOCATION_INTERVAL);
+
+        // followed by periodic updates of waypoints (uses LocationIntentService)
+        Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
+        alarmIntent.putExtra(Constants.JOURNEY_ID_KEY, journeyId);
+        PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis() + (recordInterval * 1000),
+                recordInterval * 1000, pendingAlarmIntent);
+
+    }
+
+    private void stopIntervalRecording(long journeyId) {
+
         AlarmManager alarmManager = (AlarmManager)this.getSystemService(Context.ALARM_SERVICE);
         Intent alarmIntent = new Intent(this, DriverAlarmReceiver.class);
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, DRIVER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         alarmManager.cancel(pendingAlarmIntent);
 
-        //((ScuffApplication) this.getApplication()).getJourney().setState(TrackingState.COMPLETED);
+    }
 
-        // signal stop journey to server
-        Intent newIntent = new Intent(this, DriverIntentService.class);
-        newIntent.putExtra(Constants.JOURNEY_COMMAND_KEY, CommandType.STOP);
-        newIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
-        startService(newIntent);
+    private void processReceivedTickets(Collection<Ticket> tickets) {
+        for (Ticket ticket : tickets) {
+            this.receivedTickets.add(ticket);
+            Child child = ticket.getChild();
+            DialogHelper.toast(this, "Incoming passenger: "+child.getChildData().getFirstName()+" "+child.getChildData().getLastName());
+        }
+    }
 
-        updateControls(TrackingState.COMPLETED);
+    public void onEventMainThread(RecordEvent event) {
+        if (D) Log.d(TAG, "Main thread message start recording event=" + event);
+        startIntervalRecording(event.getJourneyId());
+    }
 
+    public void onEventMainThread(TicketEvent event) {
+        if (D) Log.d(TAG, "Main thread message ticket received event=" + event);
+        processReceivedTickets(event.getTickets());
     }
 
     private boolean checkIfGooglePlayEnabled() {
@@ -432,7 +429,7 @@ public class DriverHomeActivity extends BaseFragmentActivity
         Log.d(TAG, "onStart");
         super.onStart();
 
-        //EventBus.getDefault().register(this);
+        EventBus.getDefault().register(this);
 
 /*        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -451,7 +448,9 @@ public class DriverHomeActivity extends BaseFragmentActivity
 
     @Override
     protected void onStop() {
-        //EventBus.getDefault().unregister(this);
+        if (D) Log.d(TAG, "onStop");
+        EventBus.getDefault().unregister(this);
+
         super.onStop();
     }
 

@@ -9,7 +9,6 @@ public interface Constants {
     String PREFERENCES_INITIALISED = "P_I";
     String PREFERENCES_RECORD_LOCATION_INTERVAL_KEY = "P_RLIK";
 
-    String JOURNEY_KEY = "J_KEY";
     String JOURNEY_COMMAND_KEY = "JC_KEY";
     String JOURNEY_TRACKING_STATE_KEY = "JTS_KEY";
 
@@ -21,14 +20,19 @@ public interface Constants {
     String BUS_KEY = "B_KEY";
     String TICKETS_KEY = "TS_KEY";
 
+    String JOURNEY_ID_KEY = "JID_KEY";
     String COORDINATOR_ID_KEY = "CID_KEY";
-    String WATCHED_JOURNEYS_ID_KEY = "JID_KEY";
+    String WATCHED_JOURNEYS_ID_KEY = "W_JIDS_KEY";
     String OWNER_ID_KEY = "OID_KEY";
     String AGENT_ID_KEY = "AID_KEY";
     String ROUTE_ID_KEY = "RID_KEY";
 
+    String PARENT_ACTIVITY_CLASS_NAME = "PACN";
+
     int RECORD_LOCATION_INTERVAL = 10;
     int LISTEN_LOCATION_INTERVAL = 10;
+
+    int SECONDS_TO_DISPLAY_COMPLETED_JOURNEYS = 60;
 
     float MIN_LOCATION_ACCURACY = 50.0f;
 

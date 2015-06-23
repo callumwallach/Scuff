@@ -1,13 +1,8 @@
 package nz.co.scuff.data.relationship;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
-
-import java.io.Serializable;
 
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.journey.Journey;
@@ -16,7 +11,7 @@ import nz.co.scuff.data.journey.Journey;
  * Created by Callum on 3/05/2015.
  */
 @Table(name="JourneyRelationships")
-public class JourneyRelationship extends Model implements Serializable, Parcelable {
+public class JourneyRelationship extends Model {
 
     @Column(name = "CoordinatorFK", onDelete= Column.ForeignKeyAction.CASCADE)
     private Coordinator coordinator;
@@ -52,7 +47,6 @@ public class JourneyRelationship extends Model implements Serializable, Parcelab
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         JourneyRelationship that = (JourneyRelationship) o;
 
@@ -63,8 +57,7 @@ public class JourneyRelationship extends Model implements Serializable, Parcelab
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + coordinator.hashCode();
+        int result = 31 * coordinator.hashCode();
         result = 31 * result + journey.hashCode();
         return result;
     }
@@ -76,7 +69,7 @@ public class JourneyRelationship extends Model implements Serializable, Parcelab
                 ", journey=" + journey.getJourneyId() +
                 "} " + super.toString();
     }
-
+/*
     protected JourneyRelationship(Parcel in) {
         coordinator = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
         journey = (Journey) in.readValue(Journey.class.getClassLoader());
@@ -104,5 +97,5 @@ public class JourneyRelationship extends Model implements Serializable, Parcelab
         public JourneyRelationship[] newArray(int size) {
             return new JourneyRelationship[size];
         }
-    };
+    };*/
 }

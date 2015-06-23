@@ -19,7 +19,7 @@ public class TicketSnapshot extends ModifiableSnapshot {
     @Expose
     private long stampId;
     @Expose
-    private String journeyId;
+    private long journeyId;
     @Expose
     private long childId;
 
@@ -33,11 +33,11 @@ public class TicketSnapshot extends ModifiableSnapshot {
         this.ticketId = ticketId;
     }
 
-    public String getJourneyId() {
+    public long getJourneyId() {
         return journeyId;
     }
 
-    public void setJourneyId(String journeyId) {
+    public void setJourneyId(long journeyId) {
         this.journeyId = journeyId;
     }
 

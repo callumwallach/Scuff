@@ -31,6 +31,7 @@ public class GuidedJourneyActivity extends ActionBarActivity {
 
         Coordinator coordinator = ((ScuffApplication)getApplication()).getCoordinator();
         Intent guideeIntent = new Intent(this, SelectGuideeActivity.class);
+        guideeIntent.putExtra(Constants.PARENT_ACTIVITY_CLASS_NAME, DriverJourneyChoiceActivity.class.getName());
         guideeIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinator.getCoordinatorId());
         startActivityForResult(guideeIntent, SELECT_GUIDEE);
     }
@@ -61,6 +62,7 @@ public class GuidedJourneyActivity extends ActionBarActivity {
         this.guideeId = data.getLongExtra(Constants.COORDINATOR_ID_KEY, -1);
         if (D) Log.d(TAG, "selected guidee="+this.guideeId);
         Intent routeIntent = new Intent(this, SelectRouteActivity.class);
+        routeIntent.putExtra(Constants.PARENT_ACTIVITY_CLASS_NAME, DriverJourneyChoiceActivity.class.getName());
         routeIntent.putExtra(Constants.COORDINATOR_ID_KEY, this.guideeId);
         startActivityForResult(routeIntent, SELECT_ROUTE);
     }

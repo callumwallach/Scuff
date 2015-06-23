@@ -1,6 +1,6 @@
 package nz.co.scuff.android.event;
 
-import java.util.List;
+import java.util.Collection;
 
 import nz.co.scuff.data.journey.Journey;
 
@@ -9,13 +9,13 @@ import nz.co.scuff.data.journey.Journey;
  */
 public class JourneyEvent {
 
-    private List<Journey> journeys;
+    private Collection<Journey> journeys;
 
-    public JourneyEvent(List<Journey> journeys) {
+    public JourneyEvent(Collection<Journey> journeys) {
         this.journeys = journeys;
     }
 
-    public List<Journey> getJourneys() {
+    public Collection<Journey> getJourneys() {
         return journeys;
     }
 

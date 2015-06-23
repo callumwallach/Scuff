@@ -5,7 +5,6 @@ import com.google.gson.annotations.Expose;
 import nz.co.scuff.data.base.snapshot.Snapshot;
 import nz.co.scuff.data.util.TrackingState;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 
 /**
@@ -14,7 +13,7 @@ import java.sql.Timestamp;
 public class WaypointSnapshot implements Snapshot, Comparable {
 
     @Expose
-    private String waypointId;
+    private long waypointId;
     @Expose
     private double latitude;
     @Expose
@@ -40,11 +39,11 @@ public class WaypointSnapshot implements Snapshot, Comparable {
 
     public WaypointSnapshot() {}
 
-    public String getWaypointId() {
+    public long getWaypointId() {
         return waypointId;
     }
 
-    public void setWaypointId(String waypointId) {
+    public void setWaypointId(long waypointId) {
         this.waypointId = waypointId;
     }
 
@@ -143,15 +142,13 @@ public class WaypointSnapshot implements Snapshot, Comparable {
 
         WaypointSnapshot that = (WaypointSnapshot) o;
 
-        return waypointId.equals(that.waypointId);
+        return waypointId == that.waypointId;
 
     }
 
     @Override
     public int hashCode() {
-        int result = waypointId != null ? waypointId.hashCode() : 0;
-        result = 31 * result + (created != null ? created.hashCode() : 0);
-        return result;
+        return (int) (waypointId ^ (waypointId >>> 32));
     }
 
     @Override

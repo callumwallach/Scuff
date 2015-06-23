@@ -1,13 +1,8 @@
 package nz.co.scuff.data.relationship;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
-
-import java.io.Serializable;
 
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.family.Child;
@@ -16,7 +11,7 @@ import nz.co.scuff.data.family.Child;
  * Created by Callum on 3/05/2015.
  */
 @Table(name="ParentalRelationships")
-public class ParentalRelationship extends Model implements Serializable, Parcelable {
+public class ParentalRelationship extends Model {
 
     @Column(name = "AdultFK", onDelete= Column.ForeignKeyAction.CASCADE)
     public Coordinator adult;
@@ -52,7 +47,6 @@ public class ParentalRelationship extends Model implements Serializable, Parcela
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         ParentalRelationship that = (ParentalRelationship) o;
 
@@ -63,8 +57,7 @@ public class ParentalRelationship extends Model implements Serializable, Parcela
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + adult.hashCode();
+        int result = 31 * adult.hashCode();
         result = 31 * result + child.hashCode();
         return result;
     }
@@ -76,7 +69,7 @@ public class ParentalRelationship extends Model implements Serializable, Parcela
                 ", child=" + child.getChildId() +
                 "} " + super.toString();
     }
-
+/*
     protected ParentalRelationship(Parcel in) {
         adult = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
         child = (Child) in.readValue(Child.class.getClassLoader());
@@ -104,5 +97,5 @@ public class ParentalRelationship extends Model implements Serializable, Parcela
         public ParentalRelationship[] newArray(int size) {
             return new ParentalRelationship[size];
         }
-    };
+    };*/
 }

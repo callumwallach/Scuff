@@ -1,6 +1,6 @@
 package nz.co.scuff.android.ui;
 
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.event.ErrorEvent;
@@ -10,7 +10,7 @@ import nz.co.scuff.server.error.ScuffException;
 /**
  * Created by Callum on 15/05/2015.
  */
-public class BaseFragmentActivity extends FragmentActivity {
+public class BaseActionBarActivity extends ActionBarActivity {
 
     private class ErrorHandler {
         public void onEventMainThread(ErrorEvent event) {

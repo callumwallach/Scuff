@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 final public class TimestampSerializer extends TypeSerializer {
 
     private static final String TAG = "TimestampSerializer";
-    private static final boolean D = true;
+    private static final boolean D = false;
 
     public TimestampSerializer() {}
 

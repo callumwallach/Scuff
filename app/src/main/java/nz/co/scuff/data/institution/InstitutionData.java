@@ -63,13 +63,11 @@ public class InstitutionData extends Model implements Comparable, Parcelable {
         this.phone = phone;
     }
 
-/*    public Coordinator getInstitution() {
-        return institution;
+    public void refresh(InstitutionData data) {
+        this.name = data.getName();
+        this.email = data.getEmail();
+        this.phone = data.getPhone();
     }
-
-    public void setInstitution(Coordinator institution) {
-        this.institution = institution;
-    }*/
 
     @Override
     public boolean equals(Object o) {
@@ -97,6 +95,7 @@ public class InstitutionData extends Model implements Comparable, Parcelable {
         InstitutionData that = (InstitutionData)another;
         if (that.name == null) return 1;
         if (this.name == null) return -1;
+        if (this.equals(that)) return 0;
         return this.name.compareTo(that.name);
     }
 

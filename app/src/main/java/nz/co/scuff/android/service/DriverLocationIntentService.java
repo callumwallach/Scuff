@@ -4,9 +4,13 @@ import android.content.Intent;
 import android.location.Location;
 import android.util.Log;
 
+import java.util.List;
+
 import nz.co.scuff.android.data.ScuffDatasource;
 import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.android.util.Constants;
+import nz.co.scuff.android.util.ScuffApplication;
+import nz.co.scuff.data.journey.Ticket;
 
 public class DriverLocationIntentService extends BaseLocationIntentService {
 
@@ -15,7 +19,7 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
 
     private CommandType commandType;
     private boolean recording;
-    private String journeyId;
+    private long journeyId;
 
     public DriverLocationIntentService() { }
 
@@ -23,9 +27,9 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
     protected void onHandleIntent(Intent intent) {
         if (D) Log.d(TAG, "onHandleIntent");
 
-        this.journeyId = intent.getStringExtra(Constants.JOURNEY_KEY);
-        this.commandType = (CommandType)intent.getExtras().getSerializable(Constants.JOURNEY_COMMAND_KEY);
-        this.recording = intent.getExtras().getSerializable(Constants.JOURNEY_TRACKING_STATE_KEY) != null;
+        this.journeyId = intent.getLongExtra(Constants.JOURNEY_ID_KEY, -1);
+        this.commandType = (CommandType)intent.getSerializableExtra(Constants.JOURNEY_COMMAND_KEY);
+        this.recording = intent.getSerializableExtra(Constants.JOURNEY_TRACKING_STATE_KEY) != null;
 
         super.onHandleIntent(intent);
     }
@@ -49,12 +53,13 @@ public class DriverLocationIntentService extends BaseLocationIntentService {
         if (D) Log.d(TAG, "Save and upload location="+location);
 
         if (this.recording) {
-            ScuffDatasource.recordJourney(journeyId, location);
+            List<Ticket> tickets = ScuffDatasource.recordJourney(journeyId, location);
         } else {
+            ScuffApplication application = ((ScuffApplication) ScuffApplication.getContext());
             switch (this.commandType) {
                 case START:
                     // create journey + create waypoint
-                    ScuffDatasource.startJourney(journeyId, location);
+                    ScuffDatasource.startJourney(application.getJourney(), location);
                     break;
                 case PAUSE:
                     // pause journey + create waypoint

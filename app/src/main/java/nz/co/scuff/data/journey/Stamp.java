@@ -88,7 +88,6 @@ public class Stamp extends Model implements Parcelable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         Stamp stamp = (Stamp) o;
 
@@ -98,8 +97,7 @@ public class Stamp extends Model implements Parcelable {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (int) (stampId ^ (stampId >>> 32));
+        int result = 31 * (int) (stampId ^ (stampId >>> 32));
         return result;
     }
 

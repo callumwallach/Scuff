@@ -9,26 +9,29 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.os.SystemClock;
 import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.joda.time.DateTime;
+import org.joda.time.Period;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
+import nz.co.scuff.android.event.TicketEvent;
 import nz.co.scuff.android.service.PassengerAlarmReceiver;
 import nz.co.scuff.android.service.PassengerIntentService;
 import nz.co.scuff.android.service.TicketIntentService;
@@ -40,27 +43,30 @@ import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.journey.Journey;
 import nz.co.scuff.android.util.DialogHelper;
 import nz.co.scuff.android.util.ScuffApplication;
+import nz.co.scuff.data.journey.Ticket;
 import nz.co.scuff.data.journey.Waypoint;
+import nz.co.scuff.data.util.TrackingState;
 
 
-public class PassengerHomeActivity extends BaseFragmentActivity
+public class PassengerHomeActivity extends BaseActionBarActivity
         implements ChildrenFragment.OnFragmentInteractionListener, ChildrenDialogFragment.OnFragmentInteractionListener, GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = "PassengerHomeActivity";
     private static final boolean D = true;
 
+    private BitmapDescriptor activeBusIcon;
+    private BitmapDescriptor completedBusIcon;
+    private BitmapDescriptor pausedBusIcon;
+
     private static final int PASSENGER_ALARM = 1;
 
     private GoogleMap googleMap;
-/*    private boolean newRouteSelected;*/
 
-/*    private Coordinator institution;
-    private Route route;*/
+    private boolean isFirstTime;
 
     private Journey selectedJourney;
-    //private List<Journey> journeys;
     private Map<Marker, Journey> markerMap;
-    private ArrayList<String> watchedJourneyIds;
+    private ArrayList<Long> watchedJourneyIds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +79,12 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         //this.journeys = new ArrayList<>();
         this.markerMap = new HashMap<>();
         this.watchedJourneyIds = new ArrayList<>();
+
+        this.isFirstTime = true;
+
+        this.activeBusIcon = BitmapDescriptorFactory.fromResource(R.drawable.active_bus_icon);
+        this.completedBusIcon = BitmapDescriptorFactory.fromResource(R.drawable.completed_bus_icon);
+        this.pausedBusIcon = BitmapDescriptorFactory.fromResource(R.drawable.paused_bus_icon);
 
         setupMap();
         checkForBuses();
@@ -195,44 +207,63 @@ public class PassengerHomeActivity extends BaseFragmentActivity
 
     }
 
-    private void markBuses(List<Journey> journeys) {
+    private void markBuses(Collection<Journey> journeys) {
         if (D) Log.d(TAG, "Updating map with buses=" + journeys);
 
         this.googleMap.clear();
 
         if (journeys.isEmpty()) {
-            // no active buses on this route
-            //if (this.newRouteSelected)
-            DialogHelper.dialog(this, "Bus not found", "There are currently no active journeys");
-            //this.newRouteSelected = false;
-            return;
-        }
+            if (this.isFirstTime) {
+                // no active buses on this route
+                //if (this.newRouteSelected)
+                DialogHelper.dialog(this, "Bus not found", "There are currently no active journeys");
+                this.isFirstTime = false;
+                //this.newRouteSelected = false;
+            }
+        } else {
+/*          Location myLocation = this.googleMap.getMyLocation();
+            LatLng myLatlng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+            this.googleMap.addMarker(new MarkerOptions()
+                    .position(myLatlng)
+                    .title("My location")
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
+            this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
 
-/*        Location myLocation = this.googleMap.getMyLocation();
-        LatLng myLatlng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-        this.googleMap.addMarker(new MarkerOptions()
-                .position(myLatlng)
-                .title("My location")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.home_icon)));
-        this.googleMap.addCircle(new CircleOptions().center(myLatlng).radius(myLocation.getAccuracy()));*/
+            this.markerMap.clear();
+            this.watchedJourneyIds.clear();
 
-        this.markerMap.clear();
-        this.watchedJourneyIds.clear();
-
-        for (Journey journey : journeys) {
-            Waypoint waypoint = journey.getCurrentWaypoint();
-            if (D) Log.d(TAG, "Bus location: journey=" + journey.getJourneyId()+" waypoint="+waypoint);
-            LatLng busLatlng = new LatLng(waypoint.getLatitude(), waypoint.getLongitude());
-            Marker busMarker = this.googleMap.addMarker(new MarkerOptions()
-                    .position(busLatlng)
-                    .title("Bus position")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_icon)));
-            this.markerMap.put(busMarker, journey);
-            this.watchedJourneyIds.add(journey.getJourneyId());
-            //if (this.newRouteSelected) {
-            //this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
+            for (Journey journey : journeys) {
+                boolean journeyNotComplete = !journey.getState().equals(TrackingState.COMPLETED);
+                BitmapDescriptor busIcon;
+                switch(journey.getState()) {
+                    case COMPLETED:
+                        busIcon = completedBusIcon;
+                        break;
+                    case PAUSED:
+                        busIcon = pausedBusIcon;
+                        break;
+                    default:
+                        busIcon = activeBusIcon;
+                }
+                Waypoint waypoint = journey.getCurrentWaypoint();
+                if (D) Log.d(TAG, "Bus location: journey=" + journey.getJourneyId() + " waypoint=" + waypoint);
+                LatLng busLatlng = new LatLng(waypoint.getLatitude(), waypoint.getLongitude());
+                Marker busMarker = this.googleMap.addMarker(new MarkerOptions()
+                        .position(busLatlng)
+                        .title(journey.getGuide().getName() + "'s bus")
+                        .icon(busIcon));
+                this.markerMap.put(busMarker, journey);
+                // TODO change date check to asynctask to empty out watched ids
+                if (journeyNotComplete || new DateTime(journey.getCompleted()).plus(
+                        new Period().withSeconds(Constants.SECONDS_TO_DISPLAY_COMPLETED_JOURNEYS)).isAfterNow()) {
+                    this.watchedJourneyIds.add(journey.getJourneyId());
+                }
+                //if (this.newRouteSelected) {
+                //this.googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(busLatlng, 15));
                 //newRouteSelected = false;
-            //}
+                //}
+            }
+            this.isFirstTime = true;
         }
         watchForBuses();
     }
@@ -257,7 +288,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         // start new listener (for current route) using FLAG_CANCEL_CURRENT we cancel other intents for old routes
         Intent alarmIntent = new Intent(this, PassengerAlarmReceiver.class);
         alarmIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinatorId);
-        alarmIntent.putStringArrayListExtra(Constants.WATCHED_JOURNEYS_ID_KEY, this.watchedJourneyIds);
+        alarmIntent.putExtra(Constants.WATCHED_JOURNEYS_ID_KEY, this.watchedJourneyIds);
 
         PendingIntent pendingAlarmIntent = PendingIntent.getBroadcast(this, PASSENGER_ALARM, alarmIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         // cancel outstanding
@@ -265,9 +296,21 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         alarmManager.set(AlarmManager.RTC, System.currentTimeMillis() + Constants.LISTEN_LOCATION_INTERVAL * 1000, pendingAlarmIntent);
     }
 
+    private void processReceivedTickets(Collection<Ticket> tickets) {
+        for (Ticket ticket : tickets) {
+            Child child = ticket.getChild();
+            DialogHelper.toast(this, "Ticket posted for passenger: "+child.getChildData().getFirstName()+" "+child.getChildData().getLastName());
+        }
+    }
+
     public void onEventMainThread(JourneyEvent event) {
-        if (D) Log.d(TAG, "Main thread message waypoint event=" + event);
+        if (D) Log.d(TAG, "Main thread message journey received event=" + event);
         markBuses(event.getJourneys());
+    }
+
+    public void onEventMainThread(TicketEvent event) {
+        if (D) Log.d(TAG, "Main thread message ticket received event=" + event);
+        processReceivedTickets(event.getTickets());
     }
 
 /*    public void onEventMainThread(SelectionEvent event) {
@@ -280,7 +323,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         }
 
         Intent ticketIntent = new Intent(this, TicketIntentService.class);
-        ticketIntent.putExtra(Constants.JOURNEY_KEY, this.selectedJourney.getJourneyId());
+        ticketIntent.putExtra(Constants.JOURNEY_ID_KEY, this.selectedJourney.getJourneyId());
         ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
         startService(ticketIntent);
 
@@ -302,7 +345,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         }
 
         Intent ticketIntent = new Intent(this, TicketIntentService.class);
-        ticketIntent.putExtra(Constants.JOURNEY_KEY, bus.getJourneyId());
+        ticketIntent.putExtra(Constants.JOURNEY_ID_KEY, bus.getJourneyId());
         ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
         startService(ticketIntent);*/
 
@@ -310,7 +353,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         Set<Child> children = scuffContext.getCoordinator().getChildren();
 
         Intent intent = new Intent(this, PassengerSelectionActivity.class);
-        intent.putExtra(Constants.JOURNEY_KEY, this.selectedJourney);
+        intent.putExtra(Constants.JOURNEY_ID_KEY, this.selectedJourney);
         intent.putParcelableArrayListExtra(Constants.PASSENGERS_KEY, new ArrayList<Parcelable>(children));
         startActivity(intent);
 
@@ -334,7 +377,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
     @Override
     protected void onRestart() {
         if (D) Log.d(TAG, "onRestart");
-        super.onStart();
+        super.onRestart();
         watchForBuses();
     }
 
@@ -371,7 +414,7 @@ public class PassengerHomeActivity extends BaseFragmentActivity
         }
 
         Intent ticketIntent = new Intent(this, TicketIntentService.class);
-        ticketIntent.putExtra(Constants.JOURNEY_KEY, this.selectedJourney.getJourneyId());
+        ticketIntent.putExtra(Constants.JOURNEY_ID_KEY, this.selectedJourney.getJourneyId());
         ticketIntent.putExtra(Constants.PASSENGERS_KEY, idsOfChildrenTravelling);
         startService(ticketIntent);
 

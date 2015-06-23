@@ -9,12 +9,12 @@ import java.util.Set;
  */
 public interface Constants {
 
+    long JOURNEY_PRE_CREATED_KEY = -1L;
+    long WAYPOINT_PRE_CREATED_KEY = -1L;
+
     long LONG_VALUE_SET_TO_NULL = -1L;
 
     long LONG_COLLECTION_NOT_RETRIEVED = -1L;
     Set<Long> LONG_COLLECTION_NOT_RETRIEVED_PLACEHOLDER = new HashSet<>(Arrays.asList(new Long[] { LONG_COLLECTION_NOT_RETRIEVED }));
-
-    String STRING_COLLECTION_NOT_RETRIEVED = "-1L";
-    Set<String> STRING_COLLECTION_NOT_RETRIEVED_PLACEHOLDER = new HashSet<>(Arrays.asList(new String[]{STRING_COLLECTION_NOT_RETRIEVED}));
 
 }

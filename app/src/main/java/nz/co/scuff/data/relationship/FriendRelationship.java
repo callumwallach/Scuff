@@ -1,8 +1,5 @@
 package nz.co.scuff.data.relationship;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
 import com.activeandroid.annotation.Table;
@@ -13,7 +10,7 @@ import nz.co.scuff.data.base.Coordinator;
  * Created by Callum on 3/05/2015.
  */
 @Table(name="FriendRelationships")
-public class FriendRelationship extends Model implements Parcelable {
+public class FriendRelationship extends Model {
 
     @Column(name = "Coordinator1FK", onDelete= Column.ForeignKeyAction.CASCADE)
     private Coordinator coordinator1;
@@ -48,7 +45,6 @@ public class FriendRelationship extends Model implements Parcelable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         FriendRelationship that = (FriendRelationship) o;
 
@@ -59,8 +55,7 @@ public class FriendRelationship extends Model implements Parcelable {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + coordinator1.hashCode();
+        int result = 31 * coordinator1.hashCode();
         result = 31 * result + coordinator2.hashCode();
         return result;
     }
@@ -72,7 +67,7 @@ public class FriendRelationship extends Model implements Parcelable {
                 ", coordinator2=" + coordinator2.getCoordinatorId() +
                 "} " + super.toString();
     }
-
+/*
     protected FriendRelationship(Parcel in) {
         coordinator1 = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
         coordinator2 = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
@@ -100,6 +95,6 @@ public class FriendRelationship extends Model implements Parcelable {
         public FriendRelationship[] newArray(int size) {
             return new FriendRelationship[size];
         }
-    };
+    };*/
 
 }

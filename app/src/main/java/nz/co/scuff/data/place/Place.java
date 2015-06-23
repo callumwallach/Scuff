@@ -112,7 +112,6 @@ public class Place extends ModifiableEntity implements Snapshotable, Comparable 
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
 
         Place place = (Place) o;
 
@@ -122,14 +121,14 @@ public class Place extends ModifiableEntity implements Snapshotable, Comparable 
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (int) (placeId ^ (placeId >>> 32));
+        int result = 31 * (int) (placeId ^ (placeId >>> 32));
         return result;
     }
 
     @Override
     public int compareTo(Object another) {
         Place that = (Place)another;
+        if (this.equals(that)) return 0;
         return this.name.compareTo(that.name);
     }
 

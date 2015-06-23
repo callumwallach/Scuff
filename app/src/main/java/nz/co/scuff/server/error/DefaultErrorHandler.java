@@ -6,7 +6,6 @@ import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.event.ErrorEvent;
 import retrofit.ErrorHandler;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 /**
  * Created by Callum on 15/05/2015.
@@ -16,8 +15,9 @@ public class DefaultErrorHandler implements ErrorHandler {
     private static final String TAG = "DefaultErrorHandler";
     private static final boolean D = true;
 
-    @Override public Throwable handleError(RetrofitError cause) {
-        if (D) Log.d(TAG, "handleError cause="+cause);
+    @Override
+    public Throwable handleError(RetrofitError cause) {
+        if (D) Log.d(TAG, "handleError cause=" + cause);
 
         /*Response r = cause.getResponse();
         if (r != null) {
@@ -28,7 +28,7 @@ public class DefaultErrorHandler implements ErrorHandler {
                 case PERSON_NOT_FOUND:
                 case SCHOOL_NOT_FOUND:
                 case ROUTE_NOT_FOUND:
-                    ResourceNotFoundException e = new ResourceNotFoundException(body.getMessage(),
+                    ResourceException e = new ResourceException(body.getMessage(),
                             cause, body.getReason(), body.getErrorCode());
                     ErrorEvent event = new ErrorEvent(e);
                     if (D) Log.d(TAG, "posting event="+event);
@@ -39,11 +39,19 @@ public class DefaultErrorHandler implements ErrorHandler {
         }
         return cause;*/
 
-        Response r = cause.getResponse();
-        if (r != null && r.getStatus() == 404) {
-            ResourceNotFoundException exception = new ResourceNotFoundException(cause.getMessage(), cause);
+        if (cause.getResponse() != null && cause.getResponse().getStatus() == 404) {
+            ErrorResponse errorResponse = (ErrorResponse) cause.getBodyAs(ErrorResponse.class);
+            ResourceException exception =
+                    new ResourceException(errorResponse.getMessage(), errorResponse.getReason(), errorResponse.getErrorCode());
             ErrorEvent event = new ErrorEvent(exception);
-            if (D) Log.d(TAG, "posting event="+event);
+            if (D) Log.d(TAG, "posting event=" + event);
+            EventBus.getDefault().post(event);
+            return exception;
+        } else if (cause.getKind() == RetrofitError.Kind.NETWORK) {
+            NetworkException exception =
+                    new NetworkException("Network error", "There was a problem connecting to the Scuff server", ErrorContextCode.NETWORK_ERROR);
+            ErrorEvent event = new ErrorEvent(exception);
+            if (D) Log.d(TAG, "posting event=" + event);
             EventBus.getDefault().post(event);
             return exception;
         }
@@ -63,7 +71,7 @@ public class DefaultErrorHandler implements ErrorHandler {
                     case PERSON_NOT_FOUND:
                     case SCHOOL_NOT_FOUND:
                     case ROUTE_NOT_FOUND:
-                        return new ResourceNotFoundException();
+                        return new ResourceException();
                 }
                 errorDescription = errorResponse.getMessage();
             }

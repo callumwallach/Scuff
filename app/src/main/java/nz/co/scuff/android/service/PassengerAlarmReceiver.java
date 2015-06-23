@@ -18,12 +18,12 @@ public class PassengerAlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (D) Log.d(TAG, "Passenger alarm onReceive");
 
-        long coordinatorId = intent.getExtras().getLong(Constants.COORDINATOR_ID_KEY);
-        ArrayList<String> watchedJourneyIds = intent.getExtras().getStringArrayList(Constants.WATCHED_JOURNEYS_ID_KEY);
+        long coordinatorId = intent.getLongExtra(Constants.COORDINATOR_ID_KEY, -1);
+        ArrayList<Long> watchedJourneyIds = (ArrayList<Long>)intent.getSerializableExtra(Constants.WATCHED_JOURNEYS_ID_KEY);
 
         Intent locationIntent = new Intent(context, PassengerIntentService.class);
         locationIntent.putExtra(Constants.COORDINATOR_ID_KEY, coordinatorId);
-        locationIntent.putStringArrayListExtra(Constants.WATCHED_JOURNEYS_ID_KEY, watchedJourneyIds);
+        locationIntent.putExtra(Constants.WATCHED_JOURNEYS_ID_KEY, watchedJourneyIds);
         context.startService(locationIntent);
     }
 

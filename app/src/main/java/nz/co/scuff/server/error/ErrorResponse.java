@@ -1,12 +1,17 @@
 package nz.co.scuff.server.error;
 
+import com.google.gson.annotations.Expose;
+
 /**
  * Created by Callum on 15/05/2015.
  */
 public class ErrorResponse {
 
+    @Expose
     private String message;
+    @Expose
     private String reason;
+    @Expose
     private ErrorContextCode errorCode;
 
     public ErrorResponse(String message, String reason, ErrorContextCode errorCode) {

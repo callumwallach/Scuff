@@ -8,12 +8,15 @@ import com.activeandroid.annotation.Table;
 import com.activeandroid.query.Select;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.base.ModifiableEntity;
+import nz.co.scuff.data.base.Snapshotable;
 import nz.co.scuff.data.family.snapshot.ChildSnapshot;
 import nz.co.scuff.data.journey.Ticket;
 import nz.co.scuff.data.relationship.ParentalRelationship;
@@ -22,7 +25,7 @@ import nz.co.scuff.data.relationship.ParentalRelationship;
  * Created by Callum on 17/03/2015.
  */
 @Table(name="Children")
-public class Child extends ModifiableEntity {
+public class Child extends ModifiableEntity implements Snapshotable, Comparable {
 
     @Column(name="ChildId")
     protected long childId;
@@ -30,7 +33,7 @@ public class Child extends ModifiableEntity {
     private ChildData childData;
 
     // many to many
-    private List<ParentalRelationship> parents;
+    private Set<ParentalRelationship> parents;
     // one to many
     private SortedSet<Ticket> tickets;
 
@@ -39,8 +42,8 @@ public class Child extends ModifiableEntity {
     public Child(ChildData data) {
         super();
         this.childData = data;
-        this.parents = new ArrayList<>();
-        this.tickets = new TreeSet<>();
+        /*this.parents = new ArrayList<>();
+        this.tickets = new TreeSet<>();*/
     }
 
     public long getChildId() {
@@ -68,19 +71,26 @@ public class Child extends ModifiableEntity {
         return new TreeSet<>(parents);
     }
 
-    public List<ParentalRelationship> getParentRelationships() {
+    public Set<ParentalRelationship> getParentRelationships() {
         if (this.parents == null) {
-            this.parents = new ArrayList<>();
+            List<ParentalRelationship> list = new Select()
+                    .from(ParentalRelationship.class)
+                    .where("ChildFK = ?", getId())
+                    .execute();
+            parents = new HashSet<>(list);
         }
         return parents;
     }
 
-    public void setParents(List<ParentalRelationship> parents) {
+    public void setParents(Set<ParentalRelationship> parents) {
         this.parents = parents;
     }
 
     public SortedSet<Ticket> getTickets() {
-        return new TreeSet<>(getMany(Ticket.class, "ChildFK"));
+        if (this.tickets == null) {
+            this.tickets = new TreeSet<>(getMany(Ticket.class, "ChildFK"));
+        }
+        return tickets;
     }
 
     public void setTickets(SortedSet<Ticket> tickets) {
@@ -96,7 +106,7 @@ public class Child extends ModifiableEntity {
 
     public void refresh(ChildSnapshot snapshot) {
         this.childId = snapshot.getChildId();
-        this.childData = snapshot.getChildData();
+        //this.childData = snapshot.getChildData();
         this.active = snapshot.isActive();
         this.lastModified = snapshot.getLastModified();
     }
@@ -111,6 +121,23 @@ public class Child extends ModifiableEntity {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Child child = (Child) o;
+
+        return childId == child.childId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 31 * (int) (childId ^ (childId >>> 32));
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "Child{" +
                 "childId=" + childId +
@@ -120,17 +147,24 @@ public class Child extends ModifiableEntity {
                 "} " + super.toString();
     }
 
+    @Override
+    public int compareTo(Object another) {
+        Child that = (Child)another;
+        if (this.equals(that)) return 0;
+        return this.childData.compareTo(that.childData);
+    }
+
     protected Child(Parcel in) {
         super(in);
         childId = in.readLong();
         childData = (ChildData) in.readValue(ChildData.class.getClassLoader());
-        if (in.readByte() == 0x01) {
+/*        if (in.readByte() == 0x01) {
             parents = new ArrayList<ParentalRelationship>();
             in.readList(parents, ParentalRelationship.class.getClassLoader());
         } else {
             parents = null;
         }
-        tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+        tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());*/
     }
 
     @Override
@@ -143,13 +177,13 @@ public class Child extends ModifiableEntity {
         super.writeToParcel(dest, flags);
         dest.writeLong(childId);
         dest.writeValue(childData);
-        if (parents == null) {
+/*        if (parents == null) {
             dest.writeByte((byte) (0x00));
         } else {
             dest.writeByte((byte) (0x01));
             dest.writeList(parents);
         }
-        dest.writeValue(tickets);
+        dest.writeValue(tickets);*/
     }
 
     @SuppressWarnings("unused")

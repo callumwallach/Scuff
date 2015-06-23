@@ -24,8 +24,9 @@ import nz.co.scuff.data.relationship.PlaceRelationship;
 import nz.co.scuff.data.util.TrackingState;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -34,6 +35,9 @@ import java.util.TreeSet;
  */
 @Table(name="Coordinators")
 public class Coordinator extends ModifiableEntity implements Snapshotable, Comparable {
+
+    private static final String TAG = "Coordinator";
+    private static final boolean D = true;
 
     public enum CoordinatorType {
         ADULT(0), INSTITUTION(1);
@@ -53,16 +57,16 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     protected long coordinatorId;
 
     @Column(name="LastLogin")
-    private Timestamp lastLogin;
+    private Timestamp lastRefresh;
 
     // one to many
     private SortedSet<Route> routes;
 
     // many to many
-    private List<PlaceRelationship> places;
-    private List<FriendRelationship> friends;
-    private List<JourneyRelationship> pastJourneys;
-    private List<JourneyRelationship> currentJourneys;
+    private Set<PlaceRelationship> places;
+    private Set<FriendRelationship> friends;
+    private Set<JourneyRelationship> pastJourneys;
+    private Set<JourneyRelationship> currentJourneys;
 
     @Column(name="Type")
     protected CoordinatorType type;
@@ -70,46 +74,20 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     // institutions
     @Column(name="InstitutionDataFK")
     private InstitutionData institutionData;
-    /*@Column(name="Name")
-    private String name;*/
 
     // one to many
-    private List<GuidingRelationship> guides;
+    private Set<GuidingRelationship> guides;
 
     // adults
     @Column(name="PersonalDataFK")
     private PersonalData personalData;
-    /*@Column(name="FirstName")
-    private String firstName;
-    @Column(name="MiddleName")
-    private String middleName;
-    @Column(name="LastName")
-    private String lastName;
-    @Column(name="Gender")
-    private PersonalData.Gender gender;
-    @Column(name="Picture")
-    private String picture;
-    @Column(name="Email")
-    private String email;
-    @Column(name="Phone")
-    private String phone;*/
 
     // many to many
-    private List<ParentalRelationship> children;
-    private List<GuidingRelationship> guidees;
+    private Set<ParentalRelationship> children;
+    private Set<GuidingRelationship> guidees;
 
     public Coordinator() {
         super();
-        this.routes = new TreeSet<>();
-        this.places = new ArrayList<>();
-        this.friends = new ArrayList<>();
-        this.pastJourneys = new ArrayList<>();
-        this.currentJourneys = new ArrayList<>();
-        // institutions
-        this.guides = new ArrayList<>();
-        // adults
-        this.children = new ArrayList<>();
-        this.guidees = new ArrayList<>();
     }
 
     public long getCoordinatorId() {
@@ -120,16 +98,19 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         this.coordinatorId = coordinatorId;
     }
 
-    public Timestamp getLastLogin() {
-        return lastLogin;
+    public Timestamp getLastRefresh() {
+        return lastRefresh;
     }
 
-    public void setLastLogin(Timestamp lastLogin) {
-        this.lastLogin = lastLogin;
+    public void setLastRefresh(Timestamp lastRefresh) {
+        this.lastRefresh = lastRefresh;
     }
 
     public SortedSet<Route> getRoutes() {
-        return new TreeSet<>(getMany(Route.class, "OwnerFK"));
+        if (this.routes == null) {
+            this.routes = new TreeSet<>(getMany(Route.class, "OwnerFK"));
+        }
+        return routes;
     }
 
     public void setRoutes(SortedSet<Route> routes) {
@@ -145,32 +126,28 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         return new TreeSet<>(places);
     }
 
-    public List<PlaceRelationship> getPlaceRelationships() {
-        if (places == null) {
-            places = new ArrayList<>();
+    public Set<PlaceRelationship> getPlaceRelationships() {
+        if (this.places == null) {
+            List<PlaceRelationship> list = new Select()
+                    .from(PlaceRelationship.class)
+                    .where("CoordinatorFK = ?", getId())
+                    .execute();
+            this.places = new HashSet<>(list);
         }
-        return places;
+        return this.places;
     }
 
-    public void setPlaces(List<PlaceRelationship> places) {
+    public void setPlaces(Set<PlaceRelationship> places) {
         this.places = places;
     }
 
     public SortedSet<Coordinator> getFriends() {
-/*        String sql = new Select()
-                .from(Coordinator.class)
-                .innerJoin(FriendRelationship.class).on("Coordinators.Id = FriendRelationships.Coordinator1FK")
-                .where("FriendRelationships.Coordinator2FK = ?", getId()).toSql();*/
         List<Coordinator> friends = new Select()
                 .from(Coordinator.class)
                 .innerJoin(FriendRelationship.class).on("Coordinators.Id = FriendRelationships.Coordinator1FK")
                 .where("FriendRelationships.Coordinator2FK = ?", getId())
                 .execute();
         if (friends == null || friends.isEmpty()) {
-/*            sql = new Select()
-                    .from(Coordinator.class)
-                    .innerJoin(FriendRelationship.class).on("Coordinators.Id = FriendRelationships.Coordinator2FK")
-                    .where("FriendRelationships.Coordinator1FK = ?", getId()).toSql();*/
             friends = new Select()
                     .from(Coordinator.class)
                     .innerJoin(FriendRelationship.class).on("Coordinators.Id = FriendRelationships.Coordinator2FK")
@@ -180,14 +157,19 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         return new TreeSet<>(friends);
     }
 
-     public List<FriendRelationship> getFriendRelationships() {
+     public Set<FriendRelationship> getFriendRelationships() {
         if (friends == null) {
-            friends = new ArrayList<>();
+            List<FriendRelationship> list = new Select()
+                    .from(FriendRelationship.class)
+                    .where("Coordinator1FK = ?", getId())
+                    .or("Coordinator2FK = ?", getId())
+                    .execute();
+            friends = new HashSet<>(list);
         }
         return friends;
     }
 
-    public void setFriends(List<FriendRelationship> friends) {
+    public void setFriends(Set<FriendRelationship> friends) {
         this.friends = friends;
     }
 
@@ -201,14 +183,18 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         return new TreeSet<>(journeys);
     }
 
-    public List<JourneyRelationship> getPastJourneyRelationships() {
+    public Set<JourneyRelationship> getPastJourneyRelationships() {
         if (pastJourneys == null) {
-            pastJourneys = new ArrayList<>();
+            List<JourneyRelationship> list = new Select()
+                    .from(JourneyRelationship.class)
+                    .where("CoordinatorFK = ?", getId())
+                    .execute();
+            pastJourneys = new HashSet<>(list);
         }
         return pastJourneys;
     }
 
-    public void setPastJourneys(List<JourneyRelationship> pastJourneys) {
+    public void setPastJourneys(Set<JourneyRelationship> pastJourneys) {
         this.pastJourneys = pastJourneys;
     }
 
@@ -222,14 +208,18 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         return new TreeSet<>(journeys);
     }
 
-    public List<JourneyRelationship> getCurrentJourneyRelationships() {
+    public Set<JourneyRelationship> getCurrentJourneyRelationships() {
         if (currentJourneys == null) {
-            currentJourneys = new ArrayList<>();
+            List<JourneyRelationship> list = new Select()
+                    .from(JourneyRelationship.class)
+                    .where("CoordinatorFK = ?", getId())
+                    .execute();
+            currentJourneys = new HashSet<>(list);
         }
         return currentJourneys;
     }
 
-    public void setCurrentJourneys(List<JourneyRelationship> currentJourneys) {
+    public void setCurrentJourneys(Set<JourneyRelationship> currentJourneys) {
         this.currentJourneys = currentJourneys;
     }
 
@@ -262,14 +252,18 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         return new TreeSet<>(guides);
     }
 
-    public List<GuidingRelationship> getGuideRelationships() {
+    public Set<GuidingRelationship> getGuideRelationships() {
         if (this.guides == null) {
-            this.guides = new ArrayList<>();
+            List<GuidingRelationship> list = new Select()
+                    .from(GuidingRelationship.class)
+                    .where("InstitutionFK = ?", getId())
+                    .execute();
+            guides = new HashSet<>(list);
         }
         return guides;
     }
 
-    public void setGuides(List<GuidingRelationship> guides) {
+    public void setGuides(Set<GuidingRelationship> guides) {
         this.guides = guides;
     }
 
@@ -289,13 +283,17 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         return new TreeSet<>(getManyThrough(Child.class, ParentalRelationship.class, "ChildFK", "AdultFK"));
     }
 
-    public void setChildren(List<ParentalRelationship> children) {
+    public void setChildren(Set<ParentalRelationship> children) {
         this.children = children;
     }
 
-    public List<ParentalRelationship> getChildrenRelationships() {
+    public Set<ParentalRelationship> getChildrenRelationships() {
         if (this.children == null) {
-            this.children = new ArrayList<>();
+            List<ParentalRelationship> list = new Select()
+                    .from(ParentalRelationship.class)
+                    .where("AdultFK = ?", getId())
+                    .execute();
+            children = new HashSet<>(list);
         }
         return children;
     }
@@ -309,13 +307,17 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         return new TreeSet<>(institutions);
     }
 
-    public void setGuidees(List<GuidingRelationship> guidees) {
+    public void setGuidees(Set<GuidingRelationship> guidees) {
         this.guidees = guidees;
     }
 
-    public List<GuidingRelationship> getGuideeRelationships() {
+    public Set<GuidingRelationship> getGuideeRelationships() {
         if (this.guidees == null) {
-            this.guidees = new ArrayList<>();
+            List<GuidingRelationship> list = new Select()
+                    .from(GuidingRelationship.class)
+                    .where("AdultFK = ?", getId())
+                    .execute();
+            guidees = new HashSet<>(list);
         }
         return guidees;
     }
@@ -350,7 +352,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     public void refresh(CoordinatorSnapshot snapshot) {
         this.type = (snapshot instanceof AdultSnapshot) ? CoordinatorType.ADULT : CoordinatorType.INSTITUTION;
         this.coordinatorId = snapshot.getCoordinatorId();
-        this.lastLogin = snapshot.getLastLogin();
+        this.lastRefresh = snapshot.getLastRefresh();
         this.active = snapshot.isActive();
         this.lastModified = snapshot.getLastModified();
     }
@@ -367,7 +369,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
             toReturn = snapshot;
         }
         toReturn.setCoordinatorId(coordinatorId);
-        toReturn.setLastLogin(lastLogin);
+        toReturn.setLastRefresh(lastRefresh);
         toReturn.setActive(active);
         toReturn.setLastModified(lastModified);
         return toReturn;
@@ -417,7 +419,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     public String toString() {
         return "Coordinator{" +
                 "coordinatorId=" + coordinatorId +
-                ", lastLogin=" + lastLogin +
+                ", lastRefresh=" + lastRefresh +
                 ", routes=" + routes +
                 ", places=" + places +
                 ", friends=" + friends +
@@ -435,6 +437,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     @Override
     public int compareTo(Object another) {
         Coordinator that = (Coordinator)another;
+        if (this.equals(that)) return 0;
         if (type == CoordinatorType.ADULT) {
             return this.personalData.compareTo(that.personalData);
         } else {
@@ -445,8 +448,8 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     protected Coordinator(Parcel in) {
         super(in);
         coordinatorId = in.readLong();
-        lastLogin = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
-        routes = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
+        lastRefresh = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+/*        routes = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
         if (in.readByte() == 0x01) {
             places = new ArrayList<PlaceRelationship>();
             in.readList(places, PlaceRelationship.class.getClassLoader());
@@ -470,17 +473,17 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
             in.readList(currentJourneys, JourneyRelationship.class.getClassLoader());
         } else {
             currentJourneys = null;
-        }
+        }*/
         type = (CoordinatorType) in.readValue(CoordinatorType.class.getClassLoader());
         institutionData = (InstitutionData) in.readValue(InstitutionData.class.getClassLoader());
-        if (in.readByte() == 0x01) {
+/*        if (in.readByte() == 0x01) {
             guides = new ArrayList<GuidingRelationship>();
             in.readList(guides, GuidingRelationship.class.getClassLoader());
         } else {
             guides = null;
-        }
+        }*/
         personalData = (PersonalData) in.readValue(PersonalData.class.getClassLoader());
-        if (in.readByte() == 0x01) {
+/*        if (in.readByte() == 0x01) {
             children = new ArrayList<ParentalRelationship>();
             in.readList(children, ParentalRelationship.class.getClassLoader());
         } else {
@@ -491,7 +494,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
             in.readList(guidees, GuidingRelationship.class.getClassLoader());
         } else {
             guidees = null;
-        }
+        }*/
     }
 
     @Override
@@ -503,8 +506,8 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
     public void writeToParcel(Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
         dest.writeLong(coordinatorId);
-        dest.writeValue(lastLogin);
-        dest.writeValue(routes);
+        dest.writeValue(lastRefresh);
+/*        dest.writeValue(routes);
         if (places == null) {
             dest.writeByte((byte) (0x00));
         } else {
@@ -528,17 +531,17 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         } else {
             dest.writeByte((byte) (0x01));
             dest.writeList(currentJourneys);
-        }
+        }*/
         dest.writeValue(type);
         dest.writeValue(institutionData);
-        if (guides == null) {
+/*        if (guides == null) {
             dest.writeByte((byte) (0x00));
         } else {
             dest.writeByte((byte) (0x01));
             dest.writeList(guides);
-        }
+        }*/
         dest.writeValue(personalData);
-        if (children == null) {
+/*        if (children == null) {
             dest.writeByte((byte) (0x00));
         } else {
             dest.writeByte((byte) (0x01));
@@ -549,7 +552,7 @@ public class Coordinator extends ModifiableEntity implements Snapshotable, Compa
         } else {
             dest.writeByte((byte) (0x01));
             dest.writeList(guidees);
-        }
+        }*/
     }
 
     @SuppressWarnings("unused")

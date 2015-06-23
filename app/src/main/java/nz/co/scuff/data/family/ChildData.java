@@ -95,6 +95,14 @@ public class ChildData extends Model implements Comparable, Parcelable {
         this.picture = picture;
     }
 
+    public void refresh(ChildData data) {
+        this.firstName = data.getFirstName();
+        this.middleName = data.getMiddleName();
+        this.lastName = data.getLastName();
+        this.gender = data.getGender();
+        this.picture = data.getPicture();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -125,6 +133,7 @@ public class ChildData extends Model implements Comparable, Parcelable {
         ChildData that = (ChildData)another;
         if (that.lastName == null) return 1;
         if (this.lastName == null) return -1;
+        if (this.equals(that)) return 0;
         int lastNameCompared = this.lastName.compareTo(that.lastName);
         if (lastNameCompared != 0) return lastNameCompared;
         return this.firstName.compareTo(that.firstName);

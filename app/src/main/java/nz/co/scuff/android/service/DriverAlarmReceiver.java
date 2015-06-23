@@ -18,11 +18,11 @@ public class DriverAlarmReceiver extends WakefulBroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (D) Log.d(TAG, "Coordinator alarm onReceive");
 
-        String journeyId = intent.getStringExtra(Constants.JOURNEY_KEY);
+        long journeyId = intent.getLongExtra(Constants.JOURNEY_ID_KEY, -1);
 
         Intent newIntent = new Intent(context, DriverIntentService.class);
         newIntent.putExtra(Constants.JOURNEY_TRACKING_STATE_KEY, TrackingState.RECORDING);
-        newIntent.putExtra(Constants.JOURNEY_KEY, journeyId);
+        newIntent.putExtra(Constants.JOURNEY_ID_KEY, journeyId);
         context.startService(newIntent);
     }
 

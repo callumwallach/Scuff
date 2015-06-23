@@ -143,6 +143,7 @@ public class Route extends ModifiableEntity implements Snapshotable, Comparable 
     @Override
     public int compareTo(Object another) {
         Route other = (Route)another;
+        if (this.equals(other)) return 0;
         return other.name == null ? 1 : this.name.compareTo(other.name);
 
     }
