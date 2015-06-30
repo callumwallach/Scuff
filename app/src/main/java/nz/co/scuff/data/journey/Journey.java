@@ -19,6 +19,7 @@ import nz.co.scuff.data.journey.snapshot.JourneySnapshot;
 import nz.co.scuff.data.institution.Route;
 import nz.co.scuff.data.place.Place;
 import nz.co.scuff.data.util.Constants;
+import nz.co.scuff.data.util.TicketState;
 import nz.co.scuff.data.util.TrackingState;
 
 /**
@@ -64,13 +65,12 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
 
     // relationships
     private SortedSet<Waypoint> waypoints;
-    private SortedSet<Ticket> tickets;
+    private SortedSet<Ticket> issuedTickets;
+    private SortedSet<Ticket> stampedTickets;
 
     public Journey() {
         super();
         this.journeyId = Constants.JOURNEY_PRE_CREATED_KEY;
-        /*this.waypoints = new TreeSet<>();
-        this.tickets = new TreeSet<>();*/
     }
 
     public Journey(JourneySnapshot snapshot) {
@@ -85,9 +85,6 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
 
         this.active = snapshot.isActive();
         this.lastModified = snapshot.getLastModified();
-
-        /*waypoints = new TreeSet<>();
-        tickets = new TreeSet<>();*/
     }
 
     public long getJourneyId() {
@@ -204,7 +201,12 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
 
     public SortedSet<Waypoint> getWaypoints() {
         if (this.waypoints == null) {
-            this.waypoints = new TreeSet<>(getMany(Waypoint.class, "JourneyFK"));
+            List<Waypoint> list = new Select()
+                    .from(Waypoint.class)
+                    .where("JourneyFK = ?", getId())
+                    .orderBy("Created DESC")
+                    .execute();
+            this.waypoints = new TreeSet<>(list);
         }
         return this.waypoints;
     }
@@ -213,23 +215,48 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
         this.waypoints = waypoints;
     }
 
-    public SortedSet<Ticket> getTickets() {
-        if (this.tickets == null) {
-            this.tickets = new TreeSet<>(getMany(Ticket.class, "JourneyFK"));
+    public SortedSet<Ticket> getIssuedTickets() {
+        if (this.issuedTickets == null) {
+            List<Ticket> list = new Select()
+                    .from(Ticket.class)
+                    .where("JourneyFK = ?", getId())
+                    .and("State = ?", TicketState.ISSUED.value())
+                    .orderBy("IssueDate DESC")
+                    .execute();
+            this.issuedTickets = new TreeSet<>(list);
         }
-        return this.tickets;
+        return this.issuedTickets;
     }
 
-    public void setTickets(SortedSet<Ticket> tickets) {
-        this.tickets = tickets;
+    public void setIssuedTickets(SortedSet<Ticket> issuedTickets) {
+        this.issuedTickets = issuedTickets;
     }
 
-    public Waypoint getCurrentWaypoint() {
-        return new Select()
-                .from(Waypoint.class)
-                .where("JourneyFK = ?", getId())
-                .orderBy("Created DESC")
-                .executeSingle();
+    public SortedSet<Ticket> getStampedTickets() {
+        if (this.stampedTickets == null) {
+            List<Ticket> list = new Select()
+                    .from(Ticket.class)
+                    .where("JourneyFK = ?", getId())
+                    .and("State = ?", TicketState.STAMPED.value())
+                    .orderBy("IssueDate DESC")
+                    .execute();
+            this.stampedTickets = new TreeSet<>(list);
+        }
+        return this.stampedTickets;
+    }
+
+    public void setStampedTickets(SortedSet<Ticket> stampedTickets) {
+        this.stampedTickets = stampedTickets;
+    }
+
+    public Ticket getLastTicket() {
+        SortedSet<Ticket> tickets = getIssuedTickets();
+        return tickets.isEmpty() ? null : tickets.last();
+    }
+
+    public Waypoint getLastWaypoint() {
+        SortedSet<Waypoint> waypoints = getWaypoints();
+        return waypoints.isEmpty() ? null : waypoints.last();
     }
 
     public static Journey findById(long journeyId) {
@@ -242,7 +269,7 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
     public static List<Journey> findIncomplete() {
         return new Select()
                 .from(Journey.class)
-                .where("State != ?", TrackingState.COMPLETED)
+                .where("State != ?", TrackingState.COMPLETED.value())
                 .execute();
     }
 
@@ -324,11 +351,21 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
                 ", origin=" + (origin == null ? origin : origin.getPlaceId()) +
                 ", destination=" + (destination == null ? destination : destination.getPlaceId()) +
                 ", waypoints=" + waypoints;
-        s += ", tickets=";
-        if ((tickets == null) || tickets.isEmpty()) {
+        s += ", issuedTickets=";
+        if ((issuedTickets == null) || issuedTickets.isEmpty()) {
             s += "[empty]";
         } else {
-            for (Ticket o : tickets) {
+            for (Ticket o : issuedTickets) {
+                s += " ";
+                s += o.getTicketId();
+            }
+        }
+        s += "} ";
+        s += ", stampedTickets=";
+        if ((stampedTickets == null) || stampedTickets.isEmpty()) {
+            s += "[empty]";
+        } else {
+            for (Ticket o : stampedTickets) {
                 s += " ";
                 s += o.getTicketId();
             }
@@ -353,8 +390,6 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
         guide = (Coordinator) in.readValue(Coordinator.class.getClassLoader());
         origin = (Place) in.readValue(Place.class.getClassLoader());
         destination = (Place) in.readValue(Place.class.getClassLoader());
-/*        waypoints = (SortedSet) in.readValue(SortedSet.class.getClassLoader());
-        tickets = (SortedSet) in.readValue(SortedSet.class.getClassLoader());*/
     }
 
     @Override
@@ -379,8 +414,6 @@ public class Journey extends ModifiableEntity implements Snapshotable, Comparabl
         dest.writeValue(guide);
         dest.writeValue(origin);
         dest.writeValue(destination);
-/*        dest.writeValue(waypoints);
-        dest.writeValue(tickets);*/
     }
 
     @SuppressWarnings("unused")

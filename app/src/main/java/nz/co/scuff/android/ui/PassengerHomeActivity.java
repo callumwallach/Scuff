@@ -245,7 +245,7 @@ public class PassengerHomeActivity extends BaseActionBarActivity
                     default:
                         busIcon = activeBusIcon;
                 }
-                Waypoint waypoint = journey.getCurrentWaypoint();
+                Waypoint waypoint = journey.getLastWaypoint();
                 if (D) Log.d(TAG, "Bus location: journey=" + journey.getJourneyId() + " waypoint=" + waypoint);
                 LatLng busLatlng = new LatLng(waypoint.getLatitude(), waypoint.getLongitude());
                 Marker busMarker = this.googleMap.addMarker(new MarkerOptions()

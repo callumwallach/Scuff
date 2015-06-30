@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.LatLng;
 import org.joda.time.DateTimeUtils;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +33,7 @@ import java.util.Set;
 import de.greenrobot.event.EventBus;
 import nz.co.scuff.android.R;
 import nz.co.scuff.android.data.ScuffDatasource;
+import nz.co.scuff.android.data.TicketQueue;
 import nz.co.scuff.android.event.RecordEvent;
 import nz.co.scuff.android.event.TicketEvent;
 import nz.co.scuff.android.service.DriverAlarmReceiver;
@@ -41,6 +43,7 @@ import nz.co.scuff.android.util.CommandType;
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.institution.Route;
+import nz.co.scuff.data.journey.Stamp;
 import nz.co.scuff.data.journey.Ticket;
 import nz.co.scuff.data.util.TrackingState;
 import nz.co.scuff.data.journey.Journey;
@@ -93,18 +96,16 @@ public class DriverHomeActivity extends BaseActionBarActivity
         initialiseMap();
 
         // TODO check lifecycles and object creation etc
-        /*Route route = scuffContext.getCoordinator1().getScheduledRoute();
-        ((TextView) findViewById(R.id.route_label)).setText("Route: " + route.getName());*/
-
-        //Set<Passenger> children = route.getOwner().getFriends().getPassengers();
-        //Set<Child> children = route.getInstitution().getPassengers();
-
 /*
         // TODO alter to getCoordinator().getFriends().getChildren();
         Set<Child> children = scuffContext.getCoordinator().getChildren();
         ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(children));
         getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();
 */
+/*        Set<Ticket> issuedTickets = journey.getIssuedTickets();
+        Set<Ticket> stampedTickets = journey.getStampedTickets();
+        ChildrenFragment childrenFragment = ChildrenFragment.newInstance(new ArrayList<>(issuedTickets));
+        getSupportFragmentManager().beginTransaction().replace(R.id.mapSlideOver, childrenFragment).commit();*/
 
         // if this.journey == null check database for incomplete journey
         // TODO complete any found or delete them
@@ -378,7 +379,12 @@ public class DriverHomeActivity extends BaseActionBarActivity
             this.receivedTickets.add(ticket);
             Child child = ticket.getChild();
             DialogHelper.toast(this, "Incoming passenger: "+child.getChildData().getFirstName()+" "+child.getChildData().getLastName());
+            stampTicket(ticket);
         }
+    }
+
+    private void stampTicket(Ticket ticket) {
+        TicketQueue.add(ticket.getTicketId());
     }
 
     public void onEventMainThread(RecordEvent event) {

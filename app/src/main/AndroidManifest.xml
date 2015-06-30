@@ -127,13 +127,13 @@
             android:value="AIzaSyCe0FMB85HYFERr1oz53-oqAOUI7y4EGMg" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="nz.co.scuff.data.journey.Stamp,             nz.co.scuff.data.journey.Ticket,             nz.co.scuff.data.journey.Waypoint,             nz.co.scuff.data.journey.Journey,             nz.co.scuff.data.base.Coordinator,             nz.co.scuff.data.family.Child,             nz.co.scuff.data.family.ChildData,             nz.co.scuff.data.family.PersonalData,             nz.co.scuff.data.place.Place,             nz.co.scuff.data.institution.Route,             nz.co.scuff.data.institution.InstitutionData,             nz.co.scuff.data.relationship.ParentalRelationship,             nz.co.scuff.data.relationship.GuidingRelationship,             nz.co.scuff.data.relationship.FriendRelationship,             nz.co.scuff.data.relationship.JourneyRelationship,             nz.co.scuff.data.relationship.PlaceRelationship" />
+            android:value="nz.co.scuff.android.data.TicketQueueItem, nz.co.scuff.data.journey.Stamp,             nz.co.scuff.data.journey.Ticket,             nz.co.scuff.data.journey.Waypoint,             nz.co.scuff.data.journey.Journey,             nz.co.scuff.data.base.Coordinator,             nz.co.scuff.data.family.Child,             nz.co.scuff.data.family.ChildData,             nz.co.scuff.data.family.PersonalData,             nz.co.scuff.data.place.Place,             nz.co.scuff.data.institution.Route,             nz.co.scuff.data.institution.InstitutionData,             nz.co.scuff.data.relationship.ParentalRelationship,             nz.co.scuff.data.relationship.GuidingRelationship,             nz.co.scuff.data.relationship.FriendRelationship,             nz.co.scuff.data.relationship.JourneyRelationship,             nz.co.scuff.data.relationship.PlaceRelationship" />
         <meta-data
             android:name="AA_DB_NAME"
             android:value="Scuff.db" />
         <meta-data
             android:name="AA_DB_VERSION"
-            android:value="45" />
+            android:value="47" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="nz.co.scuff.android.util.TimestampSerializer" />

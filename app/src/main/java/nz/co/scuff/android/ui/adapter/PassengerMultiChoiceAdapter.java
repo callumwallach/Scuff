@@ -89,7 +89,7 @@ public class PassengerMultiChoiceAdapter extends MultiChoiceBaseAdapter {
     @Override
     protected View getViewImpl(int position, View convertView, ViewGroup parent) {
 
-        if (convertView == null) {
+        /*if (convertView == null) {
             int layout = R.layout.grid_item;
             LayoutInflater inflater = LayoutInflater.from(getContext());
             convertView = inflater.inflate(layout, parent, false);
@@ -108,14 +108,15 @@ public class PassengerMultiChoiceAdapter extends MultiChoiceBaseAdapter {
                     ctx.getResources().getDrawable(R.drawable.male_blank_icon) : ctx.getResources().getDrawable(R.drawable.female_blank_icon);
         }
         imageView.setImageDrawable(profilePix);
-        return imageView;
+        return imageView;*/
 
-        /*View row = convertView;
+        View row = convertView;
         ViewHolder holder;
 
         if (row == null) {
+            int layout = R.layout.select_passenger_grid;
             LayoutInflater inflater = LayoutInflater.from(getContext());
-            row = inflater.inflate(R.layout.select_passenger_grid, parent, false);
+            row = inflater.inflate(layout, parent, false);
             holder = new ViewHolder();
             holder.imageTitle = (TextView) row.findViewById(R.id.text);
             holder.image = (ImageView) row.findViewById(R.id.image);
@@ -124,20 +125,22 @@ public class PassengerMultiChoiceAdapter extends MultiChoiceBaseAdapter {
             holder = (ViewHolder) row.getTag();
         }
 
-        Passenger passenger = passengers.get(position);
-        holder.imageTitle.setText(passenger.getFirstName());
+        Child child = getItem(position);
+        Context ctx = ScuffApplication.getContext();
         Drawable profilePix;
-        if (passenger.getPicture() != null) {
+        if (child.getChildData().getPicture() != null) {
             // load from disk
-            String fileLocation = getContext().getFilesDir() + "/" + passenger.getPicture();
+            String fileLocation = ctx.getFilesDir() + "/" + child.getChildData().getPicture();
             profilePix = Drawable.createFromPath(fileLocation);
         } else {
             // default images based on gender
-            profilePix = passenger.getGender() == Person.Gender.MALE ?
-                    getContext().getResources().getDrawable(R.drawable.male_blank_icon) : getContext().getResources().getDrawable(R.drawable.female_blank_icon);
+            profilePix = child.getChildData().getGender() == ChildData.Gender.MALE ?
+                    ctx.getResources().getDrawable(R.drawable.male_blank_icon) : ctx.getResources().getDrawable(R.drawable.female_blank_icon);
         }
         holder.image.setImageDrawable(profilePix);
-        return row;*/
+        holder.imageTitle.setText(child.getChildData().getFirstName()+" "+child.getChildData().getLastName());
+        return row;
+
     }
 
     static class ViewHolder {

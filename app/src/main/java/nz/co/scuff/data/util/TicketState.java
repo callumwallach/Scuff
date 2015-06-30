@@ -1,15 +1,15 @@
 package nz.co.scuff.data.util;
 
 /**
- * Created by Callum on 28/04/2015.
+ * Created by Callum on 29/04/2015.
  */
-public enum TrackingState {
+public enum TicketState {
 
-    RECORDING(0), PAUSED(1), COMPLETED(2);
+    ISSUED(0), RECEIVED(1), STAMPED(2);
 
     private final int value;
 
-    TrackingState(int value) {
+    TicketState(int value) {
         this.value = value;
     }
 

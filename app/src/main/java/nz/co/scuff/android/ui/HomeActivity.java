@@ -77,7 +77,7 @@ public class HomeActivity extends BaseActivity {
             // TODO user name from accounts
             int resultCode = -1;
             try {
-                Coordinator coordinator = ScuffDatasource.getUser("callum@gmail.com");
+                Coordinator coordinator = ScuffDatasource.getUser("christine@gmail.com");
                 ((ScuffApplication) getApplicationContext()).setCoordinator(coordinator);
                 resultCode = 1;
             } catch (ResourceException re) {

@@ -13,6 +13,7 @@ import nz.co.scuff.data.base.ModifiableEntity;
 import nz.co.scuff.data.base.Snapshotable;
 import nz.co.scuff.data.family.Child;
 import nz.co.scuff.data.journey.snapshot.TicketSnapshot;
+import nz.co.scuff.data.util.TicketState;
 
 /**
  * Created by Callum on 10/05/2015.
@@ -24,6 +25,8 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
     private long ticketId;
     @Column(name="IssueDate")
     private Timestamp issueDate;
+    @Column(name="State")
+    private TicketState state;
 
     @Column(name="Stamp")
     private Stamp stamp;
@@ -40,6 +43,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
         super();
         this.ticketId = snapshot.getTicketId();
         this.issueDate = snapshot.getIssueDate();
+        this.state = snapshot.getState();
     }
 
     public long getTicketId() {
@@ -48,6 +52,22 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
 
     public void setTicketId(long ticketId) {
         this.ticketId = ticketId;
+    }
+
+    public Timestamp getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(Timestamp issueDate) {
+        this.issueDate = issueDate;
+    }
+
+    public TicketState getState() {
+        return state;
+    }
+
+    public void setState(TicketState state) {
+        this.state = state;
     }
 
     public Journey getJourney() {
@@ -64,14 +84,6 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
 
     public void setChild(Child child) {
         this.child = child;
-    }
-
-    public Timestamp getIssueDate() {
-        return issueDate;
-    }
-
-    public void setIssueDate(Timestamp issueDate) {
-        this.issueDate = issueDate;
     }
 
     public Stamp getStamp() {
@@ -92,6 +104,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
     public void refresh(TicketSnapshot snapshot) {
         this.ticketId = snapshot.getTicketId();
         this.issueDate = snapshot.getIssueDate();
+        this.state = snapshot.getState();
         this.active = snapshot.isActive();
         this.lastModified = snapshot.getLastModified();
     }
@@ -100,6 +113,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
         TicketSnapshot snapshot = new TicketSnapshot();
         snapshot.setTicketId(this.ticketId);
         snapshot.setIssueDate(this.issueDate);
+        snapshot.setState(this.state);
         snapshot.setStampId(this.stamp.getStampId());
         snapshot.setJourneyId(this.journey.getJourneyId());
         snapshot.setChildId(this.child.getChildId());
@@ -128,6 +142,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
         return "Ticket{" +
                 "ticketId='" + ticketId + '\'' +
                 ", issueDate=" + issueDate +
+                ", state=" + state +
                 ", stamp=" + stamp +
                 ", journey=" + (journey == null ? journey : journey.getJourneyId()) +
                 ", child=" + (child == null ? child : child.getChildId()) +
@@ -145,6 +160,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
         super(in);
         ticketId = in.readLong();
         issueDate = (Timestamp) in.readValue(Timestamp.class.getClassLoader());
+        state = (TicketState) in.readValue(TicketState.class.getClassLoader());
         stamp = (Stamp) in.readValue(Stamp.class.getClassLoader());
         journey = (Journey) in.readValue(Journey.class.getClassLoader());
         child = (Child) in.readValue(Child.class.getClassLoader());
@@ -160,6 +176,7 @@ public class Ticket extends ModifiableEntity implements Snapshotable, Comparable
         super.writeToParcel(dest, flags);
         dest.writeLong(ticketId);
         dest.writeValue(issueDate);
+        dest.writeValue(state);
         dest.writeValue(stamp);
         dest.writeValue(journey);
         dest.writeValue(child);

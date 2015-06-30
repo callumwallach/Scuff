@@ -56,7 +56,7 @@ public class Stamp extends Model implements Parcelable {
         return longitude;
     }
 
-    public void setLongitude(long longitude) {
+    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 

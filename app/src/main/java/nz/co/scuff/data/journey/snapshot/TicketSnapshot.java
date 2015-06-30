@@ -5,6 +5,7 @@ import com.google.gson.annotations.Expose;
 import java.sql.Timestamp;
 
 import nz.co.scuff.data.base.snapshot.ModifiableSnapshot;
+import nz.co.scuff.data.util.TicketState;
 
 /**
  * Created by Callum on 10/05/2015.
@@ -15,6 +16,8 @@ public class TicketSnapshot extends ModifiableSnapshot {
     private long ticketId;
     @Expose
     private Timestamp issueDate;
+    @Expose
+    private TicketState state;
 
     @Expose
     private long stampId;
@@ -33,6 +36,30 @@ public class TicketSnapshot extends ModifiableSnapshot {
         this.ticketId = ticketId;
     }
 
+    public Timestamp getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(Timestamp issueDate) {
+        this.issueDate = issueDate;
+    }
+
+    public TicketState getState() {
+        return state;
+    }
+
+    public void setState(TicketState state) {
+        this.state = state;
+    }
+
+    public long getStampId() {
+        return stampId;
+    }
+
+    public void setStampId(long stampId) {
+        this.stampId = stampId;
+    }
+
     public long getJourneyId() {
         return journeyId;
     }
@@ -47,22 +74,6 @@ public class TicketSnapshot extends ModifiableSnapshot {
 
     public void setChildId(long childId) {
         this.childId = childId;
-    }
-
-    public Timestamp getIssueDate() {
-        return issueDate;
-    }
-
-    public void setIssueDate(Timestamp issueDate) {
-        this.issueDate = issueDate;
-    }
-
-    public long getStampId() {
-        return stampId;
-    }
-
-    public void setStampId(long stampId) {
-        this.stampId = stampId;
     }
 
     @Override
@@ -81,18 +92,13 @@ public class TicketSnapshot extends ModifiableSnapshot {
         return (int) (ticketId ^ (ticketId >>> 32));
     }
 
-/*    @Override
-    public int compareTo(Object another) {
-        TicketSnapshot other = (TicketSnapshot) another;
-        return this.issueDate.compareTo(other.issueDate);
-    }*/
-
     @Override
     public String toString() {
         return "TicketSnapshot{" +
                 "ticketId=" + ticketId +
                 ", issueDate=" + issueDate +
                 ", stampId=" + stampId +
+                ", state=" + state +
                 ", journeyId='" + journeyId + '\'' +
                 ", childId=" + childId +
                 "} " + super.toString();

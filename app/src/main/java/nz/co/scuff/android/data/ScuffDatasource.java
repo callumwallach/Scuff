@@ -22,6 +22,7 @@ import nz.co.scuff.android.event.RecordEvent;
 import nz.co.scuff.android.event.TicketEvent;
 import nz.co.scuff.android.util.Constants;
 import nz.co.scuff.android.util.ScuffApplication;
+import nz.co.scuff.data.util.TicketState;
 import nz.co.scuff.server.ServerInterfaceGenerator;
 import nz.co.scuff.data.base.Coordinator;
 import nz.co.scuff.data.base.snapshot.CoordinatorSnapshot;
@@ -144,7 +145,7 @@ public final class ScuffDatasource {
         Journey journey = Journey.findById(journeyId);
 
         // update journey with new waypoint
-        Waypoint lastWaypoint = journey.getCurrentWaypoint();
+        Waypoint lastWaypoint = journey.getLastWaypoint();
         Waypoint newWaypoint = new Waypoint(calculateDistance(location, lastWaypoint),
                 calculateTimeSince(lastWaypoint), TrackingState.PAUSED, location);
         // save waypoint
@@ -168,8 +169,11 @@ public final class ScuffDatasource {
         outgoingData.getJourneySnapshots().put(journeySnapshot.getJourneyId(), journeySnapshot);
         outgoingData.getWaypointSnapshots().put(waypointSnapshot.getWaypointId(), waypointSnapshot);
 
+        Ticket lastTicket = journey.getLastTicket();
+        long lastTicketTime = lastTicket == null ? 0 : lastTicket.getIssueDate().getTime();
+
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), outgoingData, new Callback<DataPacket>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), lastTicketTime, outgoingData, new Callback<DataPacket>() {
             @Override
             public void success(DataPacket incomingData, Response response) {
                 if (D) Log.d(TAG, "Pause journey SUCCESS code=" + response.getStatus());
@@ -212,8 +216,11 @@ public final class ScuffDatasource {
         outgoingData.getJourneySnapshots().put(journeySnapshot.getJourneyId(), journeySnapshot);
         outgoingData.getWaypointSnapshots().put(waypointSnapshot.getWaypointId(), waypointSnapshot);
 
+        Ticket lastTicket = journey.getLastTicket();
+        long lastTicketTime = lastTicket == null ? 0 : lastTicket.getIssueDate().getTime();
+
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), outgoingData, new Callback<DataPacket>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), lastTicketTime, outgoingData, new Callback<DataPacket>() {
             @Override
             public void success(DataPacket incomingData, Response response) {
                 if (D) Log.d(TAG, "Continue journey SUCCESS code=" + response.getStatus());
@@ -237,7 +244,7 @@ public final class ScuffDatasource {
         Journey journey = Journey.findById(journeyId);
 
         // update journey with new waypoint
-        Waypoint lastWaypoint = journey.getCurrentWaypoint();
+        Waypoint lastWaypoint = journey.getLastWaypoint();
         Waypoint newWaypoint = new Waypoint(calculateDistance(location, lastWaypoint),
                 calculateTimeSince(lastWaypoint), TrackingState.COMPLETED, location);
         newWaypoint.setJourney(journey);
@@ -261,8 +268,11 @@ public final class ScuffDatasource {
         outgoingData.getJourneySnapshots().put(journeySnapshot.getJourneyId(), journeySnapshot);
         outgoingData.getWaypointSnapshots().put(waypointSnapshot.getWaypointId(), waypointSnapshot);
 
+        Ticket lastTicket = journey.getLastTicket();
+        long lastTicketTime = lastTicket == null ? 0 : lastTicket.getIssueDate().getTime();
+
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), outgoingData, new Callback<DataPacket>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), lastTicketTime, outgoingData, new Callback<DataPacket>() {
             @Override
             public void success(DataPacket incomingData, Response response) {
                 if (D) Log.d(TAG, "Stop journey SUCCESS code=" + response.getStatus());
@@ -285,7 +295,7 @@ public final class ScuffDatasource {
         Journey journey = Journey.findById(journeyId);
 
         // update journey with new waypoint
-        Waypoint lastWaypoint = journey.getCurrentWaypoint();
+        Waypoint lastWaypoint = journey.getLastWaypoint();
         // TODO date is wrong as was created on the server and now updated on client
         Waypoint newWaypoint = new Waypoint(calculateDistance(location, lastWaypoint),
                 calculateTimeSince(lastWaypoint), TrackingState.RECORDING, location);
@@ -307,17 +317,38 @@ public final class ScuffDatasource {
         journeySnapshot.getWaypointIds().add(waypointSnapshot.getWaypointId());
 
         DataPacket outgoingData = new DataPacket();
+
+        Set<Long> ticketIds = TicketQueue.remove();
+        for (long ticketId : ticketIds) {
+            Ticket ticket = Ticket.findById(ticketId);
+            //Stamp stamp = Stamp.findById(ticketId);
+            Stamp stamp = new Stamp();
+            stamp.setStampId(ticket.getId());
+            stamp.setLatitude(location.getLatitude());
+            stamp.setLongitude(location.getLongitude());
+            stamp.setStampDate(new Timestamp(System.currentTimeMillis()));
+            stamp.save();
+            ticket.setStamp(stamp);
+            ticket.setState(TicketState.STAMPED);
+            ticket.save();
+            journeySnapshot.getStampedTicketIds().add(ticket.getTicketId());
+            outgoingData.getStampSnapshots().put(stamp.getStampId(), stamp.toSnapshot());
+        }
+
         outgoingData.getJourneySnapshots().put(journeySnapshot.getJourneyId(), journeySnapshot);
         outgoingData.getWaypointSnapshots().put(waypointSnapshot.getWaypointId(), waypointSnapshot);
 
+        Ticket lastTicket = journey.getLastTicket();
+        long lastTicketTime = lastTicket == null ? 0 : lastTicket.getIssueDate().getTime();
+
         ScuffServerInterface client = ServerInterfaceGenerator.createService(ScuffServerInterface.class, Constants.SERVER_URL);
-        client.updateJourney(journeySnapshot.getJourneyId(), outgoingData, new Callback<DataPacket>() {
+        client.updateJourney(journeySnapshot.getJourneyId(), lastTicketTime, outgoingData, new Callback<DataPacket>() {
             @Override
             public void success(DataPacket incomingData, Response response) {
                 if (D) Log.d(TAG, "Record journey SUCCESS code=" + response.getStatus());
                 // should only be children and tickets
                 Map<String, Map> organisedData = syncData(incomingData);
-                // pass on tickets if any retrieved
+                // process tickets if any retrieved (these will be ack back to server during next recordJourney)
                 Map<Long, Ticket> receivedTickets = organisedData.get(TI);
                 if (receivedTickets != null) {
                     // refresh cached journey
@@ -685,7 +716,10 @@ public final class ScuffDatasource {
         // JOURNEY
         Journey journey = getJourney(incomingData.getJourneyId(), caches);
         existingData.setJourney(journey);
-        if (journey.getTickets().add(existingData)) {
+        if (journey.getIssuedTickets().add(existingData)) {
+            journey.save();
+        }
+        if (journey.getStampedTickets().add(existingData)) {
             journey.save();
         }
         // CHILD
@@ -724,26 +758,23 @@ public final class ScuffDatasource {
                 }
             }
         }
-        // TICKETS
-        Set<Long> incomingTicketIds = incomingData.getTicketIds();
-        if (!incomingTicketIds.contains(nz.co.scuff.data.util.Constants.LONG_COLLECTION_NOT_RETRIEVED)) {
-            Iterator itr = existingData.getTickets().iterator();
-            while (itr.hasNext()) {
-                Ticket ticket = (Ticket) itr.next();
-                if (!incomingTicketIds.contains(ticket.getTicketId())) {
-                    itr.remove();
-                    ticket.delete();
-                }
-            }
-            for (long id : incomingTicketIds) {
+        // ISSUED -> RECEIVED TICKETS
+        Set<Long> incomingIssuedTicketIds = incomingData.getIssuedTicketIds();
+        if (!incomingIssuedTicketIds.contains(nz.co.scuff.data.util.Constants.LONG_COLLECTION_NOT_RETRIEVED)) {
+            for (long id : incomingIssuedTicketIds) {
                 Ticket cached = getTicket(id, caches);
-                if (!existingData.getTickets().contains(cached)) {
-                    existingData.getTickets().add(cached);
+                if (!existingData.getIssuedTickets().contains(cached)) {
+                    existingData.getIssuedTickets().add(cached);
                     cached.setJourney(existingData);
+                    // update state of ticket as received
+                    cached.setState(TicketState.RECEIVED);
                     cached.save();
                 }
             }
         }
+        // STAMPED TICKETS are handled directly by client
+        // TODO add stamped tickets update???
+
         // CURRENT JOURNEYS
         /*
         Set<String> incomingJourneyIds = incomingData.getCurrentJourneyIds();

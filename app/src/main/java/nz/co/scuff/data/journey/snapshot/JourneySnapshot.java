@@ -49,12 +49,15 @@ public class JourneySnapshot extends ModifiableSnapshot {
     @Expose
     private Set<Long> waypointIds;
     @Expose
-    private Set<Long> ticketIds;
+    private Set<Long> issuedTicketIds;
+    @Expose
+    private Set<Long> stampedTicketIds;
 
     public JourneySnapshot() {
         super();
         waypointIds = new HashSet<>();
-        ticketIds = new HashSet<>();
+        issuedTicketIds = new HashSet<>();
+        stampedTicketIds = new HashSet<>();
     }
 
     public long getJourneyId() {
@@ -177,12 +180,20 @@ public class JourneySnapshot extends ModifiableSnapshot {
         this.waypointIds = waypointIds;
     }
 
-    public Set<Long> getTicketIds() {
-        return ticketIds;
+    public Set<Long> getIssuedTicketIds() {
+        return issuedTicketIds;
     }
 
-    public void setTicketIds(Set<Long> ticketIds) {
-        this.ticketIds = ticketIds;
+    public void setIssuedTicketIds(Set<Long> issuedTicketIds) {
+        this.issuedTicketIds = issuedTicketIds;
+    }
+
+    public Set<Long> getStampedTicketIds() {
+        return stampedTicketIds;
+    }
+
+    public void setStampedTicketIds(Set<Long> stampedTicketIds) {
+        this.stampedTicketIds = stampedTicketIds;
     }
 
     @Override
@@ -219,7 +230,8 @@ public class JourneySnapshot extends ModifiableSnapshot {
                 ", destinationId=" + destinationId +
                 ", routeId=" + routeId +
                 ", waypointIds=" + waypointIds +
-                ", ticketIds=" + ticketIds +
+                ", issuedTicketIds=" + issuedTicketIds +
+                ", stampedTicketIds=" + stampedTicketIds +
                 '}';
     }
 }

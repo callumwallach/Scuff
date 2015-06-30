@@ -20,14 +20,20 @@ public interface ScuffServerInterface {
 
     // driving
     @POST("/driving/journeys")
-    void startJourney(@Body DataPacket packet, Callback<DataPacket> cb);
+    void startJourney(@Body DataPacket packet,
+                      Callback<DataPacket> cb);
 
     @PUT("/driving/journeys/{id}")
-    void updateJourney(@Path("id") long journeyId, @Body DataPacket packet, Callback<DataPacket> cb);
+    void updateJourney(@Path("id") long journeyId,
+                       @Query("lastTicket") long lastTicket,
+                       @Body DataPacket packet,
+                       Callback<DataPacket> cb);
 
     // walking
     @GET("/walking/journeys")
-    DataPacket getJourneys(@Query("adultId") long adultId, @Query("watchedIds[]") List<Long> watchedIds, @Query("active") boolean active);
+    DataPacket getJourneys(@Query("adultId") long adultId,
+                           @Query("watchedIds[]") List<Long> watchedIds,
+                           @Query("active") boolean active);
 
     /*@GET("/walking/buses")
     List<BusSnapshot> getActiveBuses(@Query("routeId") long routeId, @Query("schoolId") long schoolId);*/
@@ -38,14 +44,16 @@ public interface ScuffServerInterface {
 */
 
     @POST("/walking/journeys/{id}/tickets")
-    DataPacket issueTickets(@Path("id") long journeyId, @Body List<Long> childIds) throws ResourceException;
+    DataPacket issueTickets(@Path("id") long journeyId,
+                            @Body List<Long> childIds) throws ResourceException;
 
     /*@POST("/walking/buses/{id}/tickets")
     List<TicketSnapshot> issueTickets(@Path("id") String journeyId, @Body List<Long> passengerIds) throws ResourceException;*/
 
     // accounts
     @GET("/account/drivers/{email}")
-    DataPacket getDriver(@Path("email") String email, @Query("lastChecked") long lastChecked) throws ResourceException;
+    DataPacket getDriver(@Path("email") String email,
+                         @Query("lastChecked") long lastChecked) throws ResourceException;
 
 /*
     @GET("/account/schools")
@@ -55,6 +63,7 @@ public interface ScuffServerInterface {
     // registration
 
     @POST("/register")
-    void postRegistration(@Body DataPacket packet, Callback<Response> cb);
+    void postRegistration(@Body DataPacket packet,
+                          Callback<Response> cb);
 
 }
